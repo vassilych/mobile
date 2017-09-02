@@ -1,0 +1,208 @@
+﻿function test() {
+  return 1;
+}
+if (test()>0) { print("OK");}
+else {print("bad");}
+
+clicks = 0;
+function click(sender, arg) {
+  clicks++;
+  title = CallNative("ProcessClick", "arg", clicks);
+  SetText(sender, title);
+
+  SetFontSize(sender, 10);
+  //SetSize(sender, w + 10, h + 10);
+  //SetOptions(sender, "multiline");
+}
+
+function img_click(sender, arg) {
+  imgIndex++;
+  total = size(images);
+  if (imgIndex >= total) {
+    imgIndex = 0;
+  }
+  SetImage(buttonCenter, images[imgIndex]);
+
+  HideView(labelTrans);
+  ShowView(buttonTrans);
+
+}
+function trans_click(sender, arg) {
+  HideView(buttonTrans);
+  ShowView(labelTrans);
+  SetText(labelTrans, translations[imgIndex]);
+  SetImage(buttonCenter, images[imgIndex]);
+}
+
+sound_clicks = 0;
+function sound_click(sender, arg) {
+  sound_clicks++;
+  if (sound_clicks % 2 == 0) {
+    enable_sound();
+  } else {
+    disable_sound();
+  }
+}
+function enable_sound() {
+    SetText(buttonCenterLeft, "Sound On");
+    SetImage(imgView, "sound_on");
+    SetValue(switch, 1);
+}
+function disable_sound() {
+    SetText(buttonCenterLeft, "Sound Off");
+    SetImage(imgView, "sound_off");
+    SetValue(switch, 0);
+}
+function slider_change(sender, arg) {
+   if (GetValue(slider) > 1) {
+      enable_sound();
+   } else {
+      disable_sound();
+   }
+}
+
+function pickerMove(row) {
+  //SetBackgroundColor("root", data[row]);
+  SetBackground(countryImages[row]);
+}
+imgIndex = 0;
+images = {"dog.png", "monkey.png", "actor.png", "apple.png", "abdomen.png", "angry.png", "airport.png", "ancient.png", "apartment.png"};
+translations = {"el perro", "el chango", "el actor", "la manzana", "el vientre", "enojada", "el aeropuerto", "antiguo", "el apartamento"};
+
+country = 0;
+countryImages = {"us_bg", "gb_bg", "de_bg", "ch_bg", "ru_bg", "mx_bg", "es_bg", 
+                 "br_bg", "fr_bg", "it_bg", "cn_bg", "jp_bg", "ar_bg"};
+countries = {"English US", "English", "Deutsch", "Deutsch CH", "Русский", "Español MX", "Español", 
+             "Português BR", "Français", "Italiano", "中文", "日本語", "العربية"};
+
+//--------------------------------------------------
+AddTab("Learn", "learn.png", "learn2.png");
+//--------------------------------------------------
+function changeme_click(sender, arg) {
+  SetText(sender, GetText(textChangeme));
+  SetText(versionLabel, _VERSION_ + ". Size: " +
+          DisplayWidth + "x" + DisplayHeight);
+}
+
+//AddTab("Learn", "learn.png", "learn2.png");
+SetBackground("ch_bg.png");
+
+// This is what you do to add a widget inside of another view:
+//locBR = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM");
+//AddView(locBR, "myview", "", 600, 160);
+//locLeft = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20, 0, myview);
+
+locLeft = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20, 0);
+AddButton(locLeft, "buttonChangeme", "Change me", 260, 80);
+AddAction(buttonChangeme,  "changeme_click");
+SetFontSize(buttonChangeme, 12);
+
+if (_IOS_) {
+  hint = "Hello, iPhone user"
+} elif (_ANDROID_) {
+  hint = "Hello, Android user"
+} else {
+  hint = "Hello, Windows user"
+}
+locLeftRight = GetLocation(buttonChangeme, "RIGHT", buttonChangeme, "CENTER", 40, 0);
+AddTextEdit(locLeftRight, "textChangeme", hint, 260, 60);
+SetFontSize(textChangeme, 12);
+
+locAbove = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP");
+AddLabel(locAbove, "versionLabel", "", 560, 60);
+
+//--------------------------------------------------
+AddTab("Quiz", "test.png", "test2.png");
+//--------------------------------------------------
+
+w        = 220;
+h        = 78;
+margin   = 10;
+fontSize = 14;
+
+locCenter = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
+AddButton(locCenter, "buttonCenter", "", 200, 200);
+SetImage(buttonCenter,  "actor.png");
+AddAction(buttonCenter,  "img_click");
+
+locTrans = GetLocation("ROOT", "CENTER", "buttonCenter", "BOTTOM", 0, margin);
+AddButton(locTrans, "buttonTrans", "Translate", 200, 80);
+AddAction(buttonTrans,  "trans_click");
+AddBorder(buttonTrans, 0, 0);
+
+AddLabel(locTrans, "labelTrans", "", 240, 80);
+AlignText(labelTrans, "center");
+
+locCenterLT = GetLocation(buttonCenter, "ALIGN_LEFT", buttonCenter, "TOP", 0, -1 * margin);
+AddButton(locCenterLT, "buttonCenterLT", "lt", 85, 85);
+locCenterRT = GetLocation(buttonCenter, "ALIGN_RIGHT", buttonCenterLT, "TOP", 0, margin);
+AddButton(locCenterRT, "buttonCenterRT", "rt", 85, 85);
+locCenterRT2 = GetLocation(buttonCenterRT, "RIGHT", buttonCenterRT, "CENTER", 2, 0);
+AddButton(locCenterRT2, "buttonCenterRT2", "rt2", 120, 120);
+locCenterRT3 = GetLocation(buttonCenterRT2, "CENTER", buttonCenterRT2, "TOP", 0, -5);
+AddButton(locCenterRT3, "buttonCenterRT3", "r", 68, 68);
+
+locCenterTL = GetLocation(buttonCenter, "LEFT", buttonCenter, "ALIGN_TOP", -1 * margin, 0);
+AddButton(locCenterTL, "buttonCenterTL", "tl", 85, 85);
+locCenterBR = GetLocation(buttonCenter, "RIGHT", buttonCenter, "ALIGN_BOTTOM", margin, 0);
+AddButton(locCenterBR, "buttonCenterBR", "br", 85, 85);
+
+loc1 = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM");
+AddButton(loc1, "button1", "Left", w, h);
+AddAction(button1,  "click");
+SetFontSize(button1, fontSize);
+
+loc2 = GetLocation("button1", "RIGHT", "ROOT", "BOTTOM");
+AddButton(loc2, "button2", "Right", w, h);
+AddAction(button2,  "click");
+SetFontSize(button2, fontSize);
+
+loc3 = GetLocation("button2", "RIGHT", "button2", "TOP");
+AddButton(loc3, "button3", "RelRight", w, h);
+AddAction(button3,  "click");
+SetFontSize(button3, fontSize);
+
+loc4 = GetLocation("ROOT", "CENTER", "ROOT", "TOP");
+AddButton(loc4, "button4", "TopCenter", w, h);
+AddAction(button4,  "click");
+SetFontSize(button4, fontSize);
+
+loc5 = GetLocation("button4", "LEFT", "ROOT", "TOP");
+AddButton(loc5, "button5", "TopLeftCenter", w + 10, h);
+AddAction(button5,  "click");
+SetFontSize(button5, fontSize);
+
+loc6 = GetLocation("button4", "RIGHT", "button5", "BOTTOM", -1.5 * w, 0);
+AddButton(loc6, "button6", "BelowRight", w, h);
+AddAction(button6,  "click");
+SetFontSize(button6, fontSize);
+
+//--------------------------------------------------
+AddTab("Settings", "settings.png", "settings2.png");
+//--------------------------------------------------
+
+locPicker = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20);
+AddWidget("TypePicker", locPicker, "pickerColor", "Picker", 380, 280);
+//data = {"red", "blue", "green", "brown", "yellow", "rose", "purple", "orange", "gray", "cyan"};
+AddWidgetData(pickerColor, countries, "pickerMove");
+pickerMove(0);
+
+locCenterLeft = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -100, 0);
+AddButton(locCenterLeft, "buttonCenterLeft", "Sound On", 240, 80);
+AddBorder(buttonCenterLeft, 2, 8, "#000080");
+AlignText(buttonCenterLeft, "left");
+AddAction(buttonCenterLeft, "sound_click");
+
+locCenterRight = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 100, 0);
+AddImageView(locCenterRight, "imgView", "sound_on", 100, 100);
+//SetImage(imgView, "sound_on");
+
+locCenter2 = GetLocation(imgView, "RIGHT", imgView, "CENTER", 20, 0);
+AddSwitch(locCenter2, "switch", "1", 80, 80);
+AddAction(switch, "sound_click");
+
+locCenterDown = GetLocation(buttonCenterLeft, "CENTER", buttonCenterLeft, "BOTTOM", 0, 20);
+AddSlider(locCenterDown, "slider", "0:100", 200, 80);
+AddAction(slider, "slider_change");
+
+SelectTab(2);
