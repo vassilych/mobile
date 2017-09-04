@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using Android.Graphics;
 using Android.Graphics.Drawables;
+using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -87,6 +89,89 @@ namespace scripting.Droid
                 default:
                     return LayoutRules.AlignStart;
             }
+        }
+
+        static List<string> reserved = new List<string>() { "case", "class", "short", "switch", "turkey" };
+        static public string String2ImageName(string name)
+        {
+            // Hooks for similar names:
+            if (reserved.Contains(name)) {
+                return "_" + name; // Only case difference with Turkey the country
+            }
+            string imagefileName = name.Replace("-", "_").Replace("(", "").
+                                        Replace(")", "_").Replace("'", "_").
+                                        Replace(" ", "_").Replace("é", "e").
+                                        Replace(",", "").Replace("__", "_").
+                                        Replace("\"", "").Replace(".png", "");
+            return imagefileName;
+        }
+
+        static Dictionary<string, int> m_pics = new Dictionary<string, int>();
+        public static int String2Pic(string name)
+        {
+            string imagefileName = String2ImageName(name);
+            int resourceID = 0;
+            if (m_pics.TryGetValue(imagefileName, out resourceID)) {
+                return resourceID;
+            }
+            var fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
+            if (fieldInfo == null) {
+                // Try prepending _ for Android forbidden names like 'case'
+                imagefileName = "_" + imagefileName;
+                fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
+                if (fieldInfo == null) {
+                    imagefileName = imagefileName.Replace("_", "");
+                    fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
+                }
+            }
+            if (fieldInfo == null) {
+                Console.WriteLine("Couldn't find pic [{0}] for [{1}]", imagefileName, name);
+                return -999;
+            }
+            resourceID = (int)fieldInfo.GetValue(null);
+            m_pics[imagefileName] = resourceID;
+            return resourceID;
+        }
+        public static JavaList<string> GetJavaStringList(List<string> items, string first = null)
+        {
+            JavaList<string> javaObjects = new JavaList<string>();
+            if (first != null) {
+                javaObjects.Add(first);
+            }
+            for (int index = 0; index < items.Count; index++) {
+                string item = items[index];
+                javaObjects.Add(item);
+            }
+
+            return javaObjects;
+        }
+        public static JavaList<int> GetJavaPicList(List<string> items, string first = null)
+        {
+            JavaList<int> javaObjects = new JavaList<int>();
+            if (first != null) {
+                javaObjects.Add(-1);
+            }
+            for (int index = 0; index < items.Count; index++) {
+                string item = items[index];
+                int picId = UtilsDroid.String2Pic(item);
+                javaObjects.Add(item);
+            }
+
+            return javaObjects;
+        }
+        public static List<int> GetPicList(List<string> items, string first = null)
+        {
+            List<int> pics = new List<int>();
+            if (first != null) {
+                pics.Add(-1);
+            }
+            for (int index = 0; index < items.Count; index++) {
+                string item = items[index];
+                int picId = UtilsDroid.String2Pic(item);
+                pics.Add(picId);
+            }
+
+            return pics;
         }
     }
 }
