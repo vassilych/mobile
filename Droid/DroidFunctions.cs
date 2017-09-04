@@ -1,6 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using Android.App;
+using Android.Content.Res;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -154,6 +158,12 @@ namespace scripting.Droid
                         widget.SetBackgroundResource(resourceID);
                     }
                     break;
+                case "Combobox":
+                    type = UIVariable.UIType.COMBOBOX;
+                    widget = new Spinner(MainActivity.TheView);
+                    ((Spinner)widget).Prompt = "Select Language";
+                    ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+                    break;
                 case "TypePicker":
                     type = UIVariable.UIType.PICKER_VIEW;
                     widget = new NumberPicker(MainActivity.TheView);
@@ -177,6 +187,9 @@ namespace scripting.Droid
             }
 
             DroidVariable widgetFunc = new DroidVariable(type, widgetName, widget);
+            if (!string.IsNullOrWhiteSpace(initArg)) {
+                widgetFunc.InitValue = new Variable(initArg);
+            }
             return widgetFunc;
         }
 
@@ -263,9 +276,6 @@ namespace scripting.Droid
             DroidVariable viewVar = func.GetValue(script) as DroidVariable;
             Utils.CheckNotNull(viewVar, m_name);
 
-            NumberPicker pickerView = viewVar.ViewX as NumberPicker;
-            Utils.CheckNotNull(pickerView, m_name);
-
             Variable data = Utils.GetItem(script);
             Utils.CheckNotNull(data.Tuple, m_name);
 
@@ -278,18 +288,81 @@ namespace scripting.Droid
             string strAction = actionValue.AsString();
             script.MoveForwardIf(Constants.NEXT_ARG);
 
-            pickerView.SaveFromParentEnabled = false;
-            pickerView.SaveEnabled = true;
+            // Not used at the moment:
+            string alignment = Utils.GetItem(script).AsString();
 
-            pickerView.SetDisplayedValues(types.ToArray());
-            pickerView.MinValue = 0;
-            pickerView.MaxValue = types.Count - 1;
-            pickerView.Value = 0;
-            pickerView.WrapSelectorWheel = false;
+            if (viewVar.ViewX is NumberPicker) {
+                NumberPicker pickerView = viewVar.ViewX as NumberPicker;
 
-            pickerView.ValueChanged += (sender, e) => {
-                UIVariable.GetAction(strAction, e.NewVal.ToString());
-            };
+                pickerView.SaveFromParentEnabled = false;
+                pickerView.SaveEnabled = true;
+
+                pickerView.SetDisplayedValues(types.ToArray());
+                pickerView.MinValue = 0;
+                pickerView.MaxValue = types.Count - 1;
+                pickerView.Value = 0;
+                pickerView.WrapSelectorWheel = false;
+
+                //pickerView.UpdateViewLayout(View, params);
+
+                pickerView.ValueChanged += (sender, e) => {
+                    UIVariable.GetAction(strAction, varName, e.NewVal.ToString());
+                };
+            } else if (viewVar.ViewX is Spinner) {
+                Spinner spinner = viewVar.ViewX as Spinner;
+                var adapter = spinner.Adapter as TextImageAdapter;
+                if (adapter == null) {
+                    adapter = new TextImageAdapter(MainActivity.TheView);
+                }
+                string first = viewVar.InitValue == null ? null : viewVar.InitValue.AsString();
+                adapter.SetItems(types, first);
+                spinner.Adapter = adapter;
+                spinner.ItemSelected += (sender, e) => {
+                    UIVariable.GetAction(strAction, varName, e.Position.ToString());
+                };
+            }
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class AddWidgetImagesFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetItem(script).AsString();
+            Utils.CheckNotEmpty(script, varName, m_name);
+
+            ParserFunction func = ParserFunction.GetFunction(varName);
+            Utils.CheckNotNull(func, varName);
+            DroidVariable viewVar = func.GetValue(script) as DroidVariable;
+            Utils.CheckNotNull(viewVar, m_name);
+
+            Variable data = Utils.GetItem(script);
+            Utils.CheckNotNull(data.Tuple, m_name);
+
+            List<string> images = new List<string>(data.Tuple.Count);
+            for (int i = 0; i < data.Tuple.Count; i++) {
+                images.Add(data.Tuple[i].AsString());
+            }
+
+            Variable actionValue = Utils.GetItem(script);
+            string strAction = actionValue.AsString();
+            script.MoveForwardIf(Constants.NEXT_ARG);
+
+            if (viewVar.ViewX is Spinner) {
+                Spinner spinner = viewVar.ViewX as Spinner;
+                var adapter = spinner.Adapter as TextImageAdapter;
+                if (adapter == null) {
+                    adapter = new TextImageAdapter(MainActivity.TheView);
+                }
+                adapter.SetPics(images);
+                spinner.Adapter = adapter;
+                if (!string.IsNullOrEmpty(strAction)) {
+                    spinner.ItemSelected += (sender, e) => {
+                        UIVariable.GetAction(strAction, varName, e.Position.ToString());
+                    };
+                }
+            }
 
             return Variable.EmptyInstance;
         }
@@ -682,6 +755,92 @@ namespace scripting.Droid
         }
     }
 
+    public class ShowToastFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            bool isList = false;
+            List<Variable> args = Utils.GetArgs(script,
+                Constants.START_ARG, Constants.END_ARG, out isList);
+
+            Utils.CheckArgs(args.Count, 1, m_name);
+            string msg = Utils.GetSafeString(args, 0);
+            int duration = Utils.GetSafeInt(args, 1, 10);
+            string fgColorStr = Utils.GetSafeString(args, 2);
+            string bgColorStr = Utils.GetSafeString(args, 3);
+
+            Toast toast = Toast.MakeText(MainActivity.TheView, msg,
+                                         duration < 3 ? ToastLength.Short : ToastLength.Long);
+
+            if (args.Count > 2) {
+                if (string.IsNullOrEmpty(fgColorStr)) {
+                    fgColorStr = "#FFFFFF";
+                }
+                if (string.IsNullOrEmpty(bgColorStr)) {
+                    bgColorStr = "#D3D3D3";
+                }
+                Color fgColor = Color.ParseColor(fgColorStr);
+                Color bgColor = Color.ParseColor(bgColorStr);
+
+                GradientDrawable shape = new GradientDrawable();
+                shape.SetCornerRadius(20);
+                shape.SetColor(bgColor);
+
+                View toastView = toast.View;
+                TextView toastText = (TextView)toastView.FindViewById(Android.Resource.Id.Message);
+                toastText.SetTextColor(fgColor);
+                toastView.Background = shape;
+            }
+
+            int shown = 0;
+            while (shown < 2 * duration) {
+                toast.Show();
+                shown += 4;
+            }
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class AlertDialogFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            bool isList = false;
+            List<Variable> args = Utils.GetArgs(script,
+                Constants.START_ARG, Constants.END_ARG, out isList);
+
+            Utils.CheckArgs(args.Count, 2, m_name);
+            string title        = Utils.GetSafeString(args, 0);
+            string msg          = Utils.GetSafeString(args, 1);
+            string buttonOK     = Utils.GetSafeString(args, 2, "Dismiss");
+            string actionOK     = Utils.GetSafeString(args, 3);
+            string buttonCancel = Utils.GetSafeString(args, 4);
+            string actionCancel = Utils.GetSafeString(args, 5);
+
+            AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.TheView);
+            dialog.SetMessage(msg).
+                   SetTitle(title);
+            dialog.SetPositiveButton(buttonOK,
+                (sender, e) => {
+                  dialog.Dispose();
+                  if (!string.IsNullOrWhiteSpace(actionOK)) {
+                    UIVariable.GetAction(actionOK, "\"" + buttonOK + "\"", "1");
+                  }
+            });
+            if (!string.IsNullOrWhiteSpace(buttonCancel)) {
+                dialog.SetNegativeButton(buttonCancel,
+                    (sender, e) => {
+                       dialog.Dispose();
+                        if (!string.IsNullOrWhiteSpace(actionCancel)) {
+                          UIVariable.GetAction(actionCancel, "\"" + buttonCancel + "\"", "0");
+                        }
+                });
+            }
+
+            dialog.Show();
+            return Variable.EmptyInstance;
+        }
+    }
     public class InvokeNativeFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
