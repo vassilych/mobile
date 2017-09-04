@@ -1,4 +1,4 @@
-﻿﻿using Android.App;
+using Android.App;
 using Android.Widget;
 using Android.Views;
 using Android.OS;
@@ -110,7 +110,9 @@ namespace scripting.Droid
             ParserFunction.RegisterFunction("AddTypePickerView",  new AddWidgetFunction("TypePicker"));
             ParserFunction.RegisterFunction("AddSwitch",          new AddWidgetFunction("Switch"));
             ParserFunction.RegisterFunction("AddSlider",          new AddWidgetFunction("Slider"));
+            ParserFunction.RegisterFunction("AddCombobox",        new AddWidgetFunction("Combobox"));
             ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
+            ParserFunction.RegisterFunction("AddWidgetImages",    new AddWidgetImagesFunction());
             ParserFunction.RegisterFunction("AddBorder",          new AddBorderFunction());
             ParserFunction.RegisterFunction("AddAction",          new AddActionFunction());
             ParserFunction.RegisterFunction("GetLocation",        new GetLocationFunction());
@@ -127,6 +129,8 @@ namespace scripting.Droid
             ParserFunction.RegisterFunction("SetFontSize",        new SetFontSizeFunction());
             ParserFunction.RegisterFunction("AlignText",          new AlignTitleFunction());
             ParserFunction.RegisterFunction("SetSize",            new SetSizeFunction());
+            ParserFunction.RegisterFunction("ShowToast",          new ShowToastFunction());
+            ParserFunction.RegisterFunction("AlertDialog",        new AlertDialogFunction());
             ParserFunction.RegisterFunction("DisplayWidth",       new GadgetSizeFunction(true));
             ParserFunction.RegisterFunction("DisplayHeight",      new GadgetSizeFunction(false));
             ParserFunction.RegisterFunction("CallNative",         new InvokeNativeFunction());
