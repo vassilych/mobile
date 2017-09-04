@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CoreGraphics;
 using UIKit;
@@ -38,39 +38,52 @@ namespace scripting.iOS
             };
         }
 
-        public static void ShowToast(String message, UIColor color,
+        public static void ShowToast(String message, UIColor fgColor = null,
+                                     UIColor bgColor = null,
                                      double duration = 10.0f)
         {
+            if (fgColor == null) {
+                fgColor = UIColor.White;
+            }
+            if (bgColor == null) {
+                bgColor = UIColor.Gray;
+            }
             CGSize screen = UtilsiOS.GetScreenSize();
             var size = new CGSize(300, 60);
-            var x = (screen.Height - size.Width) / 2.0;
-            var y = screen.Width - size.Height - 150;
+            var x = (screen.Width - size.Width) / 2.0;
+            var y =  screen.Height - size.Height - 100;
             var point = new CGPoint(x, y);
 
             UIView view = AppDelegate.GetCurrentView();
 
-            ShowToast(message, color, view, point, size, duration);
+            ShowToast(message, fgColor, bgColor, view, point, size, duration);
         }
 
-        public static void ShowToast(String message, UIColor color, UIView view,
+        public static void ShowToast(String message, UIColor fgColor,
+                                     UIColor bgColor,
+                                     UIView view,
                                      CGPoint point, CGSize size,
-                                     double duration = 2.0f)
+                                     double duration)
         {
-            nint tag = 1989;
+            nint tag = 1917;
 
             UIView residualView = view.ViewWithTag(tag);
-            if (residualView != null)
+            if (residualView != null) {
                 residualView.RemoveFromSuperview();
+            }
 
-            //var viewBack = new UIView(new CGRect(83, 0, 300, 100));
             var viewBack = new UIView(new CGRect(point, size));
-            viewBack.BackgroundColor = color;
+            viewBack.BackgroundColor = bgColor;
             viewBack.Tag = tag;
+            viewBack.Layer.CornerRadius = 20;
+            viewBack.Layer.MasksToBounds = true;
+
             UILabel lblMsg = new UILabel(new CGRect(0, 0, size.Width, size.Height));
             lblMsg.Lines = 2;
             lblMsg.Text = message;
-            lblMsg.TextColor = UIColor.White;
+            lblMsg.TextColor = fgColor;
             lblMsg.TextAlignment = UITextAlignment.Center;
+
             //viewBack.Center = view.Center;
             //viewBack.Frame.Location = point;
             viewBack.AddSubview(lblMsg);
@@ -199,16 +212,42 @@ namespace scripting.iOS
             }
         }
 
-        public static CGColor CGColorFromHex(string hexString)
+        public static CGColor CGColorFromHex(string hexString, double alpha = 1.0)
+        {
+            UIColor uicolor = String2Color(hexString, alpha);
+            return uicolor.CGColor;
+        }
+        public static UIColor UIColorFromHex(string hexString, double alpha = 1.0)
         {
             int rgbValue = (int)new System.ComponentModel.Int32Converter().ConvertFromString(hexString);
 
             var red   = (((rgbValue >> 16) & 0xFF0000) / 255.0);
-            var green = (((rgbValue >> 8)  & 0x00FF00) / 255.0);
-            var blue  = (((rgbValue >> 0)  & 0x0000FF) / 255.0);
+            var green = (((rgbValue >>  8) & 0x00FF00) / 255.0);
+            var blue  = (((rgbValue >>  0) & 0x0000FF) / 255.0);
 
-            UIColor uicolor = new UIColor((nfloat)red, (nfloat)green, (nfloat)blue, (nfloat)1.0);
-            return uicolor.CGColor;
+            UIColor uicolor = new UIColor((nfloat)red, (nfloat)green, (nfloat)blue, (nfloat)alpha);
+            return uicolor;
+        }
+        public static UIColor String2Color(string colorStr, double alpha = 1.0)
+        {
+            switch(colorStr) {
+                case "black":       return UIColor.Black;
+                case "blue":        return UIColor.Blue;
+                case "brown":       return UIColor.Brown;
+                case "clear":       return UIColor.Clear;
+                case "cyan":        return UIColor.Cyan;
+                case "dark_gray":   return UIColor.DarkGray;
+                case "gray":        return UIColor.Gray;
+                case "green":       return UIColor.Green;
+                case "light_gray":  return UIColor.LightGray;
+                case "magenta":     return UIColor.Magenta;
+                case "orange":      return UIColor.Orange;
+                case "purple":      return UIColor.Purple;
+                case "red":         return UIColor.Red;
+                case "white":       return UIColor.White;
+                case "yellow":      return UIColor.Yellow;
+                default:            return UIColorFromHex(colorStr, alpha);
+            }
         }
     }
 }
