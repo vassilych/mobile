@@ -1,9 +1,3 @@
-﻿function test() {
-  return 1;
-}
-if (test()>0) { print("OK");}
-else {print("bad");}
-
 clicks = 0;
 function click(sender, arg) {
   clicks++;
@@ -61,7 +55,7 @@ function slider_change(sender, arg) {
    }
 }
 
-function pickerMove(row) {
+function pickerMove(sender, row) {
   //SetBackgroundColor("root", data[row]);
   SetBackground(countryImages[row]);
 }
@@ -74,7 +68,8 @@ countryImages = {"us_bg", "gb_bg", "de_bg", "ch_bg", "ru_bg", "mx_bg", "es_bg",
                  "br_bg", "fr_bg", "it_bg", "cn_bg", "jp_bg", "ar_bg"};
 countries = {"English US", "English", "Deutsch", "Deutsch CH", "Русский", "Español MX", "Español", 
              "Português BR", "Français", "Italiano", "中文", "日本語", "العربية"};
-
+countriesSmall = {"en_US", "en_GB", "de_DE", "de_CH", "ru_RU", "es_MX", "es_ES",
+                  "pt_BR", "fr_FR", "it_IT", "zh_CN", "ja_JP", "ar_SA"};
 //--------------------------------------------------
 AddTab("Learn", "learn.png", "learn2.png");
 //--------------------------------------------------
@@ -110,6 +105,32 @@ SetFontSize(textChangeme, 12);
 
 locAbove = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP");
 AddLabel(locAbove, "versionLabel", "", 560, 60);
+
+function toaster(sender, arg) {
+  ShowToast("Toast from " + sender, 8, "#000000", "#FF0000");
+}
+locBelow = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "BOTTOM", 0, 50);
+AddButton(locBelow, "buttonToast", "Toast me", 200, 80);
+AddAction(buttonToast,  "toaster");
+
+function dialog(sender, arg) {
+  AlertDialog("CSCS", "Do you want an extra dialog?", "Yes", "extra_dialog", "No");
+}
+function extra_dialog(sender, arg) {
+  AlertDialog("CSCS", "You clicked on '" + sender + "'.");
+}
+locBelow2 = GetLocation(buttonToast, "ALIGN_LEFT", buttonToast, "BOTTOM", 0, 20);
+AddButton(locBelow2, "buttonDialog", "Alert me", 200, 80);
+AddAction(buttonDialog,  "dialog");
+
+function languageSelected(sender, arg) {
+  ShowToast("Selected " + arg, 5, "blue");
+  //AlertDialog("CSCS", "You selected '" + arg + "'.");
+}
+locCombo = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP", 0, -50);
+AddCombobox(locCombo, "languageLearn", "Translate", 280, 120);
+AddWidgetData(languageLearn, countries, "languageSelected", "left");
+AddWidgetImages(languageLearn, countriesSmall);
 
 //--------------------------------------------------
 AddTab("Quiz", "test.png", "test2.png");
@@ -185,7 +206,7 @@ locPicker = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20);
 AddWidget("TypePicker", locPicker, "pickerColor", "Picker", 380, 280);
 //data = {"red", "blue", "green", "brown", "yellow", "rose", "purple", "orange", "gray", "cyan"};
 AddWidgetData(pickerColor, countries, "pickerMove");
-pickerMove(0);
+pickerMove("", 0);
 
 locCenterLeft = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -100, 0);
 AddButton(locCenterLeft, "buttonCenterLeft", "Sound On", 240, 80);
