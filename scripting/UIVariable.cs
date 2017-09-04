@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 
@@ -9,7 +9,7 @@ namespace SplitAndMerge
         protected static int m_currentTag;
 
         public enum UIType { NONE, LOCATION, VIEW, BUTTON, LABEL, TEXT_FIELD, TEXT_VIEW, PICKER_VIEW,
-                             IMAGE_VIEW, SWITCH, SLIDER };
+                             COMBOBOX, IMAGE_VIEW, SWITCH, SLIDER };
         public UIVariable()
         {
             WidgetType = UIType.NONE;
@@ -81,6 +81,11 @@ namespace SplitAndMerge
         public UIVariable RefViewY   { get; set; }
         public UIVariable ParentView { get; set; }
 
+        public Variable InitValue    { get; set; }
+        public int Alignment         { get; set; }
+        public double MinVal         { get; set; }
+        public double MaxVal         { get; set; }
+        public double CurrVal        { get; set; }
 
         public override string AsString(bool isList = true, bool sameLine = true)
         {
