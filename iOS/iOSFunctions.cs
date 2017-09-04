@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CoreAnimation;
 using CoreGraphics;
@@ -71,6 +71,10 @@ namespace scripting.iOS
             int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
             int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
+            if (widgetType == "Combobox") {
+                height *= 2;
+            }
+
             location.SetSize(width, height);
             CGSize parentSize = location.GetParentSize();
 
@@ -138,10 +142,12 @@ namespace scripting.iOS
                         ((UIImageView)widget).Image = img;
                     }
                     break;
+                case "Combobox":
                 case "TypePicker":
                     type = UIVariable.UIType.PICKER_VIEW;
                     widget = new UIPickerView(rect);
                     ((UIPickerView)widget).AutosizesSubviews = true;
+                    SetValues(widget, initArg);
                     break;
                 case "Switch":
                     type = UIVariable.UIType.SWITCH;
@@ -185,6 +191,9 @@ namespace scripting.iOS
                 ((UISlider)view).MinValue = (float)value1;
                 ((UISlider)view).MaxValue = (float)value2;
                 ((UISlider)view).Value = (float)(value1 + value2)/2;
+            } else if (view is UIPickerView) {
+                TypePickerViewModel model = new TypePickerViewModel(AppDelegate.GetCurrentController());
+                ((UIPickerView)view).Model = model;
             }
         }
 
@@ -213,10 +222,61 @@ namespace scripting.iOS
             string strAction = actionValue.AsString();
             script.MoveForwardIf(Constants.NEXT_ARG);
 
-            TypePickerViewModel model = new TypePickerViewModel(AppDelegate.GetCurrentController(), types);
+            TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
+            if (model == null) {
+                model = new TypePickerViewModel(AppDelegate.GetCurrentController());
+            }
+            model.Data = types;
+
+            string alignment = Utils.GetItem(script).AsString();
+            if (!string.IsNullOrWhiteSpace(alignment)) {
+                var al = AlignTitleFunction.GetAlignment(alignment);
+                model.Alignment = al.Item2;
+            }
+
             model.RowSelected += (row) => {
-                UIVariable.GetAction(strAction, row.ToString());
+                UIVariable.GetAction(strAction, varName, row.ToString());
             };
+            model.SetSize((int)pickerView.Bounds.Width, (int)pickerView.Bounds.Height / 4);
+            pickerView.Model = model;
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class AddWidgetImagesFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetItem(script).AsString();
+            Utils.CheckNotEmpty(script, varName, m_name);
+
+            UIPickerView pickerView = iOSVariable.GetView(varName, script) as UIPickerView;
+            Utils.CheckNotNull(pickerView, m_name);
+
+            Variable data = Utils.GetItem(script);
+            Utils.CheckNotNull(data.Tuple, m_name);
+
+            List<UIImage> images = new List<UIImage>(data.Tuple.Count);
+            for (int i = 0; i < data.Tuple.Count; i++) {
+                UIImage img = UIImage.FromBundle(data.Tuple[i].AsString());
+                images.Add(img);
+            }
+
+            Variable actionValue = Utils.GetItem(script);
+            string strAction = actionValue.AsString();
+            script.MoveForwardIf(Constants.NEXT_ARG);
+
+            TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
+            if (model == null) {
+                model = new TypePickerViewModel(AppDelegate.GetCurrentController());
+            }
+            model.Images = images;
+
+            if (!string.IsNullOrWhiteSpace(strAction)) {
+                model.RowSelected += (row) => {
+                    UIVariable.GetAction(strAction, varName, row.ToString());
+                };
+            }
             model.SetSize((int)pickerView.Bounds.Width, (int)pickerView.Bounds.Height / 4);
             pickerView.Model = model;
 
@@ -360,9 +420,27 @@ namespace scripting.iOS
             string alignment = Utils.GetItem(script).AsString();
             alignment = alignment.ToLower();
 
+            Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al = GetAlignment(alignment);
+            iosVar.SetText(GetTextFunction.GetText(view), alignment);
+
+            if (view is UIButton) {
+                ((UIButton)view).HorizontalAlignment = al.Item1;
+            } else if (view is UILabel) {
+                ((UILabel)view).TextAlignment = al.Item2;
+            } else if (view is UITextField) {
+                ((UITextField)view).TextAlignment = al.Item2;
+            } else if (view is UITextView) {
+                ((UITextView)view).TextAlignment = al.Item2;
+            }
+
+            return iosVar;
+        }
+        public static Tuple<UIControlContentHorizontalAlignment, UITextAlignment> 
+                      GetAlignment(string alignment)
+        {
             UIControlContentHorizontalAlignment al1 = UIControlContentHorizontalAlignment.Center;
             UITextAlignment al2 = UITextAlignment.Center;
-            switch(alignment) {
+            switch (alignment) {
                 case "left":
                     al1 = UIControlContentHorizontalAlignment.Left;
                     al2 = UITextAlignment.Left;
@@ -371,26 +449,17 @@ namespace scripting.iOS
                     al1 = UIControlContentHorizontalAlignment.Right;
                     al2 = UITextAlignment.Right;
                     break;
+                case "center":
+                    al1 = UIControlContentHorizontalAlignment.Center;
+                    al2 = UITextAlignment.Center;
+                    break;
                 case "fill":
                 case "natural":
                     al1 = UIControlContentHorizontalAlignment.Fill;
                     al2 = UITextAlignment.Natural;
                     break;
             }
-
-            iosVar.SetText(GetTextFunction.GetText(view), alignment);
-
-            if (view is UIButton) {
-                ((UIButton)view).HorizontalAlignment = al1;
-            } else if (view is UILabel) {
-                ((UILabel)view).TextAlignment = al2;
-            } else if (view is UITextField) {
-                ((UITextField)view).TextAlignment = al2;
-            } else if (view is UITextView) {
-                ((UITextView)view).TextAlignment = al2;
-            }
-
-            return iosVar;
+            return new Tuple<UIControlContentHorizontalAlignment, UITextAlignment>(al1, al2);
         }
     }
     public class ShowHideFunction : ParserFunction
@@ -432,12 +501,8 @@ namespace scripting.iOS
                 ((UIButton)view).SetBackgroundImage(img, UIControlState.Normal);
             } else if (view is UIImageView) {
                 ((UIImageView)view).Image = img;
-            } else {//if (view is UITextView) {
+            } else {
                 view.BackgroundColor = new UIColor(img);
-                //UITextView textView = view as UITextView;
-                //UIImageView labelBackground = new UIImageView(img);
-                //textView.AddSubview((labelBackground));
-                //textView.SendSubviewToBack(labelBackground);
             }
 
             return Variable.EmptyInstance;
@@ -457,26 +522,9 @@ namespace scripting.iOS
             if (view == null) {
                 view = AppDelegate.GetCurrentView();
             }
-            view.BackgroundColor = String2Color(strColor);
+            view.BackgroundColor = UtilsiOS.String2Color(strColor);
 
             return Variable.EmptyInstance;
-        }
-        public static UIColor String2Color(string colorStr)
-        {
-            switch(colorStr) {
-                case "blue":        return UIColor.Blue;
-                case "cyan":        return UIColor.Cyan;
-                case "green":       return UIColor.Green;
-                case "yellow":      return UIColor.Yellow;
-                case "white":       return UIColor.White;
-                case "red":         return UIColor.Red;
-                case "brown":       return UIColor.Brown;
-                case "orange":      return UIColor.Orange;
-                case "rose":        return UIColor.Magenta;
-                case "gray":        return UIColor.LightGray;
-                case "purple":      return UIColor.Purple;
-                default:            return UIColor.Clear;
-            }
         }
     }
     public class SetBackgroundImageFunction : ParserFunction
@@ -549,7 +597,7 @@ namespace scripting.iOS
 
             int width       = Utils.GetSafeInt(args, 1, 1);
             int corner      = Utils.GetSafeInt(args, 2, 5);
-            string colorStr = Utils.GetSafeString(args, 3, "#000000");
+            string colorStr = Utils.GetSafeString(args, 3, "black");
             CGColor color   = UtilsiOS.CGColorFromHex(colorStr);
   
             AddBorder(view, color, width, corner);
@@ -594,6 +642,76 @@ namespace scripting.iOS
             iOSApp.SelectTab(tabId);
             //iOSApp controller = AppDelegate.GetCurrentController() as iOSApp;
             //controller.SelectedIndex = tabId;
+            return Variable.EmptyInstance;
+        }
+    }
+    public class ShowToastFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            bool isList = false;
+            List<Variable> args = Utils.GetArgs(script,
+                Constants.START_ARG, Constants.END_ARG, out isList);
+
+            Utils.CheckArgs(args.Count, 1, m_name);
+            string msg        = Utils.GetSafeString(args, 0);
+            int duration      = Utils.GetSafeInt   (args, 1, 10);
+            string fgColorStr = Utils.GetSafeString(args, 2);
+            string bgColorStr = Utils.GetSafeString(args, 3);
+
+            if (string.IsNullOrEmpty(fgColorStr)) {
+                fgColorStr = "#FFFFFF";
+            }
+            if (string.IsNullOrEmpty(bgColorStr)) {
+                bgColorStr = "#D3D3D3";
+            }
+
+            UIColor fgColor = UtilsiOS.String2Color(fgColorStr);
+            UIColor bgColor = UtilsiOS.String2Color(bgColorStr);
+
+            UtilsiOS.ShowToast(msg, fgColor, bgColor, duration);
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class AlertDialogFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            bool isList = false;
+            List<Variable> args = Utils.GetArgs(script,
+                Constants.START_ARG, Constants.END_ARG, out isList);
+
+            Utils.CheckArgs(args.Count, 2, m_name);
+            string title        = Utils.GetSafeString(args, 0);
+            string msg          = Utils.GetSafeString(args, 1);
+            string buttonOK     = Utils.GetSafeString(args, 2, "Dismiss");
+            string actionOK     = Utils.GetSafeString(args, 3);
+            string buttonCancel = Utils.GetSafeString(args, 4);
+            string actionCancel = Utils.GetSafeString(args, 5);
+
+            UIViewController controller = AppDelegate.GetCurrentController();
+
+            var okCancelAlertController = UIAlertController.Create(title, msg, UIAlertControllerStyle.Alert);
+            var okAction = UIAlertAction.Create(buttonOK, UIAlertActionStyle.Default,
+                alert => {
+                    if (!string.IsNullOrWhiteSpace(actionOK)) {
+                      UIVariable.GetAction(actionOK, "\"" + buttonOK + "\"", "1");
+                    }
+                });
+            okCancelAlertController.AddAction(okAction);
+
+            if (!string.IsNullOrWhiteSpace(buttonCancel)) {
+                var cancelAction = UIAlertAction.Create(buttonCancel, UIAlertActionStyle.Cancel,
+                    alert => {
+                        if (!string.IsNullOrWhiteSpace(actionCancel)) {
+                          UIVariable.GetAction(actionCancel, "\"" + buttonCancel + "\"", "0");
+                        }
+                    });
+                okCancelAlertController.AddAction(cancelAction);
+            }
+
+            controller.PresentViewController(okCancelAlertController, true, null);
             return Variable.EmptyInstance;
         }
     }
