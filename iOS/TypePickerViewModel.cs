@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using Foundation;
@@ -14,10 +14,23 @@ namespace scripting.iOS
     public class TypePickerViewModel : UIPickerViewModel
     {
         List<string> m_names = null;
+        List<UIImage> m_pics = null;
         UIViewController m_controller;
 
         int m_width = 240, m_height = 40;
         float m_fontSize = 15f;
+
+        int m_picSize = 20;
+        public int PicSize {
+            set { m_picSize = value; }
+            get { return m_picSize; }
+        }
+
+        UITextAlignment m_alignment = UITextAlignment.Center;
+        public UITextAlignment Alignment {
+            set { m_alignment = value; }
+            get { return m_alignment; }
+        }
 
         public int SelectedRow { get; protected set; }
         public string SelectedText { get {
@@ -36,10 +49,26 @@ namespace scripting.iOS
 
         public RowSelectedDel RowSelected;
 
-        public TypePickerViewModel(UIViewController vc, List<string> names)
+        public TypePickerViewModel(UIViewController vc)
         {
             m_controller = vc;
-            m_names = names;
+        }
+
+        public List<string> Data {
+            set {
+                m_names = value;
+                for (int i = 0; i < m_names.Count; i++) {
+                    if (m_names[i].Length > 25) {
+                        m_fontSize = 10f;
+                        break;
+                    }
+                }
+            }
+            get { return m_names; }
+        }
+        public List<UIImage> Images {
+            set { m_pics = value; }
+            get { return m_pics; }
         }
 
         public override nint GetComponentCount(UIPickerView pickerView)
@@ -48,7 +77,13 @@ namespace scripting.iOS
         }
         public override nint GetRowsInComponent(UIPickerView pickerView, nint component)
         {
-            return m_names.Count;
+            if (m_names != null) {
+                return m_names.Count;
+            }
+            if (m_pics != null) {
+                return m_pics.Count;
+            }
+            return 0;
         }
 
         public void SetSize(int width, int height)
@@ -61,11 +96,37 @@ namespace scripting.iOS
             m_fontSize = fontSize;
         }
 
-        /*public override string GetTitle(UIPickerView pickerView, nint row, nint component)
-        {
-            return m_names[(int)row];
-        }*/
         public override UIView GetView(UIPickerView pickerView, nint row, nint component, UIView view)
+        {
+            if (view == null) {
+                CGSize rowSize = pickerView.RowSizeForComponent(component);
+                view = new UIView(new CGRect(0, 0, rowSize.Width, rowSize.Height - 10));
+                int deltaX = -1;
+
+                if (m_pics != null) {
+                    deltaX = m_picSize;
+                    var xamImageView = new UIImageView(new CGRect(0, 2, deltaX, deltaX));
+                    xamImageView.Image = m_pics[(int)row];
+                    view.AddSubview(xamImageView);
+                }
+                if (m_names != null) {
+                    var textWidth = deltaX > 0 ? rowSize.Width - deltaX + 5 : rowSize.Width;
+                    var textHeight = rowSize.Height;
+                    var textEdit = new UITextView(new CGRect(deltaX + 1, 0, textWidth, textHeight));
+                    textEdit.Editable = false;
+                    textEdit.TextColor = UIColor.Black;
+                    textEdit.BackgroundColor = UIColor.Clear;
+                    textEdit.Text = m_names[(int)row];
+                    UIFont font = textEdit.Font;
+                    textEdit.Font = UIFont.FromName(font.Name, m_fontSize);
+                    textEdit.TextAlignment = Alignment;
+                    textEdit.ContentInset = new UIEdgeInsets(-5, 0, 0, 0);
+                    view.AddSubview(textEdit); 
+                }
+            }
+            return view;
+        }
+        /*public override UIView GetView(UIPickerView pickerView, nint row, nint component, UIView view)
         {
             //if (view == null) {
                 CGSize rowSize = pickerView.RowSizeForComponent(component);
@@ -78,7 +139,7 @@ namespace scripting.iOS
                 return lbl;
             //}
             //return view;
-        }
+        }*/
 
         public override void Selected(UIPickerView pickerView, nint row, nint component)
         {
