@@ -10,18 +10,12 @@ namespace scripting.iOS
         const int ROOT_TOP_MIN    = 18;
         const int ROOT_BOTTOM_MIN = 10;
 
-        public delegate void AfterPause();
+        const int MIN_WIDTH  = 640;
+        const int MIN_HEIGHT = 960;
 
         static Dictionary<string, double> m_doubleCache = new Dictionary<string, double>();
 
-        static public UIColor NeutralColor
-        {
-            get {
-                return UIColor.FromRGBA((nfloat)(0.0 / 255.0), (nfloat)(191.0 / 255.0),
-                                        (nfloat)(255.0 / 255.0), (nfloat)(1.0));
-            }
-        }
-
+        public delegate void AfterPause();
         static public void Pause(UIViewController controller, double interval,
                                  AfterPause AfterPauseMethod)
         {
@@ -139,12 +133,6 @@ namespace scripting.iOS
             m_doubleCache["screenRatio"] = xdiff;
             return xdiff;
         }
-        public static CGSize GetMiddlePoint()
-        {
-            var size = GetScreenSize();
-            return new CGSize((int)(size.Width/2), (int)(size.Height/2));
-        }
-
         public static int String2Position(string param, UIView referenceView,
                                           iOSVariable location, CGSize parentSize, bool isX)
         {
@@ -246,8 +234,22 @@ namespace scripting.iOS
                 case "red":         return UIColor.Red;
                 case "white":       return UIColor.White;
                 case "yellow":      return UIColor.Yellow;
+                case "transparent": return NeutralColor;
                 default:            return UIColorFromHex(colorStr, alpha);
             }
+        }
+        public static UIColor NeutralColor {
+            get {
+                return UIColor.FromRGBA((nfloat)(0.0 / 255.0), (nfloat)(191.0 / 255.0),
+                                        (nfloat)(255.0 / 255.0), (nfloat)(1.0));
+            }
+        }
+
+        public static UIImage LoadImage(string imageName)
+        {
+            // This also caches the result:
+            UIImage img = UIImage.FromBundle("drawable/" + imageName);
+            return img;
         }
     }
 }
