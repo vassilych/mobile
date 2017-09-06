@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>scripting.Droid</RootNamespace>
     <AssemblyName>scripting.Droid</AssemblyName>
-    <TargetFrameworkVersion>v6.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v7.0</TargetFrameworkVersion>
     <AndroidApplication>True</AndroidApplication>
     <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
     <AndroidResgenClass>Resource</AndroidResgenClass>
@@ -52,6 +52,8 @@
     <Compile Include="DroidVariable.cs" />
     <Compile Include="UtilsDroid.cs" />
     <Compile Include="Fragment.cs" />
+    <Compile Include="TextImageAdapterX.cs" />
+    <Compile Include="TextImageAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -66,45 +68,147 @@
     <AndroidResource Include="Resources\mipmap-xhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\Icon.png" />
-    <AndroidResource Include="Resources\drawable\abdomen.png" />
-    <AndroidResource Include="Resources\drawable\actor.png" />
-    <AndroidResource Include="Resources\drawable\airplane.png" />
-    <AndroidResource Include="Resources\drawable\airport.png" />
-    <AndroidResource Include="Resources\drawable\ancient.png" />
-    <AndroidResource Include="Resources\drawable\angry.png" />
-    <AndroidResource Include="Resources\drawable\apartment.png" />
-    <AndroidResource Include="Resources\drawable\apple.png" />
-    <AndroidResource Include="Resources\drawable\settings.png" />
-    <AndroidResource Include="Resources\drawable\settings2.png" />
-    <AndroidResource Include="Resources\drawable\learn.png" />
-    <AndroidResource Include="Resources\drawable\learn2.png" />
-    <AndroidResource Include="Resources\drawable\test.png" />
-    <AndroidResource Include="Resources\drawable\test2.png" />
     <AndroidResource Include="Resources\layout\fragment.axml" />
-    <AndroidResource Include="Resources\drawable\ar_bg.png" />
-    <AndroidResource Include="Resources\drawable\br_bg.png" />
-    <AndroidResource Include="Resources\drawable\ch_bg.png" />
-    <AndroidResource Include="Resources\drawable\cn_bg.png" />
-    <AndroidResource Include="Resources\drawable\de_bg.png" />
-    <AndroidResource Include="Resources\drawable\es_bg.png" />
-    <AndroidResource Include="Resources\drawable\fr_bg.png" />
-    <AndroidResource Include="Resources\drawable\gb_bg.png" />
-    <AndroidResource Include="Resources\drawable\it_bg.png" />
-    <AndroidResource Include="Resources\drawable\jp_bg.png" />
-    <AndroidResource Include="Resources\drawable\mx_bg.png" />
-    <AndroidResource Include="Resources\drawable\ru_bg.png" />
-    <AndroidResource Include="Resources\drawable\us_bg.png" />
-    <AndroidResource Include="Resources\drawable\sound_off.png" />
-    <AndroidResource Include="Resources\drawable\sound_on.png" />
-    <AndroidResource Include="Resources\values\values-v14.xml" />
-    <AndroidResource Include="Resources\drawable\dog.png" />
-    <AndroidResource Include="Resources\drawable\monkey.png" />
+    <AndroidResource Include="Resources\layout\spinner.axml" />
+    <AndroidResource Include="..\scripting\Resources\drawable\ru_RU.png">
+      <Link>Resources\drawable\ru_RU.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\pt_BR.png">
+      <Link>Resources\drawable\pt_BR.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ja_JP.png">
+      <Link>Resources\drawable\ja_JP.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\it_IT.png">
+      <Link>Resources\drawable\it_IT.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\fr_FR.png">
+      <Link>Resources\drawable\fr_FR.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\es_MX.png">
+      <Link>Resources\drawable\es_MX.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\es_ES.png">
+      <Link>Resources\drawable\es_ES.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\en_US.png">
+      <Link>Resources\drawable\en_US.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\en_GB.png">
+      <Link>Resources\drawable\en_GB.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\de_DE.png">
+      <Link>Resources\drawable\de_DE.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\de_CH.png">
+      <Link>Resources\drawable\de_CH.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ar_SA.png">
+      <Link>Resources\drawable\ar_SA.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zh_CN.png">
+      <Link>Resources\drawable\zh_CN.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ar_bg.png">
+      <Link>Resources\drawable\ar_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\br_bg.png">
+      <Link>Resources\drawable\br_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ch_bg.png">
+      <Link>Resources\drawable\ch_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\cn_bg.png">
+      <Link>Resources\drawable\cn_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\de_bg.png">
+      <Link>Resources\drawable\de_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\es_bg.png">
+      <Link>Resources\drawable\es_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\fr_bg.png">
+      <Link>Resources\drawable\fr_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\gb_bg.png">
+      <Link>Resources\drawable\gb_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\it_bg.png">
+      <Link>Resources\drawable\it_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\jp_bg.png">
+      <Link>Resources\drawable\jp_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\mx_bg.png">
+      <Link>Resources\drawable\mx_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ru_bg.png">
+      <Link>Resources\drawable\ru_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\us_bg.png">
+      <Link>Resources\drawable\us_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\test.png">
+      <Link>Resources\drawable\test.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\test2.png">
+      <Link>Resources\drawable\test2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\learn.png">
+      <Link>Resources\drawable\learn.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\learn2.png">
+      <Link>Resources\drawable\learn2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\monkey.png">
+      <Link>Resources\drawable\monkey.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\settings.png">
+      <Link>Resources\drawable\settings.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\settings2.png">
+      <Link>Resources\drawable\settings2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\sound_off.png">
+      <Link>Resources\drawable\sound_off.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\sound_on.png">
+      <Link>Resources\drawable\sound_on.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\abdomen.png">
+      <Link>Resources\drawable\abdomen.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\actor.png">
+      <Link>Resources\drawable\actor.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\airplane.png">
+      <Link>Resources\drawable\airplane.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\airport.png">
+      <Link>Resources\drawable\airport.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ancient.png">
+      <Link>Resources\drawable\ancient.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\angry.png">
+      <Link>Resources\drawable\angry.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\apartment.png">
+      <Link>Resources\drawable\apartment.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\apple.png">
+      <Link>Resources\drawable\apple.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\dog.png">
+      <Link>Resources\drawable\dog.png</Link>
+    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\drawable\" />
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="Assets\script.cscs" />
+    <AndroidAsset Include="Assets\dictionary.txt" />
   </ItemGroup>
   <Import Project="..\scripting\scripting.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
