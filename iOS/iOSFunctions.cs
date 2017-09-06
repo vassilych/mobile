@@ -23,7 +23,13 @@ namespace scripting.iOS
 
             int leftMargin      = Utils.GetSafeInt(args, 4);
             int topMargin       = Utils.GetSafeInt(args, 5);
-            Variable parentView = Utils.GetSafeVariable(args, 6, null);
+
+            string autoSize     = Utils.GetSafeString(args, 6);
+            double multiplier   = Utils.GetSafeDouble(args, 7);
+            AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
+                        (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
+
+            Variable parentView = Utils.GetSafeVariable(args, 9, null);
 
             UIView referenceViewX = iOSVariable.GetView(viewNameX, script);
             UIView referenceViewY = iOSVariable.GetView(viewNameY, script);
@@ -71,6 +77,11 @@ namespace scripting.iOS
             int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
             int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
+            string autoSize   = Utils.GetSafeString(args, start + 5);
+            double multiplier = Utils.GetSafeDouble(args, start + 6);
+            AutoScaleFunction.TransformSizes(ref width, ref height,
+                  (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
+            
             if (widgetType == "Combobox") {
                 height *= 2;
             }
@@ -110,6 +121,7 @@ namespace scripting.iOS
                 case "Button":
                     type = UIVariable.UIType.BUTTON;
                     widget = new UIButton(rect);
+                    //widget = new UIButton(UIButtonType.System);
                     ((UIButton)widget).SetTitleColor(UIColor.Black, UIControlState.Normal);
                     ((UIButton)widget).SetTitle(initArg, UIControlState.Normal);
                     AddBorderFunction.AddBorder(widget);
@@ -138,7 +150,7 @@ namespace scripting.iOS
                     type = UIVariable.UIType.IMAGE_VIEW;
                     widget = new UIImageView(rect);
                     if (!string.IsNullOrWhiteSpace(initArg)) {
-                        UIImage img = UIImage.FromBundle(initArg);
+                        UIImage img = UtilsiOS.LoadImage(initArg);
                         ((UIImageView)widget).Image = img;
                     }
                     break;
@@ -258,7 +270,7 @@ namespace scripting.iOS
 
             List<UIImage> images = new List<UIImage>(data.Tuple.Count);
             for (int i = 0; i < data.Tuple.Count; i++) {
-                UIImage img = UIImage.FromBundle(data.Tuple[i].AsString());
+                UIImage img = UtilsiOS.LoadImage(data.Tuple[i].AsString());
                 images.Add(img);
             }
 
@@ -495,7 +507,7 @@ namespace scripting.iOS
             string imageName = imageNameVar.AsString();
 
             UIView view = iOSVariable.GetView(varName, script);
-            UIImage img = UIImage.FromBundle(imageName);
+            UIImage img = UtilsiOS.LoadImage(imageName);
 
             if (view is UIButton) {
                 ((UIButton)view).SetBackgroundImage(img, UIControlState.Normal);
@@ -535,7 +547,7 @@ namespace scripting.iOS
             string imageName = imgVar.AsString();
             Utils.CheckNotEmpty(script, imageName, m_name);
 
-            UIImage img = UIImage.FromBundle(imageName);
+            UIImage img = UtilsiOS.LoadImage(imageName);
 
             AppDelegate.SetBgView(img);
             return Variable.EmptyInstance;
