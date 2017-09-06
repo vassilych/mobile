@@ -114,6 +114,7 @@ namespace scripting.Droid
             ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
             ParserFunction.RegisterFunction("AddWidgetImages",    new AddWidgetImagesFunction());
             ParserFunction.RegisterFunction("AddBorder",          new AddBorderFunction());
+            ParserFunction.RegisterFunction("AutoScale",          new AutoScaleFunction());
             ParserFunction.RegisterFunction("AddAction",          new AddActionFunction());
             ParserFunction.RegisterFunction("GetLocation",        new GetLocationFunction());
             ParserFunction.RegisterFunction("ShowView",           new ShowHideFunction(true));
@@ -135,20 +136,20 @@ namespace scripting.Droid
             ParserFunction.RegisterFunction("DisplayHeight",      new GadgetSizeFunction(false));
             ParserFunction.RegisterFunction("CallNative",         new InvokeNativeFunction());
 	        //ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
-	        string script = "";
-	        AssetManager assets = TheView.Assets;
-	        using (StreamReader sr = new StreamReader(assets.Open("script.cscs"))) {
-	            script = sr.ReadToEnd();
-	        }
+            string script = "";
+            AssetManager assets = TheView.Assets;
+            using (StreamReader sr = new StreamReader(assets.Open("script.cscs"))) {
+                script = sr.ReadToEnd();
+            }
 
-	        Variable result = null;
-	        try {
-	            result = Interpreter.Instance.Process(script);
-	        }
-	        catch (Exception exc) {
-	            Console.WriteLine("Exception: " + exc.Message);
-	            ParserFunction.InvalidateStacksAfterLevel(0);
-	        }
+            Variable result = null;
+            try {
+                result = Interpreter.Instance.Process(script);
+            }
+            catch (Exception exc) {
+                Console.WriteLine("Exception: " + exc.Message);
+                ParserFunction.InvalidateStacksAfterLevel(0);
+            }
 	    }
         public static void AddView(View view, ViewGroup parent)
         {
