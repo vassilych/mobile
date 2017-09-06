@@ -28,7 +28,13 @@ namespace scripting.Droid
 
             int leftMargin      = Utils.GetSafeInt(args, 4);
             int topMargin       = Utils.GetSafeInt(args, 5);
-            Variable parentView = Utils.GetSafeVariable(args, 6, null);
+
+            string autoSize     = Utils.GetSafeString(args, 6);
+            double multiplier   = Utils.GetSafeDouble(args, 7);
+            AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
+                              UtilsDroid.GetScreenSize().Width, autoSize, multiplier);
+
+            Variable parentView = Utils.GetSafeVariable(args, 9, null);
 
             DroidVariable refViewX = viewNameX == "ROOT" ? null :
                 Utils.GetVariable(viewNameX, script) as DroidVariable;
@@ -77,6 +83,11 @@ namespace scripting.Droid
             string text    = Utils.GetSafeString(args, start + 2);
             int width      = Utils.GetSafeInt(args, start + 3);
             int height     = Utils.GetSafeInt(args, start + 4);
+
+            string autoSize   = Utils.GetSafeString(args, start + 5);
+            double multiplier = Utils.GetSafeDouble(args, start + 6);
+            AutoScaleFunction.TransformSizes(ref width, ref height,
+                              UtilsDroid.GetScreenSize().Width, autoSize, multiplier);
 
             location.SetSize(width, height);
             location.LayoutRuleX = UtilsDroid.String2LayoutParam(location, true);
