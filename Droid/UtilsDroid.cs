@@ -12,6 +12,9 @@ namespace scripting.Droid
 {
     public class UtilsDroid
     {
+        const int MIN_WIDTH  = 640;
+        const int MIN_HEIGHT = 960;
+
         public static Size GetScreenSize()
         {
             DisplayMetrics displayMetrics = new DisplayMetrics();
