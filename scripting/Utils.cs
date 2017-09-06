@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -511,6 +511,14 @@ namespace SplitAndMerge
             }
             Utils.CheckNumber(args[index]);
             return args[index].AsInt();
+        }
+        public static double GetSafeDouble(List<Variable> args, int index, double defaultValue = 0.0)
+        {
+            if (args.Count <= index) {
+                return defaultValue;
+            }
+            Utils.CheckNumber(args[index]);
+            return args[index].AsDouble();
         }
         public static string GetSafeString(List<Variable> args, int index, string defaultValue = "")
         {
