@@ -133,6 +133,7 @@ namespace scripting.iOS
             ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
             ParserFunction.RegisterFunction("AddWidgetImages",    new AddWidgetImagesFunction());
             ParserFunction.RegisterFunction("AddBorder",          new AddBorderFunction());
+            ParserFunction.RegisterFunction("AutoScale",          new AutoScaleFunction());
             ParserFunction.RegisterFunction("AddAction",          new AddActionFunction());
             ParserFunction.RegisterFunction("GetLocation",        new GetLocationFunction());
             ParserFunction.RegisterFunction("ShowView",           new ShowHideFunction(true));
@@ -183,7 +184,7 @@ namespace scripting.iOS
         }
         public static void AddTab(string text, string selectedImageName, string notSelectedImageName = null)
         {
-            var selImage = UIImage.FromFile(selectedImageName);
+            var selImage = UtilsiOS.LoadImage(selectedImageName);
             selImage = selImage.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
 
             UIViewController tab = new UIViewController();
@@ -192,7 +193,7 @@ namespace scripting.iOS
             tab.TabBarItem.Image = selImage;
 
             if (notSelectedImageName != null) {
-                var image = UIImage.FromFile(notSelectedImageName);
+                var image = UtilsiOS.LoadImage(notSelectedImageName);
                 image = image.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
                 tab.TabBarItem.Image = image;
             }
