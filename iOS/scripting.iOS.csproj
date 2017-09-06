@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+    <Folder Include="Resources\drawable\" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -120,37 +121,138 @@
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\script.cscs" />
-    <BundleResource Include="Resources\abdomen.png" />
-    <BundleResource Include="Resources\actor.png" />
-    <BundleResource Include="Resources\airplane.png" />
-    <BundleResource Include="Resources\airport.png" />
-    <BundleResource Include="Resources\ancient.png" />
-    <BundleResource Include="Resources\angry.png" />
-    <BundleResource Include="Resources\apartment.png" />
-    <BundleResource Include="Resources\apple.png" />
-    <BundleResource Include="Resources\learn.png" />
-    <BundleResource Include="Resources\learn2.png" />
-    <BundleResource Include="Resources\settings.png" />
-    <BundleResource Include="Resources\settings2.png" />
-    <BundleResource Include="Resources\test.png" />
-    <BundleResource Include="Resources\test2.png" />
-    <BundleResource Include="Resources\ar_bg.png" />
-    <BundleResource Include="Resources\br_bg.png" />
-    <BundleResource Include="Resources\ch_bg.png" />
-    <BundleResource Include="Resources\cn_bg.png" />
-    <BundleResource Include="Resources\de_bg.png" />
-    <BundleResource Include="Resources\es_bg.png" />
-    <BundleResource Include="Resources\fr_bg.png" />
-    <BundleResource Include="Resources\gb_bg.png" />
-    <BundleResource Include="Resources\it_bg.png" />
-    <BundleResource Include="Resources\jp_bg.png" />
-    <BundleResource Include="Resources\mx_bg.png" />
-    <BundleResource Include="Resources\ru_bg.png" />
-    <BundleResource Include="Resources\us_bg.png" />
-    <BundleResource Include="Resources\sound_off.png" />
-    <BundleResource Include="Resources\sound_on.png" />
-    <BundleResource Include="Resources\dog.png" />
-    <BundleResource Include="Resources\monkey.png" />
+    <BundleResource Include="..\scripting\Resources\drawable\ru_RU.png">
+      <Link>Resources\drawable\ru_RU.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\pt_BR.png">
+      <Link>Resources\drawable\pt_BR.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ja_JP.png">
+      <Link>Resources\drawable\ja_JP.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\it_IT.png">
+      <Link>Resources\drawable\it_IT.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\fr_FR.png">
+      <Link>Resources\drawable\fr_FR.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\es_MX.png">
+      <Link>Resources\drawable\es_MX.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\es_ES.png">
+      <Link>Resources\drawable\es_ES.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\en_US.png">
+      <Link>Resources\drawable\en_US.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\en_GB.png">
+      <Link>Resources\drawable\en_GB.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\de_DE.png">
+      <Link>Resources\drawable\de_DE.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\de_CH.png">
+      <Link>Resources\drawable\de_CH.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ar_SA.png">
+      <Link>Resources\drawable\ar_SA.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\zh_CN.png">
+      <Link>Resources\drawable\zh_CN.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ar_bg.png">
+      <Link>Resources\drawable\ar_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\br_bg.png">
+      <Link>Resources\drawable\br_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ch_bg.png">
+      <Link>Resources\drawable\ch_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\cn_bg.png">
+      <Link>Resources\drawable\cn_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\de_bg.png">
+      <Link>Resources\drawable\de_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\es_bg.png">
+      <Link>Resources\drawable\es_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\fr_bg.png">
+      <Link>Resources\drawable\fr_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\gb_bg.png">
+      <Link>Resources\drawable\gb_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\it_bg.png">
+      <Link>Resources\drawable\it_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\jp_bg.png">
+      <Link>Resources\drawable\jp_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\mx_bg.png">
+      <Link>Resources\drawable\mx_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ru_bg.png">
+      <Link>Resources\drawable\ru_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\us_bg.png">
+      <Link>Resources\drawable\us_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\test.png">
+      <Link>Resources\drawable\test.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\test2.png">
+      <Link>Resources\drawable\test2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\learn.png">
+      <Link>Resources\drawable\learn.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\learn2.png">
+      <Link>Resources\drawable\learn2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\monkey.png">
+      <Link>Resources\drawable\monkey.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\settings.png">
+      <Link>Resources\drawable\settings.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\settings2.png">
+      <Link>Resources\drawable\settings2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\sound_off.png">
+      <Link>Resources\drawable\sound_off.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\sound_on.png">
+      <Link>Resources\drawable\sound_on.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\abdomen.png">
+      <Link>Resources\drawable\abdomen.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\actor.png">
+      <Link>Resources\drawable\actor.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\airplane.png">
+      <Link>Resources\drawable\airplane.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\airport.png">
+      <Link>Resources\drawable\airport.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\ancient.png">
+      <Link>Resources\drawable\ancient.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\angry.png">
+      <Link>Resources\drawable\angry.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\apartment.png">
+      <Link>Resources\drawable\apartment.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\apple.png">
+      <Link>Resources\drawable\apple.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\dog.png">
+      <Link>Resources\drawable\dog.png</Link>
+    </BundleResource>
   </ItemGroup>
   <Import Project="..\scripting\scripting.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
