@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace SplitAndMerge
 {
@@ -142,7 +143,6 @@ namespace SplitAndMerge
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList;
-
       List<Variable> functionArgs = Utils.GetArgs(script,
           Constants.START_ARG, Constants.END_ARG, out isList);
 
@@ -219,7 +219,8 @@ namespace SplitAndMerge
 
             // Otherwise this should be a number.
             double num;
-            if (!Double.TryParse(Item, out num)) {
+            if (!Double.TryParse(Item, NumberStyles.Number | NumberStyles.AllowExponent,
+                                 CultureInfo.InvariantCulture, out num)) {
                 Utils.ThrowException(script, "parseToken", Item, "parseTokenExtra");
             }
             return new Variable(num);
@@ -234,7 +235,7 @@ namespace SplitAndMerge
     {
       // 1. Get the name of the variable.
       string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-      Utils.CheckNotEnd(script, Constants.CONTAINS);
+      Utils.CheckNotEnd(script, m_name);
 
       // 2. Get the current value of the variable.
       ParserFunction func = ParserFunction.GetFunction(varName);
@@ -253,6 +254,55 @@ namespace SplitAndMerge
       return currentValue;
     }
   }
+  class RemoveFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      // 1. Get the name of the variable.
+      string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
+      Utils.CheckNotEnd(script, m_name);
+
+      // 2. Get the current value of the variable.
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(varName, func);
+      Variable currentValue = func.GetValue(script);
+      Utils.CheckArray(currentValue, varName);
+
+      // 3. Get the variable to remove.
+      Variable item = Utils.GetItem(script);
+
+      bool removed = currentValue.Tuple.Remove(item);
+
+      ParserFunction.AddGlobalOrLocalVariable(varName,
+                                              new GetVarFunction(currentValue));
+      return new Variable(removed);
+    }
+  }
+  class RemoveAtFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      // 1. Get the name of the variable.
+      string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
+      Utils.CheckNotEnd(script, m_name);
+
+      // 2. Get the current value of the variable.
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(varName, func);
+      Variable currentValue = func.GetValue(script);
+      Utils.CheckArray(currentValue, varName);
+
+      // 3. Get the variable to remove.
+      Variable item = Utils.GetItem(script);
+      Utils.CheckNonNegativeInt(item);
+
+      currentValue.Tuple.RemoveAt(item.AsInt());
+
+      ParserFunction.AddGlobalOrLocalVariable(varName,
+                                              new GetVarFunction(currentValue));
+      return Variable.EmptyInstance;
+    }
+  }
 
   class ContainsFunction : ParserFunction
   {
@@ -260,7 +310,7 @@ namespace SplitAndMerge
     {
       // 1. Get the name of the variable.
       string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-      Utils.CheckNotEnd(script, Constants.CONTAINS);
+      Utils.CheckNotEnd(script, m_name);
 
       // 2. Get the current value of the variable.
       List<Variable> arrayIndices = Utils.GetArrayIndices(ref varName);
@@ -276,7 +326,7 @@ namespace SplitAndMerge
 
       // 3. Get the value to be looked for.
       Variable searchValue = Utils.GetItem(script);
-      Utils.CheckNotEnd(script, Constants.CONTAINS);
+      Utils.CheckNotEnd(script, m_name);
 
       // 4. Check if the value to search for exists.
       bool exists = query.Exists(searchValue, true /* notEmpty */);
@@ -377,6 +427,8 @@ namespace SplitAndMerge
         }
 
         script.Forward(m_delta);
+        while (script.MoveForwardIf(Constants.END_ARRAY)) {
+        }
 
         Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices);
         return result;
@@ -532,7 +584,7 @@ namespace SplitAndMerge
       }
     }
 
-    override public ParserFunction NewInstance()
+        override public ParserFunction NewInstance()
     {
       return new OperatorAssignFunction();
     }
@@ -554,7 +606,7 @@ namespace SplitAndMerge
       }
 
       Variable array;
- 
+
       ParserFunction pf = ParserFunction.GetFunction(m_name);
       if (pf != null) {
         array = pf.GetValue(script);
@@ -581,10 +633,10 @@ namespace SplitAndMerge
       if (arrayIndices.Count <= indexPtr) {
         return;
       }
-      
+
       Variable index = arrayIndices[indexPtr];
       int currIndex = ExtendArrayHelper(parent, index);
-      
+
       if (arrayIndices.Count - 1 == indexPtr) {
         parent.Tuple[currIndex] = varValue;
         return;
@@ -597,15 +649,15 @@ namespace SplitAndMerge
     private static int ExtendArrayHelper(Variable parent, Variable indexVar)
     {
       parent.SetAsArray();
-  
+
       int arrayIndex = parent.GetArrayIndex(indexVar);
       if (arrayIndex < 0) {
         // This is not a "normal index" but a new string for the dictionary.
         string hash = indexVar.AsString();
-        arrayIndex  = parent.SetHashVariable(hash, Variable.NewEmpty());
+        arrayIndex = parent.SetHashVariable(hash, Variable.NewEmpty());
         return arrayIndex;
       }
-  
+
       if (parent.Tuple.Count <= arrayIndex) {
         for (int i = parent.Tuple.Count; i <= arrayIndex; i++) {
           parent.Tuple.Add(Variable.NewEmpty());
@@ -615,12 +667,84 @@ namespace SplitAndMerge
     }
   }
 
+  class DeepCopyFunction : ActionFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      Variable varValue = Utils.GetItem(script);
+      return varValue.DeepClone(); ;
+    }
+  }
+
+  class AddVariableToHashFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string varName   = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+      Variable hashVar = Utils.GetItem(script);
+      Utils.CheckNotNull(hashVar, m_name);
+
+      string hash      = hashVar.AsString();
+      Variable toAdd   = Utils.GetItem(script);
+      Utils.CheckNotNull(toAdd, m_name);
+
+      var function = ParserFunction.GetFunction(varName);
+      Variable mapVar = function != null ? function.GetValue(script) :
+                                  new Variable(Variable.VarType.ARRAY);
+
+      mapVar.AddVariableToHash(hash, toAdd);
+
+      //if (function == null) {
+        ParserFunction.AddGlobalOrLocalVariable(varName,
+                                          new GetVarFunction(mapVar));
+      //}
+
+      return Variable.EmptyInstance;
+    }
+  }
+  class GetColumnFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      Variable arrayVar = Utils.GetSafeVariable(args, 0);
+      int col           = Utils.GetSafeInt(args, 1);
+      int fromCol       = Utils.GetSafeInt(args, 2, 0);
+
+      var tuple = arrayVar.Tuple;
+
+      List<Variable> result = new List<Variable>();
+      for (int i = fromCol; i < tuple.Count; i++) {
+        Variable current = tuple[i];
+        result.Add(current.Tuple[col]);
+      }
+
+      return new Variable(result);
+    }
+  }
+  class GetAllKeysFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      Variable varName = Utils.GetItem(script);
+      Utils.CheckNotNull(varName, m_name);
+
+      List<Variable> results = varName.GetAllKeys();
+
+      return new Variable(results);
+    }
+  }
+
   class TypeFunction : ParserFunction
   {
     protected override Variable Evaluate (ParsingScript script)
     {
       // 1. Get the name of the variable.
-      string varName = Utils.GetToken (script, Constants.END_ARG_ARRAY);
+      string varName = Utils.GetToken(script, Constants.END_ARG_ARRAY);
       Utils.CheckNotEnd(script, m_name);
 
       List<Variable> arrayIndices = Utils.GetArrayIndices(ref varName);

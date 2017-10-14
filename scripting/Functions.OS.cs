@@ -287,6 +287,23 @@ namespace SplitAndMerge
     private ConsoleColor m_fgcolor;
   }
 
+  class WriteToConsole : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList;
+      List<Variable> args = Utils.GetArgs(script,
+        Constants.START_ARG, Constants.END_ARG, out isList);
+
+      for (int i = 0; i < args.Count; i++) {
+        Console.Write(args[i].AsString());
+      }
+      Console.WriteLine();
+
+      return Variable.EmptyInstance;
+    }
+  }
+
   // Reads either a string or a number from the Console.
   class ReadConsole : ParserFunction
   {
@@ -409,6 +426,95 @@ namespace SplitAndMerge
       Interpreter.Instance.AppendOutput("Read " + lines.Length + " line(s).", true);
 
       return new Variable(results);
+    }
+  }
+
+  class TokenizeFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      Utils.CheckArgs(args.Count, 1, m_name);
+      string data = Utils.GetSafeString(args, 0);
+
+      string sep = Utils.GetSafeString(args, 1, "\t");
+      if (sep == "\\t") {
+        sep = "\t";
+      }
+      var sepArray = sep.ToCharArray();
+      string[] tokens = data.Split(sepArray);
+
+      var option = Utils.GetSafeString(args, 2);
+
+      List<Variable> results = new List<Variable>();
+      for (int i = 0; i < tokens.Length; i++) {
+        string token = tokens[i];
+        if (i > 0 && string.IsNullOrWhiteSpace(token) &&
+            option.StartsWith("prev", StringComparison.OrdinalIgnoreCase)) {
+          token = tokens[i - 1];
+        }
+        results.Add(new Variable(token));
+      }
+
+      return new Variable(results);
+    }
+  }
+
+  class StringManipulationFunction : ParserFunction
+  {
+    public enum Mode { CONTAINS, STARTS_WITH, ENDS_WITH, INDEX_OF, EQUALS, REPLACE, UPPER, LOWER, TRIM, SUBSTRING };
+    Mode m_mode;
+
+    public StringManipulationFunction(Mode mode) {
+      m_mode = mode;
+    }
+
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string rest = script.Rest;
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      Utils.CheckArgs(args.Count, 1, m_name);
+      string source    = Utils.GetSafeString(args, 0);
+      string argument  = Utils.GetSafeString(args, 1);
+      string parameter = Utils.GetSafeString(args, 2, "case");
+      int    startFrom = Utils.GetSafeInt(args, 3, 0);
+      int    length    = Utils.GetSafeInt(args, 4, source.Length);
+
+      StringComparison comp = StringComparison.Ordinal;
+      if (parameter.Equals("nocase") || parameter.Equals("no_case")) {
+        comp = StringComparison.OrdinalIgnoreCase;
+      }
+
+      switch (m_mode) {
+        case Mode.CONTAINS:
+          return new Variable(source.IndexOf(argument, comp) >= 0);
+        case Mode.STARTS_WITH:
+          return new Variable(source.StartsWith(argument, comp));
+        case Mode.ENDS_WITH:
+          return new Variable(source.EndsWith(argument, comp));
+        case Mode.INDEX_OF:
+          return new Variable(source.IndexOf(argument, startFrom, comp));
+        case Mode.EQUALS:
+          return new Variable(source.Equals(argument, comp));
+        case Mode.REPLACE:
+          return new Variable(source.Replace(argument, parameter));
+        case Mode.UPPER:
+          return new Variable(source.ToUpper());
+        case Mode.LOWER:
+          return new Variable(source.ToLower());
+        case Mode.TRIM:
+          return new Variable(source.Trim());
+        case Mode.SUBSTRING:
+          return new Variable(source.Substring(startFrom, length));
+      }
+
+      return new Variable(-1);
     }
   }
 
@@ -986,6 +1092,66 @@ namespace SplitAndMerge
     }
   }
 
+  class DateTimeFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string frm  = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(frm, m_name);
+
+      string when = DateTime.Now.ToString(frm);
+      return new Variable(when);
+    }
+  }
+  class StopWatchFunction : ParserFunction
+  {
+    static System.Diagnostics.Stopwatch m_stopwatch = new System.Diagnostics.Stopwatch();
+    public enum Mode { START, STOP, ELAPSED, TOTAL_SECS, TOTAL_MS };
+
+    Mode m_mode;
+    public StopWatchFunction(Mode mode)
+    {
+      m_mode = mode;
+    }
+
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+        Constants.START_ARG, Constants.END_ARG, out isList);
+
+      if (m_mode == Mode.START) {
+        m_stopwatch.Restart();
+        return Variable.EmptyInstance;
+      }
+
+      string strFormat = Utils.GetSafeString(args, 0, "secs");
+      string elapsedStr = "";
+      double elapsed = -1.0;
+      if (strFormat == "hh::mm:ss.fff") {
+        elapsedStr = string.Format("{0:D2}:{1:D2}:{2:D2}.{3:D3}",
+          m_stopwatch.Elapsed.Hours, m_stopwatch.Elapsed.Minutes,
+          m_stopwatch.Elapsed.Seconds, m_stopwatch.Elapsed.Milliseconds);
+      } else if (strFormat == "mm:ss.fff") {
+        elapsedStr = string.Format("{0:D2}:{1:D2}.{2:D3}",
+            m_stopwatch.Elapsed.Minutes,
+            m_stopwatch.Elapsed.Seconds, m_stopwatch.Elapsed.Milliseconds);
+      } else if (strFormat == "ss.fff") {
+        elapsedStr = string.Format("{0:D2}.{1:D3}",
+            m_stopwatch.Elapsed.Seconds, m_stopwatch.Elapsed.Milliseconds);
+      } else if (strFormat == "secs") {
+        elapsed = Math.Round(m_stopwatch.Elapsed.TotalSeconds);
+      } else if (strFormat == "ms") {
+        elapsed = Math.Round(m_stopwatch.Elapsed.TotalMilliseconds);
+      }
+ 
+      if (m_mode == Mode.STOP) {
+        m_stopwatch.Stop();
+      }
+
+      return elapsed >= 0 ? new Variable(elapsed) : new Variable(elapsedStr);
+    }
+  }
   class SignalWaitFunction : ParserFunction
   {
     static AutoResetEvent waitEvent = new AutoResetEvent(false);
