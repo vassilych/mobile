@@ -4,6 +4,7 @@ using UIKit;
 
 using SplitAndMerge;
 using CoreGraphics;
+using Foundation;
 
 namespace scripting.iOS
 {
@@ -23,6 +24,5 @@ namespace scripting.iOS
             base.DidReceiveMemoryWarning();
             // Release any cached data, images, etc that aren't in use.        
         }
-
     }
 }
