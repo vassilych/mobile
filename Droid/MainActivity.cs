@@ -11,12 +11,19 @@ using Android.Content.Res;
 using System.IO;
 using System.Collections.Generic;
 using Android.Content.PM;
+using Android.Views.InputMethods;
 
 namespace scripting.Droid
 {
   [Activity(Theme = "@android:style/Theme.Holo.Light",
-            Label = "", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
-  public partial class MainActivity : Activity, ActionBar.ITabListener
+            //Theme = "@style/MyTheme.Main",
+            Icon = "@mipmap/icon",
+            Label = "",
+            //MainLauncher = true,
+            ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
+            )]
+  public partial class MainActivity : Activity,
+                                      ActionBar.ITabListener
   {
     public static MainActivity TheView;
     public static RelativeLayout TheLayout;
@@ -24,6 +31,9 @@ namespace scripting.Droid
     static List<ActionBar.Tab> m_actionBars = new List<ActionBar.Tab>();
 
     public static int CurrentTabId;
+    public static Action<int> TabSelectedDelegate;
+
+    bool m_scriptRun = false;
 
     protected override void OnCreate(Bundle savedInstanceState)
     {
@@ -41,7 +51,6 @@ namespace scripting.Droid
           ViewGroup.LayoutParams.MatchParent
       );
 
-
       relativelayout.LayoutParameters = layoutParams;
 
       //relativelayout.SetBackgroundColor(Color.ParseColor("#fa0303"));
@@ -51,11 +60,60 @@ namespace scripting.Droid
       TheLayout = relativelayout;
 
       InitTTS();
-
-      ViewTreeObserver vto = relativelayout.ViewTreeObserver;
-      vto.AddOnGlobalLayoutListener(new LayoutListener());
     }
 
+    protected override void OnRestoreInstanceState(Bundle savedInstanceState)
+    {
+      base.OnRestoreInstanceState(savedInstanceState);
+    }
+    protected override void OnSaveInstanceState(Bundle outState)
+    {
+      base.OnSaveInstanceState(outState);
+    }
+    public void OnTabReselected(ActionBar.Tab tab, FragmentTransaction ft)
+    {
+      OnTabSelected(tab, ft);
+    }
+
+    public void OnTabSelected(ActionBar.Tab tab, FragmentTransaction ft)
+    {
+      //ft.Replace(Resource.Id.frameLayout1, frag);
+      SelectTab(tab.Position);
+      TabSelectedDelegate?.Invoke(tab.Position);
+    }
+
+    public void OnTabUnselected(ActionBar.Tab tab, FragmentTransaction ft)
+    {
+      //throw new NotImplementedException();
+    }
+
+    public delegate void OrientationChange(string newOrientation);
+    public static OrientationChange OnOrientationChange;
+    public override void OnConfigurationChanged(Android.Content.Res.Configuration newConfig)
+    {
+      OnOrientationChange?.Invoke(newConfig.Orientation == Android.Content.Res.Orientation.Portrait ?
+                                  "Portrait" : "Landscape");
+      base.OnConfigurationChanged(newConfig);
+    }
+
+    protected override void OnStart()
+    {
+      base.OnStart();
+    }
+    protected override void OnStop()
+    {
+      base.OnStop();
+      Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+    }
+    protected override void OnResume()
+    {
+      base.OnResume();
+      if (!m_scriptRun) {
+        ViewTreeObserver vto = TheLayout.ViewTreeObserver;
+        vto.AddOnGlobalLayoutListener(new LayoutListener());
+        m_scriptRun = true;
+      }
+    }
     public void ChangeTab(int tabId)
     {
       CurrentTabId = tabId;
@@ -130,89 +188,11 @@ namespace scripting.Droid
 
     public static void RunScript()
     {
+      CommonFunctions.RegisterFunctions();
 
-
-      ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
-      ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));
-      ParserFunction.RegisterFunction("_VERSION_", new GetVersionFunction());
-      ParserFunction.RegisterFunction("DisplayWidth", new GadgetSizeFunction(true));
-      ParserFunction.RegisterFunction("DisplayHeight", new GadgetSizeFunction(false));
-      ParserFunction.RegisterFunction("Orientation", new OrientationFunction());
-
-      ParserFunction.RegisterFunction("AddTab", new AddTabFunction());
-      ParserFunction.RegisterFunction("GetSelectedTab", new GetSelectedTabFunction());
-      ParserFunction.RegisterFunction("AddWidget", new AddWidgetFunction());
-      ParserFunction.RegisterFunction("AddView", new AddWidgetFunction("View"));
-      ParserFunction.RegisterFunction("AddButton", new AddWidgetFunction("Button"));
-      ParserFunction.RegisterFunction("AddLabel", new AddWidgetFunction("Label"));
-      ParserFunction.RegisterFunction("AddTextEdit", new AddWidgetFunction("TextEdit"));
-      ParserFunction.RegisterFunction("AddTextView", new AddWidgetFunction("TextView"));
-      ParserFunction.RegisterFunction("AddImageView", new AddWidgetFunction("ImageView"));
-      ParserFunction.RegisterFunction("AddTypePickerView", new AddWidgetFunction("TypePicker"));
-      ParserFunction.RegisterFunction("AddSwitch", new AddWidgetFunction("Switch"));
-      ParserFunction.RegisterFunction("AddSlider", new AddWidgetFunction("Slider"));
-      ParserFunction.RegisterFunction("AddStepper", new AddWidgetFunction("Stepper"));
-      ParserFunction.RegisterFunction("AddStepperLeft", new AddWidgetFunction("Stepper", "left"));
-      ParserFunction.RegisterFunction("AddStepperRight", new AddWidgetFunction("Stepper", "right"));
-      ParserFunction.RegisterFunction("AddListView", new AddWidgetFunction("ListView"));
-      ParserFunction.RegisterFunction("AddCombobox", new AddWidgetFunction("Combobox"));
-      ParserFunction.RegisterFunction("AddSegmentedControl", new AddWidgetFunction("SegmentedControl"));
-      ParserFunction.RegisterFunction("AddBanner", new AddWidgetFunction("AdMobBanner"));
-      ParserFunction.RegisterFunction("AddWidgetData", new AddWidgetDataFunction());
-      ParserFunction.RegisterFunction("AddWidgetImages", new AddWidgetImagesFunction());
-      ParserFunction.RegisterFunction("AddBorder", new AddBorderFunction());
-      ParserFunction.RegisterFunction("AutoScale", new AutoScaleFunction());
-      ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
-      ParserFunction.RegisterFunction("AddLongClick", new AddLongClickFunction());
-      ParserFunction.RegisterFunction("AddSwipe", new AddSwipeFunction());
-      ParserFunction.RegisterFunction("AddDragAndDrop", new AddDragAndDropFunction());
-      ParserFunction.RegisterFunction("GetLocation", new GetLocationFunction());
-      ParserFunction.RegisterFunction("ShowView", new ShowHideFunction(true));
-      ParserFunction.RegisterFunction("HideView", new ShowHideFunction(false));
-      ParserFunction.RegisterFunction("SetVisible", new ShowHideFunction(true));
-      ParserFunction.RegisterFunction("RemoveView", new RemoveViewFunction());
-      ParserFunction.RegisterFunction("RemoveAllViews", new RemoveAllViewsFunction());
-      ParserFunction.RegisterFunction("Move", new MoveFunction());
-      ParserFunction.RegisterFunction("SelectTab", new SelectTabFunction());
-      ParserFunction.RegisterFunction("OnOrientationChange", new OrientationChangeFunction());
-      ParserFunction.RegisterFunction("SetBackgroundColor", new SetBackgroundColorFunction());
-      ParserFunction.RegisterFunction("SetBackground", new SetBackgroundImageFunction());
-      ParserFunction.RegisterFunction("SetText", new SetTextFunction());
-      ParserFunction.RegisterFunction("GetText", new GetTextFunction());
-      ParserFunction.RegisterFunction("SetValue", new SetValueFunction());
-      ParserFunction.RegisterFunction("GetValue", new GetValueFunction());
-      ParserFunction.RegisterFunction("SetImage", new SetImageFunction());
-      ParserFunction.RegisterFunction("SetFontSize", new SetFontSizeFunction());
-      ParserFunction.RegisterFunction("SetFontColor", new SetFontColorFunction());
-      ParserFunction.RegisterFunction("AlignText", new AlignTitleFunction());
-      ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
-      ParserFunction.RegisterFunction("ShowToast", new ShowToastFunction());
-      ParserFunction.RegisterFunction("AlertDialog", new AlertDialogFunction());
-      ParserFunction.RegisterFunction("CallNative", new InvokeNativeFunction());
-      ParserFunction.RegisterFunction("Speak", new SpeakFunction());
-      ParserFunction.RegisterFunction("SetupSpeech", new SpeechOptionsFunction());
-      ParserFunction.RegisterFunction("VoiceRecognition", new VoiceFunction());
-      ParserFunction.RegisterFunction("StopVoiceRecognition", new StopVoiceFunction());
-      ParserFunction.RegisterFunction("Localize", new LocalizedFunction());
-      ParserFunction.RegisterFunction("TranslateTabBar", new TranslateTabBar());
-      ParserFunction.RegisterFunction("InitAds", new InitAds());
-      ParserFunction.RegisterFunction("ShowInterstitial", new ShowInterstitial());
-      ParserFunction.RegisterFunction("InitIAP", new InitIAPFunction());
-      ParserFunction.RegisterFunction("Purchase", new PurchaseFunction());
-      ParserFunction.RegisterFunction("Restore", new RestoreFunction());
-      ParserFunction.RegisterFunction("ReadFile", new ReadFileFunction());
-      ParserFunction.RegisterFunction("Schedule", new PauseFunction(true));
-      ParserFunction.RegisterFunction("CancelSchedule", new PauseFunction(false));
-      ParserFunction.RegisterFunction("GetDeviceLocale", new GetDeviceLocale());
-      ParserFunction.RegisterFunction("SetAppLocale", new SetAppLocale());
-      ParserFunction.RegisterFunction("GetSetting", new GetSettingFunction());
-      ParserFunction.RegisterFunction("SetSetting", new SetSettingFunction());
-      ParserFunction.RegisterFunction("GetTrie", new CreateTrieFunction());
-      ParserFunction.RegisterFunction("SearchTrie", new SearchTrieFunction());
-      //ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
       string script = "";
       AssetManager assets = TheView.Assets;
-      using (StreamReader sr = new StreamReader(assets.Open("script.cscs"))) {
+      using (StreamReader sr = new StreamReader(assets.Open("iLanguage.cscs"))) {
         script = sr.ReadToEnd();
       }
 
@@ -221,7 +201,9 @@ namespace scripting.Droid
         result = Interpreter.Instance.Process(script);
       } catch (Exception exc) {
         Console.WriteLine("Exception: " + exc.Message);
+        Console.WriteLine(exc.StackTrace);
         ParserFunction.InvalidateStacksAfterLevel(0);
+        throw;
       }
     }
     public static void AddView(View view, ViewGroup parent)
@@ -268,9 +250,14 @@ namespace scripting.Droid
 
       return linlayout;
     }
+
     public static void ShowView(View view, bool showIt)
     {
       ScriptingFragment.ShowView(view, showIt, false);
+      if (view is EditText) {
+        EditText editText = view as EditText;
+        TheView.HideShowKeybord(editText, showIt);
+      }
     }
     public static string ProcessClick(string arg)
     {
@@ -279,6 +266,7 @@ namespace scripting.Droid
     }
     static public int String2Pic(string name)
     {
+      //string imagefileName = UIUtils.String2ImageName(name);
       string imagefileName = name.Replace("-", "_").Replace(".png", "");
       var fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
       if (fieldInfo == null) {
@@ -289,31 +277,18 @@ namespace scripting.Droid
       return resourceID;
     }
 
-    public void OnTabReselected(ActionBar.Tab tab, FragmentTransaction ft)
-    {
-      SelectTab(tab.Position);
-    }
 
-    public void OnTabSelected(ActionBar.Tab tab, FragmentTransaction ft)
+    public void HideShowKeybord(EditText widget, bool show)
     {
-      //ft.Replace(Resource.Id.frameLayout1, frag);
-      SelectTab(tab.Position);
+      InputMethodManager imm = (InputMethodManager)GetSystemService(Context.InputMethodService);
+      if (!show) { // Hide!
+        imm.HideSoftInputFromWindow(widget.WindowToken, 0);
+      } else { // Show!
+        widget.SetCursorVisible(show);
+        widget.RequestFocus();
+        imm.ShowSoftInput(widget, ShowFlags.Implicit);
+      }
     }
-
-    public void OnTabUnselected(ActionBar.Tab tab, FragmentTransaction ft)
-    {
-      //throw new NotImplementedException();
-    }
-
-    public delegate void OrientationChange(string newOrientation);
-    public static OrientationChange OnOrientationChange;
-    public override void OnConfigurationChanged(Android.Content.Res.Configuration newConfig)
-    {
-      OnOrientationChange?.Invoke(newConfig.Orientation == Android.Content.Res.Orientation.Portrait ?
-                                  "Portrait" : "Landscape");
-      base.OnConfigurationChanged(newConfig);
-    }
-
     void InitTTS()
     {
       //Intent installedIntent = new Intent();

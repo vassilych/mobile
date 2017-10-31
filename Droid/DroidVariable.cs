@@ -67,6 +67,27 @@ namespace scripting.Droid
       return m_viewX;
     }
 
+    public bool SetFontSize(float size)
+    {
+      ViewGroup layout = m_viewX as ViewGroup;
+      if (layout == null || layout.ChildCount == 0) {
+        return false;
+      }
+      for (int i = 0; i < layout.ChildCount; i++) {
+        View view = layout.GetChildAt(i);
+        if (view is Button) {
+          ((Button)view).TextSize = size;
+        } else if (view is TextView) {
+          ((TextView)view).TextSize = size;
+        } else if (view is EditText) {
+          ((EditText)view).TextSize = size;
+        } else if (view is Switch) {
+          ((Switch)view).TextSize = size;
+        }
+      }
+      return true;
+    }
+
     public View CreateStepper(int width, int height, string extraLabel)
     {
       DroidVariable refView = Location?.RefViewX as DroidVariable;

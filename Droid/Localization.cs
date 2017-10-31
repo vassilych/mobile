@@ -6,6 +6,8 @@ namespace scripting.Droid
 {
   public class Localization
   {
+    public static string CurrentCode;
+
     public static Java.Util.Locale LocaleFromString(string voice, bool display = true)
     {
       string voice_ = voice.Replace("-", "_");
@@ -104,6 +106,8 @@ namespace scripting.Droid
       if (newLocale == null) {
         return false;
       }
+      CurrentCode = voice;
+
       Console.WriteLine("SetUILanguage {0} from {1}", conf.Locale, voice);
 
       MainActivity.TheView.Resources.UpdateConfiguration(conf,

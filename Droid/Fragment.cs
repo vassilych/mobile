@@ -78,13 +78,16 @@ namespace scripting.Droid
         ViewGroup parentView = entry.Value;
         View viewToRemove = entry.Key;
         parentView.RemoveView(viewToRemove);
+        //((ViewGroup)viewToRemove.Parent).RemoveAllViews();
       }
+      m_allViews.Clear();
     }
     public static void RemoveView(View view)
     {
       if (m_activeFragment != null) {
         m_activeFragment.m_views.Remove(view);
       }
+      m_allViews.Remove(view);
     }
     public static void ShowFragments(int activeIndex)
     {

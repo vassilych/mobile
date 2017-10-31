@@ -89,17 +89,19 @@ namespace scripting.Droid
       int width = Utils.GetSafeInt(args, start + 3);
       int height = Utils.GetSafeInt(args, start + 4);
 
-      string autoSize = Utils.GetSafeString(args, start + 5);
+      string autoSize   = Utils.GetSafeString(args, start + 5);
       double multiplier = Utils.GetSafeDouble(args, start + 6);
+      Size screenSize = UtilsDroid.GetScreenSize();
       AutoScaleFunction.TransformSizes(ref width, ref height,
-                        UtilsDroid.GetScreenSize().Width, autoSize, multiplier);
+                                       screenSize.Width, autoSize, multiplier);
 
       location.SetSize(width, height);
       location.LayoutRuleX = UtilsDroid.String2LayoutParam(location, true);
       location.LayoutRuleY = UtilsDroid.String2LayoutParam(location, false);
 
       DroidVariable widgetFunc = ExistingWidget(script, varName);
-      if (widgetFunc == null) {
+      bool alreadyExists = widgetFunc != null;
+      if (!alreadyExists) {
         widgetFunc = GetWidget(widgetType, varName, text, width, height);
       }
 
@@ -124,6 +126,8 @@ namespace scripting.Droid
                                  as RelativeLayout.LayoutParams;
       }
 
+      location.TranslationX += UtilsDroid.ExtraMargin(widgetFunc, screenSize, multiplier);
+
       ApplyRule(layoutParams, location.LayoutRuleX, location.ViewX);
       ApplyRule(layoutParams, location.LayoutRuleY, location.ViewY);
 
@@ -139,7 +143,18 @@ namespace scripting.Droid
       widget.TranslationY = location.TranslationY;
 
       var parentView = location.ParentView as DroidVariable;
+      Console.WriteLine("--ADDING {0} {1}, text: {2}, parent: {3}, exists: {4}",
+                        varName, widgetType, text, parentView == null, alreadyExists);
       MainActivity.AddView(viewToAdd, parentView?.ViewLayout);
+      if (alreadyExists) {
+        MainActivity.TheLayout.Invalidate();
+        MainActivity.TheLayout.RefreshDrawableState();
+        viewToAdd.Invalidate();
+        viewToAdd.RefreshDrawableState();
+        if (parentView != null) {
+          parentView?.ViewLayout.Invalidate();
+        }
+      }
 
       ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
       return widgetFunc;
@@ -167,6 +182,7 @@ namespace scripting.Droid
           widget = new TextView(MainActivity.TheView);
           ((TextView)widget).SetTextColor(Color.Black);
           ((TextView)widget).Text = initArg;
+          ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
           break;
         case "TextView":
         case "TextEdit":
@@ -462,7 +478,7 @@ namespace scripting.Droid
       return Variable.EmptyInstance;
     }
   }
-  public class MoveFunction : ParserFunction
+  public class MoveViewFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
@@ -559,6 +575,8 @@ namespace scripting.Droid
       View viewToRemove = viewVar.ViewX;
 
       parentView.RemoveView(viewToRemove);
+      ((ViewGroup)viewToRemove.Parent).RemoveView(viewToRemove);
+      ScriptingFragment.RemoveView(viewToRemove);
     }
   }
   public class RemoveAllViewsFunction : ParserFunction
@@ -585,6 +603,19 @@ namespace scripting.Droid
     {
       int tabId = Utils.GetItem(script).AsInt();
       MainActivity.TheView.ChangeTab(tabId);
+      return Variable.EmptyInstance;
+    }
+  }
+  public class OnTabSelectedFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string action = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, action, m_name);
+
+      MainActivity.TabSelectedDelegate += (tab) => {
+        UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
+      };
       return Variable.EmptyInstance;
     }
   }
@@ -636,7 +667,13 @@ namespace scripting.Droid
 
       if (resourceID > 0) {
         View view = DroidVariable.GetView(varName, script);
-        view.SetBackgroundResource(resourceID);
+        if (view is Button) {
+          Button but = view as Button;
+          Drawable dr = MainActivity.TheView.Resources.GetDrawable(resourceID);
+          but.Background = dr;
+        } else {
+          view.SetBackgroundResource(resourceID);
+        }
       } else {
         Console.WriteLine("Couldn't find pic [{0}]", imageName);
       }
@@ -723,6 +760,17 @@ namespace scripting.Droid
     public static void AddAction(DroidVariable droidVar, string varName,
                                  string strAction, string argument = null)
     {
+      if (!string.IsNullOrWhiteSpace(argument)) {
+        if (argument.Equals("FINISHED")) {
+          if (droidVar.ViewX is ListView) {
+            ListView listView = droidVar.ViewX as ListView;
+            listView.NothingSelected += (sender, e) => {
+              UIVariable.GetAction(strAction, varName, "");
+            };
+          }
+          return;
+        }
+      }
       if (string.IsNullOrWhiteSpace(strAction)) {
         return;
       }
@@ -1206,6 +1254,19 @@ namespace scripting.Droid
       return Variable.EmptyInstance;
     }
   }
+  public class SetOptionsFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      Utils.CheckArgs(args.Count, 0, m_name);
+      // TODO: implement
+      return Variable.EmptyInstance;
+    }
+  }
   public class SetFontSizeFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1215,22 +1276,27 @@ namespace scripting.Droid
       script.MoveForwardIf(Constants.NEXT_ARG);
 
       Variable fontSize = Utils.GetItem(script);
-      Utils.CheckPosInt(fontSize);
+      Utils.CheckNumber(fontSize);
 
-      View view = DroidVariable.GetView(varName, script);
+      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
+      Utils.CheckNotNull(droidVar, m_name);
+      View view = droidVar.ViewX;
+
       Utils.CheckNotNull(view, m_name);
 
       if (view is Button) {
-        ((Button)view).TextSize = (int)fontSize.Value;
+        ((Button)view).TextSize = (float)fontSize.Value;
       } else if (view is TextView) {
-        ((TextView)view).TextSize = (int)fontSize.Value;
+        ((TextView)view).TextSize = (float)fontSize.Value;
       } else if (view is EditText) {
-        ((EditText)view).TextSize = (int)fontSize.Value;
+        ((EditText)view).TextSize = (float)fontSize.Value;
+      } else if (view is Switch) {
+        ((Switch)view).TextSize = (float)fontSize.Value;
       } else {
-        return Variable.EmptyInstance;
+        droidVar.SetFontSize((float)fontSize.Value);
       }
 
-      return fontSize;
+      return Variable.EmptyInstance;
     }
   }
   public class SetFontColorFunction : ParserFunction
@@ -1408,12 +1474,11 @@ namespace scripting.Droid
 
       string phrase = args[0].AsString();
       TTS.Voice = Utils.GetSafeString(args, 1, TTS.Voice).Replace("-", "_");
-      TTS.SpeechRate = (float)Utils.GetSafeDouble(args, 2, TTS.SpeechRate);
-      TTS.PitchMultiplier = (float)Utils.GetSafeDouble(args, 3, TTS.PitchMultiplier);
-      TTS.Volume = (float)Utils.GetSafeDouble(args, 4, TTS.Volume);
+      TTS.Voice = Utils.GetSafeString(args, 1, TTS.Voice);
+      bool force = Utils.GetSafeInt(args, 2) != 0;
 
       TTS tts = TTS.GetTTS(TTS.Voice);
-      tts.Speak(phrase);
+      tts.Speak(phrase, force);
 
       return Variable.EmptyInstance;
     }
@@ -1493,7 +1558,8 @@ namespace scripting.Droid
 
   public class LocalizedFunction : ParserFunction
   {
-    public static string Voice { get; set; } = "en-US";
+    Dictionary<string, string> m_localizations = new Dictionary<string, string>();
+
     static Dictionary<string, Dictionary<string, string>> m_resources =
        new Dictionary<string, Dictionary<string, string>>();
 
@@ -1504,21 +1570,29 @@ namespace scripting.Droid
                             Constants.START_ARG, Constants.END_ARG, out isList);
       Utils.CheckArgs(args.Count, 1, m_name);
 
+      string currentCode = Localization.CurrentCode;
       string key = args[0].AsString();
-      Voice = Utils.GetSafeString(args, 1, Voice);
+      string langCode = Utils.GetSafeString(args, 1, currentCode);
 
       Dictionary<string, string> resourceCache;
-      if (!m_resources.TryGetValue(Voice, out resourceCache)) {
+      if (!m_resources.TryGetValue(langCode, out resourceCache)) {
         resourceCache = new Dictionary<string, string>();
       }
       string localized;
-      if (resourceCache.TryGetValue(Voice, out localized)) {
+      if (resourceCache.TryGetValue(key, out localized)) {
         return new Variable(localized);
       }
 
+      if (langCode != currentCode) {
+        Localization.SetProgramLanguageCode(langCode);
+      }
       localized = Localization.GetText(key);
+      if (langCode != currentCode) {
+        Localization.SetProgramLanguageCode(currentCode);
+      }
+
       resourceCache[key] = localized;
-      m_resources[Voice] = resourceCache;
+      m_resources[langCode] = resourceCache;
 
       return new Variable(localized);
     }
@@ -1546,6 +1620,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       AdMob.ShowInterstitialAd();
+      script.MoveForwardIf(Constants.END_ARG);
       return Variable.EmptyInstance;
     }
   }
@@ -1566,6 +1641,16 @@ namespace scripting.Droid
 
       IAP.Init(keyParts);
 
+      return Variable.EmptyInstance;
+    }
+  }
+  public class InitTTSFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      TTS.Init(MainActivity.TheView);
+      TTS.InitVoices();
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
       return Variable.EmptyInstance;
     }
   }
@@ -1662,6 +1747,33 @@ namespace scripting.Droid
       return new Variable(results);
     }
   }
+  class ImportFileFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string filename = Utils.GetItem(script).AsString();
+
+      string fileContents = "";
+      AssetManager assets = MainActivity.TheView.Assets;
+      using (StreamReader sr = new StreamReader(assets.Open(filename))) {
+        fileContents = sr.ReadToEnd();
+      }
+
+      string[] lines = fileContents.Split('\n');
+
+      Dictionary<int, int> char2Line;
+      string includeScript = Utils.ConvertToScript(fileContents, out char2Line);
+      ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
+      tempScript.Filename = filename;
+      tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+
+      while (tempScript.Pointer < includeScript.Length) {
+        tempScript.ExecuteTo();
+        tempScript.GoToNextStatement();
+      }
+      return Variable.EmptyInstance;
+    }
+  }
   public class PauseFunction : ParserFunction
   {
     static Dictionary<string, System.Timers.Timer> m_timers =
@@ -1736,6 +1848,24 @@ namespace scripting.Droid
 
       bool found = Localization.SetProgramLanguageCode(code);
       return new Variable(found);
+    }
+  }
+  public class OpenURLFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string urlStr = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, urlStr, m_name);
+
+      if (!urlStr.StartsWith("http://") && !urlStr.StartsWith("https://")) {
+        urlStr = "http://" + urlStr;
+      }
+
+      var url = Android.Net.Uri.Parse(urlStr);
+      var intent = new Intent(Intent.ActionView, url);
+      MainActivity.TheView.StartActivity(intent);
+
+      return new Variable(urlStr);
     }
   }
   public class TranslateTabBar : ParserFunction

@@ -5,6 +5,7 @@ using Android.Graphics.Drawables;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
+using Android.Views.InputMethods;
 using Android.Widget;
 using SplitAndMerge;
 
@@ -12,9 +13,21 @@ namespace scripting.Droid
 {
   public class UtilsDroid
   {
-    const int MIN_WIDTH = 640;
-    const int MIN_HEIGHT = 960;
+    public const int SWITCH_MARGIN = -20;
 
+    public static int ExtraMargin(DroidVariable widgetFunc, Size screenSize, double multiplier)
+    {
+      int offset = 0;
+      if (widgetFunc.ViewX is Switch) {
+        offset = AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
+        if (screenSize.Width <= AutoScaleFunction.BASE_WIDTH) {
+          offset = SWITCH_MARGIN; // from -45, 480
+        }
+        //offset = -112; // (before -168) // from 1200
+        //offset = -135; // from 1440
+      }
+      return offset;
+    }
     public static Size GetScreenSize()
     {
       DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -74,9 +87,9 @@ namespace scripting.Droid
               return LayoutRules.AlignLeft;
             } else {
               int delta = (refLocation.Height - location.Height) / 2;
-              if (referenceView is TextView) {
+              /*if (referenceView is TextView) {
                 delta -= 28;
-              }
+              }*/
               location.TranslationY += delta;
               return LayoutRules.AlignTop;// .AlignBaseline;
             }
@@ -98,39 +111,19 @@ namespace scripting.Droid
       }
     }
 
-    static List<string> reserved = new List<string>() { "case", "class", "short", "switch", "turkey" };
-    static public string String2ImageName(string name)
-    {
-      // Hooks for similar names:
-      if (reserved.Contains(name)) {
-        return "_" + name; // Only case difference with Turkey the country
-      }
-      string imagefileName = name.Replace("-", "_").Replace("(", "").
-                                  Replace(")", "_").Replace("'", "_").
-                                  Replace(" ", "_").Replace("é", "e").
-                                  Replace(",", "").Replace("__", "_").
-                                  Replace("\"", "").Replace(".png", "");
-      return imagefileName;
-    }
-
     static Dictionary<string, int> m_pics = new Dictionary<string, int>();
     public static int String2Pic(string name)
     {
-      string imagefileName = String2ImageName(name);
+      string imagefileName = UIUtils.String2ImageName(name);
       int resourceID = 0;
       if (m_pics.TryGetValue(imagefileName, out resourceID)) {
         return resourceID;
       }
       var fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
-      if (fieldInfo == null) {
-        // Try prepending _ for Android forbidden names like 'case'
-        imagefileName = "_" + imagefileName;
+      /*if (fieldInfo == null) {
+        imagefileName = imagefileName.Replace("_", "");
         fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
-        if (fieldInfo == null) {
-          imagefileName = imagefileName.Replace("_", "");
-          fieldInfo = typeof(Resource.Drawable).GetField(imagefileName);
-        }
-      }
+      }*/
       if (fieldInfo == null) {
         Console.WriteLine("Couldn't find pic [{0}] for [{1}]", imagefileName, name);
         return -999;
