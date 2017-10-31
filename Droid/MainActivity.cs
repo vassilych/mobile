@@ -19,7 +19,7 @@ namespace scripting.Droid
             //Theme = "@style/MyTheme.Main",
             Icon = "@mipmap/icon",
             Label = "",
-            //MainLauncher = true,
+            MainLauncher = true,
             ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
             )]
   public partial class MainActivity : Activity,
@@ -192,7 +192,7 @@ namespace scripting.Droid
 
       string script = "";
       AssetManager assets = TheView.Assets;
-      using (StreamReader sr = new StreamReader(assets.Open("iLanguage.cscs"))) {
+      using (StreamReader sr = new StreamReader(assets.Open("script.cscs"))) {
         script = sr.ReadToEnd();
       }
 
