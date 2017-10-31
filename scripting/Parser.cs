@@ -409,8 +409,9 @@ namespace SplitAndMerge
           leftCell.String = leftCell.AsString() + rightCell.AsString();
           break;
         case "<":
-          leftCell.Value = Convert.ToDouble(
-            string.Compare(leftCell.AsString(), rightCell.AsString()) < 0);
+          string arg1 = leftCell.AsString();
+          string arg2 = rightCell.AsString();
+          leftCell.Value = Convert.ToDouble(string.Compare(arg1, arg2) < 0);
           break;
         case ">":
           leftCell.Value = Convert.ToDouble(

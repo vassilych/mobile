@@ -63,7 +63,8 @@ namespace SplitAndMerge
     public const string ABS = "abs";
     public const string ACOS = "acos";
     public const string ADD = "add";
-    public const string ADD_TO_HASH = "addtohash";
+    public const string ADD_TO_HASH = "AddToHash";
+    public const string ADD_ALL_TO_HASH = "AddAllToHash";
     public const string APPEND = "append";
     public const string APPENDLINE = "appendline";
     public const string APPENDLINES = "appendlines";
@@ -141,6 +142,8 @@ namespace SplitAndMerge
     public const string THREAD = "thread";
     public const string THREAD_ID = "threadid";
     public const string TOKENIZE = "tokenize";
+    public const string TOKENIZE_LINES = "TokenizeLines";
+    public const string TOKEN_COUNTER = "CountTokens";
     public const string TOLOWER = "tolower";
     public const string TOUPPER = "toupper";
     public const string TRANSLATE = "translate";

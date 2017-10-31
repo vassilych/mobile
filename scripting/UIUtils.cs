@@ -32,8 +32,9 @@ namespace scripting
       return candidate;
     }
 
-    static List<string> reserved = new List<string>() { "case", "class", "else", "for", "if", "int", "long",
-      "return", "short", "switch", "turkey", "while" };
+    static List<string> reserved = new List<string>() { "case", "catch", "class", "double", "else", "for",
+      "if", "int", "internal", "long", "private", "public", "return", "short", "static", "switch", "try",
+      "turkey", "while" };
     static public string String2ImageName(string name)
     {
       // Hooks for similar names:

@@ -78,6 +78,7 @@ namespace SplitAndMerge
       ParserFunction.RegisterFunction(Constants.ACOS, new AcosFunction());
       ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
       ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
+      ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
       ParserFunction.RegisterFunction(Constants.APPEND, new AppendFunction());
       ParserFunction.RegisterFunction(Constants.APPENDLINE, new AppendLineFunction());
       ParserFunction.RegisterFunction(Constants.APPENDLINES, new AppendLinesFunction());
@@ -122,7 +123,7 @@ namespace SplitAndMerge
       ParserFunction.RegisterFunction(Constants.PWD, new PwdFunction());
       ParserFunction.RegisterFunction(Constants.RANDOM, new GetRandomFunction());
       ParserFunction.RegisterFunction(Constants.READ, new ReadConsole());
-      ParserFunction.RegisterFunction(Constants.READFILE, new ReadFileFunction());
+      ParserFunction.RegisterFunction(Constants.READFILE, new ReadCSCSFileFunction());
       ParserFunction.RegisterFunction(Constants.READNUMBER, new ReadConsole(true));
       ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
       ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
@@ -154,6 +155,8 @@ namespace SplitAndMerge
       ParserFunction.RegisterFunction(Constants.THREAD, new ThreadFunction());
       ParserFunction.RegisterFunction(Constants.THREAD_ID, new ThreadIDFunction());
       ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
+      ParserFunction.RegisterFunction(Constants.TOKENIZE_LINES, new TokenizeLinesFunction());
+      ParserFunction.RegisterFunction(Constants.TOKEN_COUNTER, new TokenCounterFunction());
       ParserFunction.RegisterFunction(Constants.TOLOWER, new ToLowerFunction());
       ParserFunction.RegisterFunction(Constants.TOUPPER, new ToUpperFunction());
       ParserFunction.RegisterFunction(Constants.TRANSLATE, new TranslateFunction());
@@ -225,6 +228,7 @@ namespace SplitAndMerge
 
                 Translation.Add(languageSection, Constants.ADD, tr1, tr2);
                 Translation.Add(languageSection, Constants.ADD_TO_HASH, tr1, tr2);
+                Translation.Add(languageSection, Constants.ADD_ALL_TO_HASH, tr1, tr2);
                 Translation.Add(languageSection, Constants.APPEND, tr1, tr2);
                 Translation.Add(languageSection, Constants.APPENDLINE, tr1, tr2);
                 Translation.Add(languageSection, Constants.APPENDLINES, tr1, tr2);
@@ -292,6 +296,8 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.THREAD, tr1, tr2);
                 Translation.Add(languageSection, Constants.THREAD_ID, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKENIZE, tr1, tr2);
+                Translation.Add(languageSection, Constants.TOKENIZE_LINES, tr1, tr2);
+                Translation.Add(languageSection, Constants.TOKEN_COUNTER, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOLOWER, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOUPPER, tr1, tr2);
                 Translation.Add(languageSection, Constants.TRANSLATE, tr1, tr2);
@@ -307,7 +313,7 @@ namespace SplitAndMerge
                 Translation.AddSubstatement(languageSection, Constants.ELSE,    Constants.ELSE_LIST, tr1, tr2);
                 Translation.AddSubstatement(languageSection, Constants.ELSE_IF, Constants.ELSE_IF_LIST, tr1, tr2);
                 Translation.AddSubstatement(languageSection, Constants.CATCH,   Constants.CATCH_LIST, tr1, tr2);
-            }
+      }
 #endif
     }
 

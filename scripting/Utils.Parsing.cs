@@ -352,14 +352,14 @@ namespace SplitAndMerge
 
         switch (ch) {
           case '/':
-            if (inComments || next == '/' || next == '*') {
+            if (!inQuotes && (inComments || next == '/' || next == '*')) {
               inComments = true;
               simpleComments = simpleComments || next == '/';
               continue;
             }
             break;
           case '*':
-            if (inComments && next == '/') {
+            if (!inQuotes && (inComments && next == '/')) {
               i++; // skip next character
               inComments = false;
               continue;

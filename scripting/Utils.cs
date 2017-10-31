@@ -27,6 +27,13 @@ namespace SplitAndMerge
                                        variable.Value + "]");
       }
     }
+    public static void CheckPosInt(int number, string name)
+    {
+      if (number < 0) {
+        throw new ArgumentException("Expected a positive integer instead of [" +
+                                       number + "] in [" + name + "]");
+      }
+    }
     public static void CheckNonNegativeInt(Variable variable)
     {
       CheckInteger(variable);
