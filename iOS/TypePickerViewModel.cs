@@ -50,7 +50,6 @@ namespace scripting.iOS
     }
 
     public RowSelectedDel RowSelected;
-
     public TypePickerViewModel(UIViewController vc)
     {
       m_controller = vc;
@@ -59,18 +58,36 @@ namespace scripting.iOS
     public List<string> Data {
       set {
         m_names = value;
+        int maxSize = 0;
         for (int i = 0; i < m_names.Count; i++) {
-          if (m_names[i].Length > 25) {
-            m_fontSize = 10f;
-            break;
+          if (m_names[i].Length > maxSize) {
+            maxSize = m_names[i].Length;
           }
         }
+        m_fontSize = CalculateFontSize(maxSize);
       }
       get { return m_names; }
     }
     public List<UIImage> Images {
       set { m_pics = value; }
       get { return m_pics; }
+    }
+
+    public static float CalculateFontSize(int size)
+    {
+      float fontSize = 15f;
+      if (size > 60) {
+        fontSize = 10f;
+      } else if (size > 50) {
+        fontSize = 11f;
+      } else if (size > 40) {
+        fontSize = 12f;
+      } else if (size > 30) {
+        fontSize = 13f;
+      } else if (size > 25) {
+        fontSize = 14f;
+      }
+      return fontSize;
     }
 
     public override nint GetComponentCount(UIPickerView pickerView)

@@ -46,6 +46,7 @@ namespace scripting.iOS
       }
       get { return m_deviceLanguage; }
     }
+    public static string CurrentCode;
 
     public static string GetText(string key)
     {
@@ -81,6 +82,7 @@ namespace scripting.iOS
         return false;
       }
       m_bundle = NSBundle.FromPath(path);
+      CurrentCode = langCode;
       return true;
     }
   }

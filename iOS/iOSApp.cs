@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CoreGraphics;
 using SplitAndMerge;
 using UIKit;
 
@@ -69,6 +70,8 @@ namespace scripting.iOS
     static iOSTab m_activeTab;
     static List<UIView> m_hiddenViews = new List<UIView>();
 
+    public static Action<int> TabSelectedDelegate;
+
     int m_selectedTab = -1;
 
     public static iOSApp Instance { set; get; }
@@ -91,10 +94,26 @@ namespace scripting.iOS
       CurrentOffset = down ? 0 : (int)tabFrame.Size.Height;
     }
 
+    public static int GetVerticalOffset()
+    {
+      if (iOSApp.CurrentOffset == 0) {
+        return 0;
+      }
+      int offset = (int)(iOSApp.CurrentOffset * 0.8);
+      CGSize screen = UtilsiOS.GetNativeScreenSize();
+      // Special dealing with iPhone X:
+      if (screen.Width == 1125) {
+        offset += 6;
+      }
+
+      return offset;
+    }
+
     public void OnTabSelected(object sender, UITabBarSelectionEventArgs e)
     {
       m_selectedTab = (int)e.ViewController.TabBarController.SelectedIndex;
       SelectTab(m_selectedTab);
+      TabSelectedDelegate?.Invoke(m_selectedTab);
     }
     public static void SelectTab(int selectedTab)
     {
@@ -131,88 +150,9 @@ namespace scripting.iOS
 
     public void RunScript()
     {
-      ParserFunction.RegisterFunction("GetLocation", new GetLocationFunction());
-      ParserFunction.RegisterFunction("AddWidget", new AddWidgetFunction());
-      ParserFunction.RegisterFunction("AddView", new AddWidgetFunction("View"));
-      ParserFunction.RegisterFunction("AddButton", new AddWidgetFunction("Button"));
-      ParserFunction.RegisterFunction("AddLabel", new AddWidgetFunction("Label"));
-      ParserFunction.RegisterFunction("AddTextEdit", new AddWidgetFunction("TextEdit"));
-      ParserFunction.RegisterFunction("AddTextView", new AddWidgetFunction("TextView"));
-      ParserFunction.RegisterFunction("AddImageView", new AddWidgetFunction("ImageView"));
-      ParserFunction.RegisterFunction("AddTypePickerView", new AddWidgetFunction("TypePicker"));
-      ParserFunction.RegisterFunction("AddSwitch", new AddWidgetFunction("Switch"));
-      ParserFunction.RegisterFunction("AddSlider", new AddWidgetFunction("Slider"));
-      ParserFunction.RegisterFunction("AddStepper", new AddWidgetFunction("Stepper"));
-      ParserFunction.RegisterFunction("AddStepperLeft", new AddWidgetFunction("Stepper", "left"));
-      ParserFunction.RegisterFunction("AddStepperRight", new AddWidgetFunction("Stepper", "right"));
-      ParserFunction.RegisterFunction("AddListView", new AddWidgetFunction("ListView"));
-      ParserFunction.RegisterFunction("AddCombobox", new AddWidgetFunction("Combobox"));
-      ParserFunction.RegisterFunction("AddSegmentedControl", new AddWidgetFunction("SegmentedControl"));
+      CommonFunctions.RegisterFunctions();
 
-      ParserFunction.RegisterFunction("AddWidgetData", new AddWidgetDataFunction());
-      ParserFunction.RegisterFunction("AddWidgetImages", new AddWidgetImagesFunction());
-      ParserFunction.RegisterFunction("AddTab", new AddTabFunction());
-      ParserFunction.RegisterFunction("GetSelectedTab", new GetSelectedTabFunction());
-      ParserFunction.RegisterFunction("SelectTab", new SelectTabFunction());
-      ParserFunction.RegisterFunction("AddBorder", new AddBorderFunction());
-      ParserFunction.RegisterFunction("AutoScale", new AutoScaleFunction());
-      ParserFunction.RegisterFunction("AddLongClick", new AddLongClickFunction());
-      ParserFunction.RegisterFunction("AddSwipe", new AddSwipeFunction());
-      ParserFunction.RegisterFunction("AddDragAndDrop", new AddDragAndDropFunction());
-      ParserFunction.RegisterFunction("ShowView", new ShowHideFunction(true));
-      ParserFunction.RegisterFunction("HideView", new ShowHideFunction(false));
-      ParserFunction.RegisterFunction("SetVisible", new ShowHideFunction(true));
-      ParserFunction.RegisterFunction("RemoveView", new RemoveViewFunction());
-      ParserFunction.RegisterFunction("RemoveAllViews", new RemoveAllViewsFunction());
-      ParserFunction.RegisterFunction("Move", new MoveFunction());
-      ParserFunction.RegisterFunction("SetBackgroundColor", new SetBackgroundColorFunction());
-      ParserFunction.RegisterFunction("SetBackground", new SetBackgroundImageFunction());
-      ParserFunction.RegisterFunction("SetText", new SetTextFunction());
-      ParserFunction.RegisterFunction("GetText", new GetTextFunction());
-      ParserFunction.RegisterFunction("SetValue", new SetValueFunction());
-      ParserFunction.RegisterFunction("GetValue", new GetValueFunction());
-      ParserFunction.RegisterFunction("SetImage", new SetImageFunction());
-      ParserFunction.RegisterFunction("SetFontColor", new SetFontColorFunction());
-      ParserFunction.RegisterFunction("SetFontSize", new SetFontSizeFunction());
-      ParserFunction.RegisterFunction("AlignText", new AlignTitleFunction());
-      ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
-
-      ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
-      ParserFunction.RegisterFunction("OnOrientationChange", new OrientationChangeFunction());
-      ParserFunction.RegisterFunction("ShowToast", new ShowToastFunction());
-      ParserFunction.RegisterFunction("AlertDialog", new AlertDialogFunction());
-      ParserFunction.RegisterFunction("CallNative", new InvokeNativeFunction());
-      ParserFunction.RegisterFunction("Speak", new SpeakFunction());
-      ParserFunction.RegisterFunction("SetupSpeech", new SpeechOptionsFunction());
-      ParserFunction.RegisterFunction("VoiceRecognition", new VoiceFunction());
-      ParserFunction.RegisterFunction("StopVoiceRecognition", new StopVoiceFunction());
-      ParserFunction.RegisterFunction("Localize", new LocalizedFunction());
-      ParserFunction.RegisterFunction("TranslateTabBar", new TranslateTabBar());
-      ParserFunction.RegisterFunction("InitAds", new InitAds());
-      ParserFunction.RegisterFunction("ShowInterstitial", new ShowInterstitial());
-      ParserFunction.RegisterFunction("AddBanner", new AddWidgetFunction("AdMobBanner"));
-      ParserFunction.RegisterFunction("InitIAP", new InitIAPFunction());
-      ParserFunction.RegisterFunction("Purchase", new PurchaseFunction());
-      ParserFunction.RegisterFunction("Restore", new RestoreFunction());
-      ParserFunction.RegisterFunction("ReadFile", new ReadFileFunction());
-      ParserFunction.RegisterFunction("Schedule", new PauseFunction(true));
-      ParserFunction.RegisterFunction("CancelSchedule", new PauseFunction(false));
-      ParserFunction.RegisterFunction("GetDeviceLocale", new GetDeviceLocale());
-      ParserFunction.RegisterFunction("SetAppLocale", new SetAppLocale());
-      ParserFunction.RegisterFunction("GetSetting", new GetSettingFunction());
-      ParserFunction.RegisterFunction("SetSetting", new SetSettingFunction());
-      ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
-      ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));
-      ParserFunction.RegisterFunction("_VERSION_", new GetVersionFunction());
-      ParserFunction.RegisterFunction("DisplayWidth", new GadgetSizeFunction(true));
-      ParserFunction.RegisterFunction("DisplayHeight", new GadgetSizeFunction(false));
-      ParserFunction.RegisterFunction("Orientation", new OrientationFunction());
-      ParserFunction.RegisterFunction("GetTrie", new CreateTrieFunction());
-      ParserFunction.RegisterFunction("SearchTrie", new SearchTrieFunction());
-
-
-      ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
-
+      //string[] lines = System.IO.File.ReadAllLines("script.cscs");
       string[] lines = System.IO.File.ReadAllLines("script.cscs");
       string script = string.Join("\n", lines);
 
@@ -221,7 +161,9 @@ namespace scripting.iOS
         result = Interpreter.Instance.Process(script);
       } catch (Exception exc) {
         Console.WriteLine("Exception: " + exc.Message);
+        Console.WriteLine(exc.StackTrace);
         ParserFunction.InvalidateStacksAfterLevel(0);
+        throw;
       }
     }
     public static void AddView(UIView view)

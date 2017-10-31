@@ -88,10 +88,11 @@ namespace scripting.iOS
       WidgetType = UIVariable.UIType.STEPPER;
       UILabel label = null;
 
-      int stepperX = 0;
+      int stepperX = (int)(10 * UtilsiOS.WidthMultiplier());
+      int stepperY = (int)( 4 * UtilsiOS.WidthMultiplier());
       int labelSize = (int)rect.Height;
 
-      CGRect stepRect = new CGRect(stepperX, 0, rect.Width, rect.Height);
+      CGRect stepRect = new CGRect(stepperX, stepperY, rect.Width, rect.Height);
       UIStepper stepper = new UIStepper(stepRect);
 
       m_viewX = new UIView(rect);
@@ -100,14 +101,14 @@ namespace scripting.iOS
         nfloat labelWidth = rect.Width - stepper.Bounds.Width;
         nfloat labelHeight = stepper.Bounds.Height;
         if (extraLabel == "left") {
-          stepperX = labelSize;
-          CGRect labelRect = new CGRect(0, 0, labelWidth, labelHeight);
+          stepperX = 0;
+          CGRect labelRect = new CGRect(stepperX, stepperY, labelWidth, labelHeight);
           label = new UILabel(labelRect);
           label.TextAlignment = UITextAlignment.Left;
-          stepRect = new CGRect(labelWidth, 0, stepper.Bounds.Width, stepper.Bounds.Height);
+          stepRect = new CGRect(stepperX + labelWidth, stepperY, stepper.Bounds.Width, stepper.Bounds.Height);
           stepper = new UIStepper(stepRect);
         } else {
-          CGRect labelRect = new CGRect(stepper.Bounds.Width, 0, labelWidth, labelHeight);
+          CGRect labelRect = new CGRect(stepperX + stepper.Bounds.Width, stepperY, labelWidth, labelHeight);
           label = new UILabel(labelRect);
           label.TextAlignment = UITextAlignment.Right;
         }

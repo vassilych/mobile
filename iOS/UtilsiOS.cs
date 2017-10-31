@@ -7,11 +7,12 @@ namespace scripting.iOS
 {
   public class UtilsiOS
   {
-    const int ROOT_TOP_MIN = 18;
+    const int ROOT_TOP_MIN    = 18;
     const int ROOT_BOTTOM_MIN = 10;
 
-    const int MIN_WIDTH = 640;
-    const int MIN_HEIGHT = 960;
+    // Extending Combobox width with respect to Android:
+    const double COMBOBOX_EXTENTION = 2.4;
+    const int COMBOBOX_Y_MARGIN     = -20;
 
     static Dictionary<string, double> m_doubleCache = new Dictionary<string, double>();
 
@@ -30,6 +31,14 @@ namespace scripting.iOS
       };
     }
 
+    public static void AdjustSizes(string widgetType, iOSVariable location, ref int width, ref int height)
+    {
+      if (widgetType == "Combobox") {
+        height = (int)(height * COMBOBOX_EXTENTION);
+        location.TranslationY += COMBOBOX_Y_MARGIN;
+      }
+    }
+
     public static void ShowToast(String message, UIColor fgColor = null,
                                  UIColor bgColor = null,
                                  double duration = 10.0f,
@@ -44,7 +53,7 @@ namespace scripting.iOS
       CGSize screen = UtilsiOS.GetScreenSize();
       var size = new CGSize(width, height);
       var x = (screen.Width - size.Width) / 2.0;
-      var y = screen.Height - size.Height - 100;
+      var y = screen.Height - size.Height - 120 * WidthMultiplier();
       var point = new CGPoint(x, y);
 
       UIView view = AppDelegate.GetCurrentView();
@@ -113,9 +122,13 @@ namespace scripting.iOS
     }
     public static CGSize GetNativeScreenSize()
     {
-      //var bounds = UIScreen.MainScreen.NativeBounds;
       var bounds = UIScreen.MainScreen.NativeBounds;
       return new CGSize(bounds.Width, bounds.Height);
+    }
+    public static double WidthMultiplier()
+    {
+      var size = GetNativeScreenSize();
+      return size.Width / AutoScaleFunction.BASE_WIDTH;
     }
     public static double GetScreenRatio()
     {
@@ -174,7 +187,7 @@ namespace scripting.iOS
                                   refY + refHeight - widgetHeight;
           // if there is a tabbar, move the bottom part up:
           if (useRoot && !isX) {
-            offset1 -= (int)(iOSApp.CurrentOffset * 0.8);
+            offset1 -= iOSApp.GetVerticalOffset();
           }
           return offset1;
         case "BOTTOM":
@@ -182,7 +195,7 @@ namespace scripting.iOS
                                  refY + refHeight;
           // if there is a tabbar, move the bottom part up:
           if (useRoot && !isX) {
-            offset2 -= (int)(iOSApp.CurrentOffset * 0.8);
+            offset2 -= iOSApp.GetVerticalOffset();
           }
           return offset2;
         case "CENTER":

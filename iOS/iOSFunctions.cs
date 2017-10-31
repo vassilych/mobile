@@ -51,6 +51,8 @@ namespace scripting.iOS
   }
   public class AddWidgetFunction : ParserFunction
   {
+    // Extending Combobox width with respect to Android:
+    const double COMBOBOX_EXTENTION = 3.6;
     public AddWidgetFunction(string widgetType = "", string extras = "")
     {
       m_widgetType = widgetType;
@@ -86,7 +88,7 @@ namespace scripting.iOS
             (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
 
       if (widgetType == "Combobox") {
-        height *= 2;
+        height = (int)(height * COMBOBOX_EXTENTION);
       } else if (widgetType == "AdMobBanner") {
         AdMob.GetAdSize(text, ref width, ref height);
       }
@@ -399,7 +401,7 @@ namespace scripting.iOS
       return Variable.EmptyInstance;
     }
   }
-  public class MoveFunction : ParserFunction
+  public class MoveViewFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
@@ -1072,6 +1074,19 @@ public class AddLongClickFunction : ParserFunction
       return Variable.EmptyInstance;
     }
   }
+  public class OnTabSelectedFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string action = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, action, m_name);
+
+      iOSApp.TabSelectedDelegate += (tab) => {
+        UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
+      };
+      return Variable.EmptyInstance;
+    }
+  }
   public class ShowToastFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1086,9 +1101,11 @@ public class AddLongClickFunction : ParserFunction
       string fgColorStr  = Utils.GetSafeString(args, 2);
       string bgColorStr  = Utils.GetSafeString(args, 3);
 
-      int screenRatio    = (int)UtilsiOS.GetScreenRatio();
-      int width          = Utils.GetSafeInt(args, 4, 640) / screenRatio;
-      int height         = Utils.GetSafeInt(args, 5, 120) / screenRatio;
+      double screenRatio = UtilsiOS.GetScreenRatio();
+      double multiplier  = UtilsiOS.WidthMultiplier();
+
+      int width          = (int)(Utils.GetSafeInt(args, 4, 560) / screenRatio * multiplier);
+      int height         = (int)(Utils.GetSafeInt(args, 5, 120) / screenRatio * multiplier);
 
       if (string.IsNullOrEmpty(fgColorStr)) {
         fgColorStr = "#000000";
@@ -1333,6 +1350,16 @@ public class AddLongClickFunction : ParserFunction
     }
   }
 
+  public class InitTTSFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      TTS.Init();
+
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
+      return Variable.EmptyInstance;
+    }
+  }
   public class SpeakFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1342,15 +1369,11 @@ public class AddLongClickFunction : ParserFunction
                             Constants.START_ARG, Constants.END_ARG, out isList);
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      TTS.Init();
-
       string phrase = args[0].AsString();
-      TTS.Voice = Utils.GetSafeString(args, 1, TTS.Voice);
-      TTS.SpeechRate = (float)Utils.GetSafeDouble(args, 2, TTS.SpeechRate);
-      TTS.PitchMultiplier = (float)Utils.GetSafeDouble(args, 3, TTS.PitchMultiplier);
-      TTS.Volume = (float)Utils.GetSafeDouble(args, 4, TTS.Volume);
+      TTS.Voice     = Utils.GetSafeString(args, 1, TTS.Voice);
+      bool force    = Utils.GetSafeInt(args, 2) != 0;
 
-      TTS.Speak(phrase);
+      TTS.Speak(phrase, force);
 
       return Variable.EmptyInstance;
     }
@@ -1450,8 +1473,9 @@ public class AddLongClickFunction : ParserFunction
 
   public class LocalizedFunction : ParserFunction
   {
-    public static string Voice { get; set; } = "en-US";
     static NSBundle m_bundle = NSBundle.MainBundle;
+
+    Dictionary<string, string> m_localizations = new Dictionary<string, string>();
 
     protected override Variable Evaluate(ParsingScript script)
     {
@@ -1461,11 +1485,24 @@ public class AddLongClickFunction : ParserFunction
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string key = args[0].AsString();
-      Voice = Utils.GetSafeString(args, 1, Voice);
+      string langCode = Utils.GetSafeString(args, 1);
+      string currentCode = Localization.CurrentCode;
+      string localized;
 
-      string localized = Localization.GetText(key);
-      if (localized == key && !key.Contains(":")) {
-        localized = m_bundle.LocalizedString(key + ":", key).Replace(":", "");
+      if (!string.IsNullOrWhiteSpace(langCode)) {
+        if (m_localizations.TryGetValue(langCode + key, out localized)) {
+          return new Variable(localized);
+        }
+        if (langCode != currentCode) {
+          Localization.SetProgramLanguageCode(langCode);
+        }
+      }
+
+      localized = Localization.GetText(key);
+
+      if (!string.IsNullOrWhiteSpace(langCode)) {
+        Localization.SetProgramLanguageCode(currentCode);
+        m_localizations[langCode + key] = localized;
       }
 
       return new Variable(localized);
@@ -1494,6 +1531,7 @@ public class AddLongClickFunction : ParserFunction
     protected override Variable Evaluate(ParsingScript script)
     {
       AdMob.ShowInterstitialAd(AppDelegate.GetCurrentController());
+      script.MoveForwardIf(Constants.END_ARG);
 
       return Variable.EmptyInstance;
     }
@@ -1549,6 +1587,8 @@ public class AddLongClickFunction : ParserFunction
       string strAction = args[0].AsString();
       string productId = args[1].AsString();
 
+      IAP.AddProductId(productId);
+
       IAP.IAPOK += (productIds) => {
         UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
       };
@@ -1570,6 +1610,28 @@ public class AddLongClickFunction : ParserFunction
 
       List<Variable> results = Utils.ConvertToResults(lines);
       return new Variable(results);
+    }
+  }
+  class ImportFileFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string filename = Utils.GetItem(script).AsString();
+
+      string[] lines = Utils.GetFileLines(filename);
+      string includeFile = string.Join(Environment.NewLine, lines);
+
+      Dictionary<int, int> char2Line;
+      string includeScript = Utils.ConvertToScript(includeFile, out char2Line);
+      ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
+      tempScript.Filename = filename;
+      tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+
+      while (tempScript.Pointer < includeScript.Length) {
+        tempScript.ExecuteTo();
+        tempScript.GoToNextStatement();
+      }
+      return Variable.EmptyInstance;
     }
   }
   public class PauseFunction : ParserFunction
@@ -1647,6 +1709,23 @@ public class AddLongClickFunction : ParserFunction
       bool found = Localization.SetProgramLanguageCode(code);
 
       return new Variable(found);
+    }
+  }
+  public class OpenURLFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string urlStr = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, urlStr, m_name);
+
+      if (!urlStr.StartsWith("http") && !urlStr.StartsWith("itms")) {
+        urlStr = "http://" + urlStr;
+      }
+
+      NSUrl url = new NSUrl(urlStr);
+      UIApplication.SharedApplication.OpenUrl(url);
+
+      return new Variable(urlStr);
     }
   }
   public class TranslateTabBar : ParserFunction
