@@ -1,10 +1,4 @@
-function test() {
-  return 1;
-}
-if (test()>0) { print("OK");}
-else {print("bad");}
-
-clicks = 0;
+﻿clicks = 0;
 function click(sender, arg) {
   clicks++;
   title = CallNative("ProcessClick", "arg", clicks);
@@ -76,27 +70,117 @@ countries = {"English US", "English", "Deutsch", "Deutsch CH", "Русский",
              "Português BR", "Français", "Italiano", "中文", "日本語", "العربية"};
 countriesSmall = {"en_US", "en_GB", "de_DE", "de_CH", "ru_RU", "es_MX", "es_ES",
                   "pt_BR", "fr_FR", "it_IT", "zh_CN", "ja_JP", "ar_SA"};
+
+scale = 0.90;
+AutoScale(scale);
+
 //--------------------------------------------------
 AddTab("Learn", "learn.png", "learn2.png");
 //--------------------------------------------------
-function changeme_click(sender, arg) {
-  SetText(sender, GetText(textChangeme));
-  SetText(versionLabel, _VERSION_ + ". Size: " +
-          DisplayWidth + "x" + DisplayHeight);
-}
-
-//AddTab("Learn", "learn.png", "learn2.png");
 SetBackground("ch_bg.png");
+
+// Different settings for iPhone and Android AdMob:
+if (_IOS_) {
+  appId          = "ca-app-pub-5365456490909700~21285636";
+  interstitialId = "ca-app-pub-5365456490909700/71924964";
+  bannerId       = "ca-app-pub-5365456490909700/33260952";
+
+  productId1     = "ch.iLanguage.vk.adRemoval2";
+  productId2     = "ch.iLanguage.vk.speech";
+} elif (_ANDROID_) {
+  appId          = "ca-app-pub-5365456490909700~81977988";
+  interstitialId = "ca-app-pub-5365456490909700/21512652";
+  bannerId       = "ca-app-pub-5365456490909700/80581980";
+
+  productId1     = "ilanguage_ads_removal";
+  productId2     = "ilanguage_speech_pack";
+}
+// Ids for testing:
+//bannerId       = "ca-app-pub-3940256099942544/63009781";
+//interstitialId = "ca-app-pub-3940256099942544/10331737";
+
+InitAds(appId, interstitialId, bannerId);
+InitIAP("FMuH3TliG87mZJmHjK6uo2xZjk",
+        "4gjtc2ZpODWv0XvokqgculmS2/",
+        "ggSJ17lUvXY5PsnzaQdIeZ7AES",
+        "MIIBIjANBgkqhkiG9w0BAQEFAA"
+);
+
+locBanner = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, 0);
+AddBanner(locBanner, "banner", "Banner");
 
 // This is what you do to add a widget inside of another view:
 //locBR = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM");
 //AddView(locBR, "myview", "", 600, 160);
 //locLeft = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20, 0, myview);
 
-locLeft = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20, 0);
-AddButton(locLeft, "buttonChangeme", "Change me", 260, 80);
+locLeft = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 0);
+AddButton(locLeft, "buttonChangeme", "Change me", 200, 80);
 AddAction(buttonChangeme,  "changeme_click");
 SetFontSize(buttonChangeme, 12);
+
+function toaster(sender, arg) {
+  ShowToast("Toast from " + sender, 8, "#000000", "#FF0000");
+}
+
+counter = 0;
+function changeme_click(sender, arg) {
+  SetText(sender, GetText(textChangeme));
+  SetText(versionLabel, _VERSION_ + ". Size: " +
+          DisplayWidth + "x" + DisplayHeight);
+}
+function speech_click(sender, arg) {
+  Speak(GetText(textChangeme));
+}
+function voice_click(sender, arg) {
+  ShowToast("Say something");
+  VoiceRecognition("voice_recog", "en-US", "Talk");
+}
+function voice_recog(errorStatus, recognized) {
+  if (errorStatus != "") {
+    ShowToast("Error: " + errorStatus, 10, "red");
+  } else {
+    ShowToast("You said: " + recognized, 10, "black");
+  }
+}
+
+function restorer(sender, arg) {
+  Restore("on_restore", productId1, productId2);
+}
+function purchaser(sender, arg) {
+  Purchase("on_purchase", productId1);
+}
+
+function on_restore(error, productId) {
+  if (error != "") {
+    ShowToast("Error Restoring: " + error, 10, "red");
+  } else {
+    ShowToast("Restored: " + productId, 10, "blue");
+  }
+}
+function on_purchase(error, productId) {
+  if (error != "") {
+    ShowToast("Error Purchasing: " + error, 10, "red");
+  } else {
+    ShowToast("Purchased: " + productId, 10, "blue");
+  }
+}
+function dialog(sender, arg) {
+  AlertDialog("CSCS", "Do you want an extra dialog?", "Yes", "extra_dialog", "No");
+}
+function show_interstitial(sender, arg) {
+  ShowInterstitial();
+}
+function show_hide_banner(sender, arg) {
+  if (counter++ % 2 == 0) {
+      HideView(banner);
+  } else {
+      ShowView(banner);
+  }
+}
+function extra_dialog(sender, arg) {
+  AlertDialog("CSCS", "You clicked on '" + sender + "'.");
+}
 
 if (_IOS_) {
   hint = "Hello, iPhone user"
@@ -106,34 +190,50 @@ if (_IOS_) {
   hint = "Hello, Windows user"
 }
 locLeftRight = GetLocation(buttonChangeme, "RIGHT", buttonChangeme, "CENTER", 40, 0);
-AddTextEdit(locLeftRight, "textChangeme", hint, 260, 60);
+AddTextEdit(locLeftRight, "textChangeme", hint, 200, 60);
 SetFontSize(textChangeme, 12);
 
 locAbove = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP");
 AddLabel(locAbove, "versionLabel", "", 560, 60);
+SetFontSize(versionLabel, 12);
 
-function toaster(sender, arg) {
-  ShowToast("Toast from " + sender, 8, "#000000", "#FF0000");
-}
-locBelow = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "BOTTOM", 0, 50);
-AddButton(locBelow, "buttonToast", "Toast me", 200, 80);
+locAboveLR = GetLocation(textChangeme, "ALIGN_LEFT", textChangeme, "TOP", 40, -6);
+AddButton(locAboveLR, "buttonSpeak", "Speak", 160, 60);
+AddAction(buttonSpeak,  "speech_click");
+
+locAboveLR2 = GetLocation(textChangeme, "ALIGN_LEFT", buttonSpeak, "TOP", 40, -6);
+AddButton(locAboveLR2, "buttonVoice", "Voice", 160, 60);
+AddAction(buttonVoice,  "voice_click");
+
+
+locBelow = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "BOTTOM", 0, 6);
+AddButton(locBelow, "buttonToast", "Toast me", 200, 60);
 AddAction(buttonToast,  "toaster");
 
-function dialog(sender, arg) {
-  AlertDialog("CSCS", "Do you want an extra dialog?", "Yes", "extra_dialog", "No");
-}
-function extra_dialog(sender, arg) {
-  AlertDialog("CSCS", "You clicked on '" + sender + "'.");
-}
-locBelow2 = GetLocation(buttonToast, "ALIGN_LEFT", buttonToast, "BOTTOM", 0, 20);
-AddButton(locBelow2, "buttonDialog", "Alert me", 200, 80);
+locBelow2 = GetLocation(buttonToast, "ALIGN_LEFT", buttonToast, "BOTTOM", 0, 6);
+AddButton(locBelow2, "buttonDialog", "Alert me", 200, 60);
 AddAction(buttonDialog,  "dialog");
+
+locBelow3 = GetLocation(buttonDialog, "ALIGN_LEFT", buttonDialog, "BOTTOM", 0, 6);
+AddButton(locBelow3, "buttonBanner", "Banner", 200, 60);
+AddAction(buttonBanner,  "show_hide_banner");
+
+locBelowR = GetLocation(buttonToast, "RIGHT", buttonToast, "CENTER", 10);
+AddButton(locBelowR, "buttonRestore", "Restore", 200, 60);
+AddAction(buttonRestore,  "restorer");
+
+locBelow2R = GetLocation(buttonDialog, "RIGHT", buttonDialog, "CENTER", 10);
+AddButton(locBelow2R, "buttonPurchase", "Purchase", 200, 60);
+AddAction(buttonPurchase,  "purchaser");
+
+locBelow2RR = GetLocation(buttonBanner, "RIGHT", buttonBanner, "CENTER", 10);
+AddButton(locBelow2RR, "buttonInterstitial", "Interstitial", 200, 60);
+AddAction(buttonInterstitial,  "show_interstitial");
 
 function languageSelected(sender, arg) {
   ShowToast("Selected " + arg, 5, "blue");
-  //AlertDialog("CSCS", "You selected '" + arg + "'.");
 }
-locCombo = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP", 0, -50);
+locCombo = GetLocation(buttonChangeme, "ALIGN_LEFT", buttonChangeme, "TOP", 0, -100);
 AddCombobox(locCombo, "languageLearn", "Translate", 280, 120);
 AddWidgetData(languageLearn, countries, "languageSelected", "left");
 AddWidgetImages(languageLearn, countriesSmall);
@@ -148,59 +248,59 @@ margin   = 10;
 fontSize = 14;
 
 locCenter = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
-AddButton(locCenter, "buttonCenter", "", 200, 200);
+AddButton(locCenter, "buttonCenter", "", 200, 200, "auto", scale);
 SetImage(buttonCenter,  "actor.png");
 AddAction(buttonCenter,  "img_click");
 
 locTrans = GetLocation("ROOT", "CENTER", "buttonCenter", "BOTTOM", 0, margin);
-AddButton(locTrans, "buttonTrans", "Translate", 200, 80);
+AddButton(locTrans, "buttonTrans", "Translate", 200, 80, "auto", scale);
 AddAction(buttonTrans,  "trans_click");
 AddBorder(buttonTrans, 0, 0);
 
-AddLabel(locTrans, "labelTrans", "", 240, 80);
+AddLabel(locTrans, "labelTrans", "", 240, 80, "auto", scale);
 AlignText(labelTrans, "center");
 
 locCenterLT = GetLocation(buttonCenter, "ALIGN_LEFT", buttonCenter, "TOP", 0, -1 * margin);
-AddButton(locCenterLT, "buttonCenterLT", "lt", 85, 85);
+AddButton(locCenterLT, "buttonCenterLT", "lt", 85, 85, "auto", scale);
 locCenterRT = GetLocation(buttonCenter, "ALIGN_RIGHT", buttonCenterLT, "TOP", 0, margin);
-AddButton(locCenterRT, "buttonCenterRT", "rt", 85, 85);
+AddButton(locCenterRT, "buttonCenterRT", "rt", 85, 85, "auto", scale);
 locCenterRT2 = GetLocation(buttonCenterRT, "RIGHT", buttonCenterRT, "CENTER", 2, 0);
-AddButton(locCenterRT2, "buttonCenterRT2", "rt2", 120, 120);
+AddButton(locCenterRT2, "buttonCenterRT2", "rt2", 120, 120, "auto", scale);
 locCenterRT3 = GetLocation(buttonCenterRT2, "CENTER", buttonCenterRT2, "TOP", 0, -5);
-AddButton(locCenterRT3, "buttonCenterRT3", "r", 68, 68);
+AddButton(locCenterRT3, "buttonCenterRT3", "r", 68, 68, "auto", scale);
 
 locCenterTL = GetLocation(buttonCenter, "LEFT", buttonCenter, "ALIGN_TOP", -1 * margin, 0);
-AddButton(locCenterTL, "buttonCenterTL", "tl", 85, 85);
+AddButton(locCenterTL, "buttonCenterTL", "tl", 85, 85, "auto", scale);
 locCenterBR = GetLocation(buttonCenter, "RIGHT", buttonCenter, "ALIGN_BOTTOM", margin, 0);
-AddButton(locCenterBR, "buttonCenterBR", "br", 85, 85);
+AddButton(locCenterBR, "buttonCenterBR", "br", 85, 85, "auto", scale);
 
 loc1 = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM");
-AddButton(loc1, "button1", "Left", w, h);
+AddButton(loc1, "button1", "Left", w, h, "auto", scale);
 AddAction(button1,  "click");
 SetFontSize(button1, fontSize);
 
 loc2 = GetLocation("button1", "RIGHT", "ROOT", "BOTTOM");
-AddButton(loc2, "button2", "Right", w, h);
+AddButton(loc2, "button2", "Right", w, h, "auto", scale);
 AddAction(button2,  "click");
 SetFontSize(button2, fontSize);
 
 loc3 = GetLocation("button2", "RIGHT", "button2", "TOP");
-AddButton(loc3, "button3", "RelRight", w, h);
+AddButton(loc3, "button3", "RelRight", w, h, "auto", scale);
 AddAction(button3,  "click");
 SetFontSize(button3, fontSize);
 
 loc4 = GetLocation("ROOT", "CENTER", "ROOT", "TOP");
-AddButton(loc4, "button4", "TopCenter", w, h);
+AddButton(loc4, "button4", "TopCenter", w, h, "auto", scale);
 AddAction(button4,  "click");
 SetFontSize(button4, fontSize);
 
 loc5 = GetLocation("button4", "LEFT", "ROOT", "TOP");
-AddButton(loc5, "button5", "TopLeftCenter", w + 10, h);
+AddButton(loc5, "button5", "TopLeftCenter", w-10, h, "auto", scale);
 AddAction(button5,  "click");
-SetFontSize(button5, fontSize);
+SetFontSize(button5, fontSize - 2);
 
 loc6 = GetLocation("button4", "RIGHT", "button5", "BOTTOM", -1.5 * w, 0);
-AddButton(loc6, "button6", "BelowRight", w, h);
+AddButton(loc6, "button6", "BelowRight", w, h, "auto", scale);
 AddAction(button6,  "click");
 SetFontSize(button6, fontSize);
 
@@ -208,28 +308,85 @@ SetFontSize(button6, fontSize);
 AddTab("Settings", "settings.png", "settings2.png");
 //--------------------------------------------------
 
-locPicker = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20);
+locPicker = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20, "auto", scale);
 AddWidget("TypePicker", locPicker, "pickerColor", "Picker", 380, 280);
 //data = {"red", "blue", "green", "brown", "yellow", "rose", "purple", "orange", "gray", "cyan"};
 AddWidgetData(pickerColor, countries, "pickerMove");
 pickerMove("", 0);
 
-locCenterLeft = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -100, 0);
-AddButton(locCenterLeft, "buttonCenterLeft", "Sound On", 240, 80);
+locCenterLeft = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -100, 0, "auto", scale);
+AddButton(locCenterLeft, "buttonCenterLeft", "Sound On", 240, 80, "auto", scale);
 AddBorder(buttonCenterLeft, 2, 8, "#000080");
 AlignText(buttonCenterLeft, "left");
 AddAction(buttonCenterLeft, "sound_click");
 
-locCenterRight = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 100, 0);
-AddImageView(locCenterRight, "imgView", "sound_on", 100, 100);
-//SetImage(imgView, "sound_on");
+locCenterRight = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 80, 0, "auto", scale);
+AddImageView(locCenterRight, "imgView", "sound_on", 100, 100, "auto", scale);
 
-locCenter2 = GetLocation(imgView, "RIGHT", imgView, "CENTER", 20, 0);
-AddSwitch(locCenter2, "switch", "1", 80, 80);
+locCenter2 = GetLocation(imgView, "RIGHT", imgView, "CENTER", 40, 0, "auto", scale);
+AddSwitch(locCenter2, "switch", "1", 220, 80, "auto", scale);
 AddAction(switch, "sound_click");
 
-locCenterDown = GetLocation(buttonCenterLeft, "CENTER", buttonCenterLeft, "BOTTOM", 0, 20);
-AddSlider(locCenterDown, "slider", "0:100", 200, 80);
+locCenterDown = GetLocation(buttonCenterLeft, "CENTER", buttonCenterLeft, "BOTTOM", 0, 20, "auto", scale);
+AddSlider(locCenterDown, "slider", "50:0:100", 200, 80, "auto", scale);
 AddAction(slider, "slider_change");
 
-SelectTab(2);
+//--------------------------------------------------
+AddTab("Sand", "settings.png", "settings2.png");
+//--------------------------------------------------
+function move_it(sender, arg) {
+  MoveView(sender, 10, 10);
+}
+function move_back(sender, arg) {
+  MoveView(sender, -10, -10);
+}
+function remove_me(sender, arg) {
+  RemoveView(sender);
+}
+function remove_all(sender, arg) {
+  RemoveAllViews();
+}
+function swipe(sender, event) {
+  SetText(sender, event);
+}
+function orientation_change(sender, orientation) {
+  ShowToast(Orientation + ": " + orientation +
+          " " +DisplayWidth + "x" + DisplayHeight, 10, "black");
+}
+
+locSand1 = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6);
+AddButton(locSand1, "buttonM", "Move: Short left/Long right", w, h);
+SetFontSize(buttonM, 12);
+AddAction(buttonM,  "move_it");
+AddLongClick(buttonM,  "move_back");
+
+locSandB1 = GetLocation("ROOT", "LEFT", "buttonM", "BOTTOM", 6);
+AddButton(locSandB1, "buttonRemove", "Remove me", w, h, "auto", scale);
+AddAction(buttonRemove,  "remove_me");
+
+locSandB2 = GetLocation("ROOT", "LEFT", "buttonRemove", "BOTTOM", 6);
+AddButton(locSandB2, "buttonRemoveAll", "Remove all", w, h, "auto", scale);
+AddAction(buttonRemoveAll,  "remove_all");
+
+locSand2 = GetLocation("ROOT", "RIGHT", "ROOT", "TOP");
+AddButton(locSand2, "buttonS", "Swipe me", w, h, "auto", scale);
+AddSwipe(buttonS, "Left",  "swipe");
+AddSwipe(buttonS, "Right", "swipe");
+AddSwipe(buttonS, "Up",    "swipe");
+AddSwipe(buttonS, "Down",  "swipe");
+
+locSand3 = GetLocation("ROOT", "RIGHT", buttonS, "BOTTOM");
+AddButton(locSand3, "buttonD", "Drag me", w, h);
+AddDragAndDrop(buttonD);
+
+function stepper_change(sender, event) {
+  ShowToast(Orientation);
+}
+
+locStepper = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20, 0);
+AddStepperLeft(locStepper, "stepper", "10:0:20:5", 220, 70);
+AddAction(stepper,  "stepper_change");
+
+OnOrientationChange("orientation_change");
+
+SelectTab(3);
