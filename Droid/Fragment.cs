@@ -20,6 +20,7 @@ namespace scripting.Droid
     static Dictionary<View, ViewGroup> m_allViews = new Dictionary<View, ViewGroup>();
 
     public string OriginalText { get; private set; }
+    public string OriginalText_Wide { get; private set; }
     public string Text { get; private set; }
     public int ActiveIcon { get; private set; }
     public int InactiveIcon { get; private set; }
@@ -32,8 +33,17 @@ namespace scripting.Droid
       ActiveIcon = MainActivity.String2Pic(imageNameActive);
       InactiveIcon = MainActivity.String2Pic(imageNameInactive);
       OriginalText = text;
+      OriginalText_Wide = text + "_wide";
       Text = Localization.GetText(text);
       m_index = m_fragments.Count;
+    }
+    public string GetText()
+    {
+      if (MainActivity.IsLandscape) {
+        return OriginalText_Wide;
+      } else {
+        return OriginalText;
+      }
     }
     /*public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {

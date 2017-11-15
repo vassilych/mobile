@@ -80,16 +80,12 @@ namespace scripting.Droid
       return base.GetDropDownView(position, convertView, parent);
     }
 
-    public override View GetView(int position, View convertView, ViewGroup parent)
+     public View GetViewOld(int position, View convertView, ViewGroup parent)
     {
-      /*if (m_inflater == null) {
-          m_inflater = (LayoutInflater)m_context.GetSystemService(Context.LayoutInflaterService);
+      bool oldVersion = Android.OS.Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.Lollipop;
+      if (oldVersion) {
+        return GetViewOld(position, convertView, parent);
       }
-      if (convertView == null) {
-          convertView = m_inflater.Inflate(m_resourceLayout, parent, false);
-      }
-      ImageView imageView = convertView.FindViewById<ImageView>(m_resourceImage);
-      TextView textView = convertView.FindViewById<TextView>(m_resourceText);*/
 
       LinearLayout layout = new LinearLayout(m_context);
       //layout.SetBackgroundColor(m_bgcolor);//Android.Graphics.Color.ParseColor("#91F6FF"));
@@ -106,7 +102,7 @@ namespace scripting.Droid
         TextView textView = new TextView(m_context);
         textView.Text = " " + m_names[position];
         if (m_pics != null && (position >= m_pics.Count || m_pics[position] < 0)) {
-          textView.SetMinHeight(textView.Height + 10);
+          textView.SetMinHeight(textView.Height + 15);
           textView.Gravity = GravityFlags.Center;
         } else {
           textView.TranslationY = 8;
@@ -117,6 +113,20 @@ namespace scripting.Droid
 
       convertView = layout;
       return convertView;
+    }
+    public override View GetView(int position, View convertView, ViewGroup parent)
+    {
+      View view = convertView;
+      if (view == null) {
+        view = MainActivity.TheView.LayoutInflater.Inflate(Android.Resource.Layout.ActivityListItem, null);
+      }
+      if (m_names != null && position < m_names.Count) {
+        view.FindViewById<TextView>(Android.Resource.Id.Text1).Text = m_names[position];
+      }
+      if (m_pics != null && position < m_pics.Count && m_pics[position] > 0) {
+        view.FindViewById<ImageView>(Android.Resource.Id.Icon).SetImageResource(m_pics[position]);
+      }
+      return view;
     }
   }
 }

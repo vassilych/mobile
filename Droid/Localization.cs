@@ -66,6 +66,12 @@ namespace scripting.Droid
       return voice.Replace('-', '_');
     }
 
+    public static string CodeFromLocale(Java.Util.Locale locale)
+    {
+      string voice = VoiceFromLocale(locale);
+      return voice.Substring(0, 2);
+    }
+
     public static string AdjustVoiceString(string voice)
     {
       voice = voice.Replace('-', '_').Replace("__", "_");
@@ -91,6 +97,23 @@ namespace scripting.Droid
       }
 
       return voice;
+    }
+
+    public static bool CheckCode()
+    {
+      string deviceCode = Localization.GetAppLanguageCode();
+      string currentCode = Localization.CurrentCode;
+      if (deviceCode != currentCode) {
+        Localization.SetProgramLanguageCode(currentCode);
+        return true;
+      }
+      return false;
+    }
+    public static string GetAppLanguageCode()
+    {
+      Configuration conf = MainActivity.TheView.Resources.Configuration;
+      string code =  CodeFromLocale(conf.Locale);
+      return code;
     }
 
     public static bool SetProgramLanguageCode(string voice = "")
@@ -126,17 +149,6 @@ namespace scripting.Droid
 
       string localized = resId > 0 ? MainActivity.TheView.Resources.GetText(resId) : key;
       return localized;
-    }
-
-    public static string GetDeviceLangCode()
-    {
-      string deviceLangCode = "";//Settings.GetSetting("menuCode", "");
-      if (!string.IsNullOrEmpty(deviceLangCode)) {
-        return deviceLangCode;
-      }
-
-      deviceLangCode = Locale.Default.Language;
-      return deviceLangCode;
     }
   }
 }

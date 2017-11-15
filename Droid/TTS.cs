@@ -135,12 +135,6 @@ namespace scripting.Droid
       Console.WriteLine("TTS [{0}]: {1}, {2}, {3} ({4})", m_text, m_language,
          m_language.Language, m_language.Country, status == OperationResult.Success);
 
-      //if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) {
-      //    string utteranceId = m_text.GetHashCode() + "";
-      //    m_textToSpeech.Speak(m_text, QueueMode.Flush, null, utteranceId);
-      //} else {
-      //    m_textToSpeech.Speak(m_text, QueueMode.Flush, null);
-      //}
       m_force = false;
     }
 

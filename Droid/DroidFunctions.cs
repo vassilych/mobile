@@ -4,6 +4,7 @@ using System.IO;
 
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.Content.Res;
 using Android.Graphics;
 using Android.Graphics.Drawables;
@@ -89,9 +90,9 @@ namespace scripting.Droid
       int width = Utils.GetSafeInt(args, start + 3);
       int height = Utils.GetSafeInt(args, start + 4);
 
-      string autoSize   = Utils.GetSafeString(args, start + 5);
+      string autoSize = Utils.GetSafeString(args, start + 5);
       double multiplier = Utils.GetSafeDouble(args, start + 6);
-      Size screenSize = UtilsDroid.GetScreenSize();
+      ScreenSize screenSize = UtilsDroid.GetScreenSize();
       AutoScaleFunction.TransformSizes(ref width, ref height,
                                        screenSize.Width, autoSize, multiplier);
 
@@ -99,34 +100,33 @@ namespace scripting.Droid
       location.LayoutRuleX = UtilsDroid.String2LayoutParam(location, true);
       location.LayoutRuleY = UtilsDroid.String2LayoutParam(location, false);
 
-      DroidVariable widgetFunc = ExistingWidget(script, varName);
-      bool alreadyExists = widgetFunc != null;
-      if (!alreadyExists) {
-        widgetFunc = GetWidget(widgetType, varName, text, width, height);
-      }
-
-      Utils.CheckNotNull(widgetFunc, m_name);
-
-      widgetFunc.Location = location;
-      View widget = widgetFunc.ViewX;
-
       RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
           ViewGroup.LayoutParams.WrapContent,
           ViewGroup.LayoutParams.WrapContent
       );
 
-      View viewToAdd = widget;
-      if (widgetFunc.WidgetType == UIVariable.UIType.VIEW) {
-        widget = viewToAdd = widgetFunc.SetViewLayout(width, height);
-        layoutParams = widgetFunc.ViewLayout.LayoutParameters
-                                 as RelativeLayout.LayoutParams;
-      } else if (widgetFunc.WidgetType == UIVariable.UIType.STEPPER) {
-        widget = viewToAdd = widgetFunc.CreateStepper(width, height, m_extras);
-        layoutParams = widgetFunc.ViewLayout.LayoutParameters
-                                 as RelativeLayout.LayoutParams;
+      DroidVariable widgetFunc = ExistingWidget(script, varName);
+      bool alreadyExists = widgetFunc != null;
+      if (!alreadyExists) {
+        widgetFunc = GetWidget(widgetType, varName, text, width, height);
+
+        if (widgetFunc.WidgetType == UIVariable.UIType.VIEW) {
+          widgetFunc.SetViewLayout(width, height);
+          layoutParams = widgetFunc.ViewLayout.LayoutParameters
+                                   as RelativeLayout.LayoutParams;
+        } else if (widgetFunc.WidgetType == UIVariable.UIType.STEPPER) {
+          widgetFunc.CreateStepper(width, height, m_extras);
+          layoutParams = widgetFunc.ViewLayout.LayoutParameters
+                                   as RelativeLayout.LayoutParams;
+        }
       }
 
+      Utils.CheckNotNull(widgetFunc, m_name);
+      View widget = widgetFunc.ViewX;
+
       location.TranslationX += UtilsDroid.ExtraMargin(widgetFunc, screenSize, multiplier);
+      location.ProcessTranslationY();
+      widgetFunc.Location = location;
 
       ApplyRule(layoutParams, location.LayoutRuleX, location.ViewX);
       ApplyRule(layoutParams, location.LayoutRuleY, location.ViewY);
@@ -143,14 +143,14 @@ namespace scripting.Droid
       widget.TranslationY = location.TranslationY;
 
       var parentView = location.ParentView as DroidVariable;
-      Console.WriteLine("--ADDING {0} {1}, text: {2}, parent: {3}, exists: {4}",
-                        varName, widgetType, text, parentView == null, alreadyExists);
-      MainActivity.AddView(viewToAdd, parentView?.ViewLayout);
+      //Console.WriteLine("--ADDING {0} {1}, text: {2}, parent: {3}, exists: {4}",
+      //                  varName, widgetType, text, parentView == null, alreadyExists);
+      MainActivity.AddView(widget, parentView?.ViewLayout);
       if (alreadyExists) {
         MainActivity.TheLayout.Invalidate();
         MainActivity.TheLayout.RefreshDrawableState();
-        viewToAdd.Invalidate();
-        viewToAdd.RefreshDrawableState();
+        widget.Invalidate();
+        widget.RefreshDrawableState();
         if (parentView != null) {
           parentView?.ViewLayout.Invalidate();
         }
@@ -275,7 +275,9 @@ namespace scripting.Droid
 
       if (widgetFunc.WidgetType == UIVariable.UIType.SEGMENTED) {
         Switch seg = widgetFunc.ViewX as Switch;
-        seg.ShowText = true;
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Lollipop) {
+          seg.ShowText = true;
+        }
         seg.TextOn = vals[vals.Length - 1];
         seg.TextOff = vals[0];
         seg.Checked = false;
@@ -343,26 +345,6 @@ namespace scripting.Droid
     }
   }
 
-  public class AddTabFunction : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
-    {
-      string text = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
-
-      string imageName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
-
-      string selectedImageName = null;
-      if (script.Current == Constants.NEXT_ARG) {
-        selectedImageName = Utils.GetItem(script).AsString();
-      }
-
-      MainActivity.AddTab(text, imageName, selectedImageName);
-
-      return Variable.EmptyInstance;
-    }
-  }
   public class AddWidgetDataFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -480,6 +462,11 @@ namespace scripting.Droid
   }
   public class MoveViewFunction : ParserFunction
   {
+    bool m_isAbsolute;
+    public MoveViewFunction(bool absoluteMove)
+    {
+      m_isAbsolute = absoluteMove;
+    }
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList = false;
@@ -504,12 +491,53 @@ namespace scripting.Droid
       View view = viewVar.ViewX;
       Utils.CheckNotNull(view, m_name);
 
-      view.SetX(view.GetX() + deltaX);
-      view.SetY(view.GetY() + deltaY);
+      if (deltaX < 0) {
+        deltaX = (int)view.GetX();
+      }
+      if (deltaY < 0) {
+        deltaY = (int)view.GetY();
+      }
+      float x = m_isAbsolute ? deltaX : view.GetX() + deltaX;
+      float y = m_isAbsolute ? deltaY : view.GetY() + deltaY;
+      view.SetX(x);
+      view.SetY(y);
       //view.TranslationX = deltaX;
       //view.TranslationY = deltaY;
 
       return Variable.EmptyInstance;
+    }
+  }
+  public class GetCoordinateFunction : ParserFunction
+  {
+    bool m_isX;
+    public GetCoordinateFunction(bool isX)
+    {
+      m_isX = isX;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 3, m_name);
+
+      string varName = args[0].AsString();
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      View view = viewVar.ViewX;
+      Utils.CheckNotNull(view, m_name);
+
+      int coord = 0;
+      if (m_isX) {
+        coord = (int)view.GetX();
+      } else {
+        coord = (int)view.GetY();
+      }
+
+      return new Variable(coord);
     }
   }
   public class ShowHideFunction : ParserFunction
@@ -562,7 +590,7 @@ namespace scripting.Droid
       Utils.CheckNotNull(viewVar, m_name);
 
       RemoveView(viewVar);
-            return Variable.EmptyInstance;
+      return Variable.EmptyInstance;
     }
     public static void RemoveView(DroidVariable viewVar)
     {
@@ -575,7 +603,11 @@ namespace scripting.Droid
       View viewToRemove = viewVar.ViewX;
 
       parentView.RemoveView(viewToRemove);
-      ((ViewGroup)viewToRemove.Parent).RemoveView(viewToRemove);
+
+      parentView = viewToRemove.Parent as ViewGroup;
+      if (parentView != null && parentView.Parent != null) {
+        parentView.RemoveView(viewToRemove);
+      }
       ScriptingFragment.RemoveView(viewToRemove);
     }
   }
@@ -595,6 +627,35 @@ namespace scripting.Droid
       int tabId = MainActivity.CurrentTabId;
       script.MoveForwardIf(Constants.END_ARG);
       return new Variable(tabId);
+    }
+  }
+  public class AddTabFunction : ParserFunction
+  {
+    bool m_forceCreate;
+    public AddTabFunction(bool forceCreate)
+    {
+      m_forceCreate = forceCreate;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string text = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, text, m_name);
+
+      string imageName = Utils.GetItem(script).AsString();
+      Utils.CheckNotEmpty(script, text, m_name);
+
+      string selectedImageName = null;
+      if (script.Current == Constants.NEXT_ARG) {
+        selectedImageName = Utils.GetItem(script).AsString();
+      }
+
+      if (!m_forceCreate && MainActivity.SelectTab(text)) {
+        return Variable.EmptyInstance;
+      }
+
+      MainActivity.AddTab(text, imageName, selectedImageName);
+
+      return Variable.EmptyInstance;
     }
   }
   public class SelectTabFunction : ParserFunction
@@ -738,7 +799,7 @@ namespace scripting.Droid
   {
     static Dictionary<string, Tuple<string, string>> m_actions =
        new Dictionary<string, Tuple<string, string>>();
-    
+
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList = false;
@@ -747,9 +808,9 @@ namespace scripting.Droid
 
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName   = Utils.GetSafeString(args, 0);
+      string varName = Utils.GetSafeString(args, 0);
       string strAction = Utils.GetSafeString(args, 1);
-      string argument  = Utils.GetSafeString(args, 2);
+      string argument = Utils.GetSafeString(args, 2);
 
       DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
       Utils.CheckNotNull(droidVar, m_name);
@@ -1338,6 +1399,8 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
+
       DisplayMetrics bounds = new DisplayMetrics();
       var winManager = MainActivity.TheView.WindowManager;
       winManager.DefaultDisplay.GetMetrics(bounds);
@@ -1351,6 +1414,80 @@ namespace scripting.Droid
     }
   }
 
+  public class AllowedOrientationFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      string orientation = Utils.GetSafeString(args, 0).ToLower();
+
+      ScreenOrientation orient = orientation == "landscape" ?
+        ScreenOrientation.Landscape :
+        ScreenOrientation.Portrait;
+
+      MainActivity.TheView.RequestedOrientation = orient;
+      return Variable.EmptyInstance;
+    }
+  }
+
+  public class RegisterOrientationChangeFunction : ParserFunction
+  {
+    const string DEFAULT_ORIENTATION = "Portrait";
+    static string m_actionPortrait;
+    static string m_actionLandscape;
+    static string m_currentOrientation;
+
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      m_actionPortrait = Utils.GetSafeString(args, 0);
+      m_actionLandscape = Utils.GetSafeString(args, 1);
+      bool startNow = Utils.GetSafeInt(args, 2, 1) != 0;
+
+      if (startNow) {
+        PerformAction(DEFAULT_ORIENTATION, true);
+      }
+
+      MainActivity.OnOrientationChange += (newOrientation) => {
+        Console.WriteLine("New Orientation: {0} {1}", newOrientation, MainActivity.Orientation);
+        DeviceRotated();
+      };
+
+      return Variable.EmptyInstance;
+    }
+    static void DeviceRotated()
+    {
+      string currentOrientation = MainActivity.Orientation;
+      if (m_currentOrientation == currentOrientation) {
+        return;
+      }
+
+      PerformAction(currentOrientation);
+    }
+    static void PerformAction(string orientation, bool isInit = false)
+    {
+      m_currentOrientation = orientation;
+      int currentTab = MainActivity.CurrentTabId;
+
+      if (!isInit) {
+        MainActivity.RemoveAll();
+      }
+
+      string action = MainActivity.IsLandscape ? m_actionLandscape : m_actionPortrait;
+      UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");
+
+      if (!isInit && currentTab >= 0) {
+        MainActivity.TheView.ChangeTab(currentTab);
+      }
+    }
+  }
   public class OrientationChangeFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1371,12 +1508,44 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
+
       var or = MainActivity.TheView.Resources.Configuration.Orientation.ToString();
 
       return new Variable(or);
     }
   }
 
+  public class OnEnterBackgroundFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string strAction = args[0].AsString();
+
+      MainActivity.OnEnterBackgroundDelegate += () => {
+        MainActivity.TheView.RunOnUiThread(() => {
+          UIVariable.GetAction(strAction, "\"ROOT\"", "\"OnEnterBackground\"");
+        });
+      };
+
+      return Variable.EmptyInstance;
+    }
+  }
+  public class KillMeFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      //System.Diagnostics.Process.GetCurrentProcess().CloseMainWindow();
+      Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+
+      return Variable.EmptyInstance;
+    }
+  }
   public class ShowToastFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1836,7 +2005,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       script.MoveForwardIf(Constants.END_ARG);
-      return new Variable(Localization.GetDeviceLangCode());
+      return new Variable(Localization.GetAppLanguageCode());
     }
   }
   public class SetAppLocale : ParserFunction
@@ -1889,7 +2058,7 @@ namespace scripting.Droid
       string strType = Utils.GetSafeString(args, 1, "string");
       Variable defValue = Utils.GetSafeVariable(args, 2);
 
-      switch(strType) {
+      switch (strType) {
         case "float":
         case "double":
           float def = defValue == null ? -1 : (float)defValue.AsDouble();

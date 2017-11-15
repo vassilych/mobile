@@ -19,7 +19,7 @@ namespace scripting.Droid
             //Theme = "@style/MyTheme.Main",
             Icon = "@mipmap/icon",
             Label = "",
-            MainLauncher = true,
+            //MainLauncher = true,
             ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
             )]
   public partial class MainActivity : Activity,
@@ -30,8 +30,12 @@ namespace scripting.Droid
 
     static List<ActionBar.Tab> m_actionBars = new List<ActionBar.Tab>();
 
+    static Dictionary<string, int> m_allTabs = new Dictionary<string, int>();
+
     public static int CurrentTabId;
+
     public static Action<int> TabSelectedDelegate;
+    public static Action OnEnterBackgroundDelegate;
 
     bool m_scriptRun = false;
 
@@ -84,7 +88,6 @@ namespace scripting.Droid
 
     public void OnTabUnselected(ActionBar.Tab tab, FragmentTransaction ft)
     {
-      //throw new NotImplementedException();
     }
 
     public delegate void OrientationChange(string newOrientation);
@@ -103,8 +106,8 @@ namespace scripting.Droid
     protected override void OnStop()
     {
       base.OnStop();
-      Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
-    }
+      OnEnterBackgroundDelegate?.Invoke();
+     }
     protected override void OnResume()
     {
       base.OnResume();
@@ -112,6 +115,17 @@ namespace scripting.Droid
         ViewTreeObserver vto = TheLayout.ViewTreeObserver;
         vto.AddOnGlobalLayoutListener(new LayoutListener());
         m_scriptRun = true;
+      }
+    }
+    public static string Orientation {
+      get {
+        return IsLandscape ? "Landscape" : "Portrait";
+      }
+    }
+    public static bool IsLandscape {
+      get {
+        return TheView.Resources.Configuration.Orientation ==
+                      Android.Content.Res.Orientation.Landscape;
       }
     }
     public void ChangeTab(int tabId)
@@ -134,20 +148,35 @@ namespace scripting.Droid
       //tv.All .setAllCaps(false);
       return tab;
     }
+    public static bool TabExists(string text)
+    {
+      return m_allTabs.ContainsKey(text);
+    }
+    public static bool SelectTab(string text)
+    {
+      int tabId = 0;
+      if (m_allTabs.TryGetValue(text, out tabId)) {
+        SelectTab(tabId);
+        return true;
+      }
+      return false;
+    }
     public static void AddTab(string text, string imageName, string selectedImageName = null)
     {
       ScriptingFragment fragment = ScriptingFragment.AddFragment(text, imageName, selectedImageName);
       ActionBar.Tab tab = MainActivity.TheView.AddTabToActionBar(fragment, ScriptingFragment.Count() == 1);
 
       m_actionBars.Add(tab);
+      m_allTabs[text] = m_actionBars.Count - 1;
       SelectTab(m_actionBars.Count - 1);
     }
     public static void TranslateTabs()
     {
+      Localization.CheckCode();
       for (int i = 0; i < m_actionBars.Count; i++) {
         ActionBar.Tab tab = m_actionBars[i];
         ScriptingFragment fragment = ScriptingFragment.GetFragment(i);
-        string translated = Localization.GetText(fragment.OriginalText);
+        string translated = Localization.GetText(fragment.GetText());
         tab.SetText(translated);
       }
     }
@@ -309,7 +338,7 @@ namespace scripting.Droid
           requestCode == TTS.TTS_INSTALLED_DATA ||
           requestCode == TTS.TTS_CHECK_DATA) {
         TTS.OnTTSResult(requestCode, resultCode, data);
-      } else if (requestCode == STT_REQUEST) {
+      } else if (requestCode == STT.STT_REQUEST) {
         STT.SpeechRecognitionCompleted(resultCode, data);
       } else if (requestCode == IAP.IAP_REQUEST) {
         IAP.OnIAPCallback(requestCode, resultCode, data);

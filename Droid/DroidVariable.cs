@@ -59,12 +59,11 @@ namespace scripting.Droid
       get { return m_viewX as ViewGroup; }
     }
 
-    public View SetViewLayout(int width, int height)
+    public void SetViewLayout(int width, int height)
     {
       //DroidVariable refView = RefViewX as DroidVariable;
       DroidVariable refView = Location?.RefViewX as DroidVariable;
       m_viewX = MainActivity.CreateViewLayout(width, height, refView?.ViewLayout);
-      return m_viewX;
     }
 
     public bool SetFontSize(float size)
@@ -88,7 +87,14 @@ namespace scripting.Droid
       return true;
     }
 
-    public View CreateStepper(int width, int height, string extraLabel)
+    public void ProcessTranslationY()
+    {
+      if (TranslationY < 0 && m_layoutRuleY == LayoutRules.AlignParentTop) {
+        TranslationY = 0;
+      }
+    }
+
+    public void CreateStepper(int width, int height, string extraLabel)
     {
       DroidVariable refView = Location?.RefViewX as DroidVariable;
       ViewGroup layout = MainActivity.CreateViewLayout(width, height, refView?.ViewLayout);
@@ -171,7 +177,6 @@ namespace scripting.Droid
       btn2.LayoutParameters = layoutParams2;
 
       m_viewX = layout;
-      return m_viewX;
     }
 
     View m_viewX;

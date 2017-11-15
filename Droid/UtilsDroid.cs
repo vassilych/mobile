@@ -11,11 +11,21 @@ using SplitAndMerge;
 
 namespace scripting.Droid
 {
+  public class ScreenSize
+  {
+    public ScreenSize(int width, int height)
+    {
+      Width  = width;
+      Height = height;
+    }
+    public int Width  { get; set; }
+    public int Height { get; set; }
+  }
   public class UtilsDroid
   {
     public const int SWITCH_MARGIN = -20;
 
-    public static int ExtraMargin(DroidVariable widgetFunc, Size screenSize, double multiplier)
+    public static int ExtraMargin(DroidVariable widgetFunc, ScreenSize screenSize, double multiplier)
     {
       int offset = 0;
       if (widgetFunc.ViewX is Switch) {
@@ -28,13 +38,18 @@ namespace scripting.Droid
       }
       return offset;
     }
-    public static Size GetScreenSize()
+    public static ScreenSize GetScreenSize()
     {
       DisplayMetrics displayMetrics = new DisplayMetrics();
       var winManager = MainActivity.TheView.WindowManager;
       winManager.DefaultDisplay.GetMetrics(displayMetrics);
 
-      return new Size(displayMetrics.WidthPixels, displayMetrics.HeightPixels);
+      int width  = displayMetrics.WidthPixels < displayMetrics.HeightPixels ?
+                   displayMetrics.WidthPixels : displayMetrics.HeightPixels;
+      int height = displayMetrics.WidthPixels > displayMetrics.HeightPixels ?
+                   displayMetrics.WidthPixels : displayMetrics.HeightPixels;
+
+      return new ScreenSize(width, height);
     }
 
     public static void AddViewBorder(View view, Color borderColor = new Color(), int width = 1, int corner = 5)
