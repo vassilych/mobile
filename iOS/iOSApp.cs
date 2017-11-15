@@ -9,7 +9,7 @@ namespace scripting.iOS
   public class iOSTab
   {
     UIViewController m_tab;
-    List<UIView> m_views = new List<UIView>();
+    List<iOSVariable> m_views = new List<iOSVariable>();
     UIImage m_image;
 
     public iOSTab(UIViewController tab, string text)
@@ -33,12 +33,17 @@ namespace scripting.iOS
         m_tab.TabBarItem.Image = m_image;
       }
     }
-    public void AddView(UIView view)
+    public void AddView(iOSVariable view)
     {
       m_views.Add(view);
     }
-    public void RemoveView(UIView view)
+    public void RemoveView(iOSVariable view)
     {
+      if (view == null) {
+        return;
+      }
+      view.ViewY?.RemoveFromSuperview();
+      view.ViewX?.RemoveFromSuperview();
       m_views.Remove(view);
     }
     public void ShowTab(bool showIt = true)
@@ -49,8 +54,8 @@ namespace scripting.iOS
     }
     public void RemoveAll()
     {
-      for (int i = 0; i < m_views.Count; i++) {
-        m_views[i].RemoveFromSuperview();
+      while (m_views.Count > 0) {
+        RemoveView(m_views[0]);
       }
     }
 
@@ -68,29 +73,68 @@ namespace scripting.iOS
   {
     static List<iOSTab> m_tabs = new List<iOSTab>();
     static iOSTab m_activeTab;
-    static List<UIView> m_hiddenViews = new List<UIView>();
+    static List<iOSVariable> m_hiddenViews = new List<iOSVariable>();
+    static List<iOSVariable> m_nonTabViews = new List<iOSVariable>();
+    static Dictionary<iOSVariable, iOSTab> m_view2Tab =
+       new Dictionary<iOSVariable, iOSTab>();
 
     public static Action<int> TabSelectedDelegate;
+
+    static UIInterfaceOrientationMask m_orientationMask = UIInterfaceOrientationMask.AllButUpsideDown;
 
     int m_selectedTab = -1;
 
     public static iOSApp Instance { set; get; }
     public int SelectedTab { get { return m_selectedTab; } }
 
+    static Dictionary<string, int> m_allTabs = new Dictionary<string, int>();
+
     public iOSApp()
     {
       Instance = this;
+
+    }
+
+    public static string Orientation
+    {
+      get {
+        return IsLandscape ? "Landscape" : "Portrait";
+      }
+    }
+    public static bool IsLandscape
+    {
+      get {
+        return UIDevice.CurrentDevice.Orientation == UIDeviceOrientation.LandscapeLeft ||
+               UIDevice.CurrentDevice.Orientation == UIDeviceOrientation.LandscapeRight;
+      }
+    }
+    public static bool ValidOrientation {
+      get {
+        return UIDevice.CurrentDevice.Orientation == UIDeviceOrientation.LandscapeLeft ||
+               UIDevice.CurrentDevice.Orientation == UIDeviceOrientation.LandscapeRight ||
+               UIDevice.CurrentDevice.Orientation == UIDeviceOrientation.Portrait;
+      }
+    }
+
+    public static UIInterfaceOrientationMask OrientationMask {
+      set { m_orientationMask = value; }
+    }
+    public override UIInterfaceOrientationMask GetSupportedInterfaceOrientations()
+    {
+      return m_orientationMask;
     }
 
     public static int CurrentOffset { get; set; }
 
-    public void OffsetTabBar(bool down = true)
+    public void OffsetTabBar(bool move = true)
     {
+      bool down = ViewControllers == null || ViewControllers.Length == 0;
       var tabFrame = TabBar.Frame; //self.TabBar is IBOutlet of your TabBar
-      int offset = down ? (int)tabFrame.Size.Height : -1 * (int)tabFrame.Size.Height;
-      tabFrame.Y += offset; //.Offset(0, offset);
-      TabBar.Frame = tabFrame;
-
+      if (move) {
+        int offset = down ? (int)tabFrame.Size.Height : -1 * (int)tabFrame.Size.Height;
+        tabFrame.Y += offset; //.Offset(0, offset);
+        TabBar.Frame = tabFrame;
+      }
       CurrentOffset = down ? 0 : (int)tabFrame.Size.Height;
     }
 
@@ -104,6 +148,9 @@ namespace scripting.iOS
       // Special dealing with iPhone X:
       if (screen.Width == 1125) {
         offset += 6;
+      }
+      if (IsLandscape) {
+        offset -= 2;
       }
 
       return offset;
@@ -125,8 +172,40 @@ namespace scripting.iOS
         m_tabs[i].ShowTab(i == selectedTab);
       }
     }
+
+    public static void AddView(iOSVariable view)
+    {
+      if (m_activeTab == null) {
+        m_nonTabViews.Add(view);
+        return;
+      }
+      m_activeTab.AddView(view);
+      m_view2Tab[view] = m_activeTab;
+    }
+    public static void RemoveView(iOSVariable view)
+    {
+      iOSTab tab;
+      if (m_view2Tab.TryGetValue(view, out tab)) {
+        tab.RemoveView(view);
+      } else {
+        RemoveNonTabView(view);
+      }
+    }
+    public static void RemoveAllNonTabViews()
+    {
+      while (m_nonTabViews.Count > 0) {
+        RemoveNonTabView(m_nonTabViews[0]);
+      }
+    }
+    public static void RemoveNonTabView(iOSVariable view)
+    {
+      view.ViewY?.RemoveFromSuperview();
+      view.ViewX?.RemoveFromSuperview();
+      m_nonTabViews.Remove(view);
+    }
     public static void RemoveAll()
     {
+      RemoveAllNonTabViews();
       for (int i = 0; i < m_tabs.Count; i++) {
         m_tabs[i].RemoveAll();
       }
@@ -135,7 +214,7 @@ namespace scripting.iOS
     public void Run()
     {
       // If there is no tabbbar, move the tabs view down:
-      OffsetTabBar(true);
+      OffsetTabBar();
 
       this.ViewControllerSelected += OnTabSelected;
 
@@ -152,7 +231,6 @@ namespace scripting.iOS
     {
       CommonFunctions.RegisterFunctions();
 
-      //string[] lines = System.IO.File.ReadAllLines("script.cscs");
       string[] lines = System.IO.File.ReadAllLines("script.cscs");
       string script = string.Join("\n", lines);
 
@@ -166,19 +244,18 @@ namespace scripting.iOS
         throw;
       }
     }
-    public static void AddView(UIView view)
+    public static bool TabExists(string text)
     {
-      if (m_activeTab == null) {
-        return;
-      }
-      m_activeTab.AddView(view);
+      return m_allTabs.ContainsKey(text);
     }
-    public static void RemoveView(UIView view)
+    public static bool SelectTab(string text)
     {
-      if (m_activeTab == null) {
-        return;
+      int tabId = 0;
+      if (m_allTabs.TryGetValue(text, out tabId)) {
+        SelectTab(tabId);
+        return true;
       }
-      m_activeTab.RemoveView(view);
+      return false;
     }
     public static void AddTab(string text, string selectedImageName, string notSelectedImageName = null)
     {
@@ -206,9 +283,10 @@ namespace scripting.iOS
       m_tabs.Add(m_activeTab);
       if (controllers.Count == 1) {
         // Lift the tabbar back up:
-        Instance.OffsetTabBar(false);
+        Instance.OffsetTabBar();
       }
 
+      m_allTabs[text] = m_tabs.Count - 1;
       SelectTab(m_tabs.Count - 1);
     }
 
@@ -220,14 +298,18 @@ namespace scripting.iOS
       }
     }
 
-    public static void ShowView(UIView view, bool showIt, bool tabChange)
+    public static void ShowView(iOSVariable view, bool showIt, bool tabChange)
     {
       bool explicitlyHidden = m_hiddenViews.Contains(view);
       if (explicitlyHidden && tabChange) {
         return;
       }
 
-      view.Hidden = !showIt;
+      UIView uiview = view.ViewX;
+      if (uiview == null) {
+        uiview = AppDelegate.GetCurrentView();
+      }
+      uiview.Hidden = !showIt;
 
       if (tabChange) {
         return;

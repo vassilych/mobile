@@ -29,7 +29,7 @@ namespace scripting.iOS
       string autoSize = Utils.GetSafeString(args, 6);
       double multiplier = Utils.GetSafeDouble(args, 7);
       AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
-                  (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
+                   UtilsiOS.GetRealScreenWidth(), autoSize, multiplier);
 
       Variable parentView = Utils.GetSafeVariable(args, 9, null);
 
@@ -78,21 +78,23 @@ namespace scripting.iOS
       double screenRatio = UtilsiOS.GetScreenRatio();
 
       string varName = args[start + 1].AsString();
-      string text = Utils.GetSafeString(args, start + 2);
-      int width = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
-      int height = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
+      string text    = Utils.GetSafeString(args, start + 2);
+      int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
+      int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
       string autoSize = Utils.GetSafeString(args, start + 5);
       double multiplier = Utils.GetSafeDouble(args, start + 6);
       AutoScaleFunction.TransformSizes(ref width, ref height,
-            (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
+            UtilsiOS.GetRealScreenWidth(), autoSize, multiplier);
 
       if (widgetType == "Combobox") {
         height = (int)(height * COMBOBOX_EXTENTION);
       } else if (widgetType == "AdMobBanner") {
         AdMob.GetAdSize(text, ref width, ref height);
       }
-
+      if (widgetType == "Combobox" || widgetType == "TypePicker") {
+        height = Math.Max(height, 162);
+      }
       location.SetSize(width, height);
       CGSize parentSize = location.GetParentSize();
 
@@ -105,19 +107,20 @@ namespace scripting.iOS
       CGRect rect = new CGRect(location.X, location.Y, width, height);
 
       iOSVariable widgetFunc = ExistingWidget(script, varName);
-      if (widgetFunc == null) {
+      bool existing = widgetFunc != null;
+      if (!existing) {
         widgetFunc = GetWidget(widgetType, varName, text, rect);
+      } else {
+        widgetFunc.ViewX.Frame = rect;
       }
       Utils.CheckNotNull(widgetFunc, m_name);
 
-      if (widgetType == "Stepper") {
-        widgetFunc.CreateStepper(rect, m_extras);
-      }
+      widgetFunc.CreateComplexView(rect, m_extras);
 
       var currView = location.GetParentView();
       currView.Add(widgetFunc.ViewX);
 
-      iOSApp.AddView(widgetFunc.ViewX);
+      iOSApp.AddView(widgetFunc);
 
       ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
       return widgetFunc;
@@ -403,6 +406,11 @@ namespace scripting.iOS
   }
   public class MoveViewFunction : ParserFunction
   {
+    bool m_isAbsolute;
+    public MoveViewFunction(bool absoluteMove)
+    {
+      m_isAbsolute = absoluteMove;
+    }
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList = false;
@@ -428,10 +436,54 @@ namespace scripting.iOS
       Utils.CheckNotNull(view, m_name);
 
       CGRect frame = view.Frame;
-      frame.Offset((nfloat)deltaX, (nfloat)deltaY);
+      if (deltaX < 0) {
+        deltaX = (int)frame.X;
+      }
+      if (deltaY < 0) {
+        deltaY = (int)frame.Y;
+      }
+      if (!m_isAbsolute) {
+        frame.Offset(deltaX, deltaY);
+      } else {
+        frame.Location = new CGPoint(deltaX, deltaY);
+      }
       view.Frame = frame;
 
       return Variable.EmptyInstance;
+    }
+  }
+  public class GetCoordinateFunction : ParserFunction
+  {
+    bool m_isX;
+    public GetCoordinateFunction(bool isX)
+    {
+      m_isX = isX;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 3, m_name);
+
+      string varName = args[0].AsString();
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      UIView view = viewVar.ViewX;
+      Utils.CheckNotNull(view, m_name);
+
+      int coord = 0;
+      CGRect frame = view.Frame;
+      if (m_isX) {
+        coord = (int)view.Frame.X;
+      } else {
+        coord = (int)view.Frame.X;
+      }
+
+      return new Variable(coord);
     }
   }
   public class SetTextFunction : ParserFunction
@@ -657,14 +709,13 @@ namespace scripting.iOS
 
       bool  show     = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
 
-      UIView view = iOSVariable.GetView(varName, script);
-      if (view == null) {
-        view = AppDelegate.GetCurrentView();
-      }
+      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
 
-      AppDelegate.ShowView(view, show);
-      if (view is UITextField) {
-        UITextField findText = view as UITextField;
+      //AppDelegate.ShowView(view, show);
+      iOSApp.ShowView(iosVar, show, false);
+
+      if (iosVar.ViewX is UITextField) {
+        UITextField findText = iosVar.ViewX as UITextField;
         findText.EndEditing(!m_show);
         if (show) {
           findText.BecomeFirstResponder();
@@ -688,7 +739,8 @@ namespace scripting.iOS
       iOSVariable viewVar = func.GetValue(script) as iOSVariable;
       Utils.CheckNotNull(viewVar, m_name);
 
-      RemoveView(viewVar);
+      //RemoveView(viewVar);
+      iOSApp.RemoveView(viewVar);
 
       return Variable.EmptyInstance;
     }
@@ -1036,6 +1088,11 @@ public class AddLongClickFunction : ParserFunction
   }
   public class AddTabFunction : ParserFunction
   {
+    bool m_forceCreate;
+    public AddTabFunction(bool forceCreate)
+    {
+      m_forceCreate = forceCreate;
+    }
     protected override Variable Evaluate(ParsingScript script)
     {
       string text = Utils.GetItem(script).AsString();
@@ -1047,6 +1104,10 @@ public class AddLongClickFunction : ParserFunction
       string notSelectedImageName = null;
       if (script.Current == Constants.NEXT_ARG) {
         notSelectedImageName = Utils.GetItem(script).AsString();
+      }
+
+      if (!m_forceCreate && iOSApp.SelectTab(text)) {
+        return Variable.EmptyInstance;
       }
 
       iOSApp.AddTab(text, selectedImageName, notSelectedImageName);
@@ -1309,14 +1370,94 @@ public class AddLongClickFunction : ParserFunction
     }
     protected override Variable Evaluate(ParsingScript script)
     {
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
+
       var bounds = UIScreen.MainScreen.NativeBounds;
       return new Variable(m_needWidth ? bounds.Width : bounds.Height);
     }
   }
 
+  public class AllowedOrientationFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      string orientation = Utils.GetSafeString(args, 0).ToLower();
+
+      UIInterfaceOrientationMask orientationMask = orientation == "landscape" ?
+        UIInterfaceOrientationMask.Landscape :
+        UIInterfaceOrientationMask.Portrait;
+
+      iOSApp.OrientationMask = orientationMask;
+
+      return Variable.EmptyInstance;
+    }
+  }
+  public class RegisterOrientationChangeFunction : ParserFunction
+  {
+    const string DEFAULT_ORIENTATION = "Portrait";
+    static string m_actionPortrait;
+    static string m_actionLandscape;
+    static string m_currentOrientation;
+
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      m_actionPortrait  = Utils.GetSafeString(args, 0);
+      m_actionLandscape = Utils.GetSafeString(args, 1);
+      bool   startNow   = Utils.GetSafeInt(args, 2, 1) != 0;
+
+      UIDevice.CurrentDevice.BeginGeneratingDeviceOrientationNotifications();
+      NSNotificationCenter.DefaultCenter.AddObserver(
+          new NSString("UIDeviceOrientationDidChangeNotification"), DeviceRotated);
+
+      if (startNow) {
+        PerformAction(DEFAULT_ORIENTATION, true);
+      }
+
+      return Variable.EmptyInstance;
+    }
+    static void DeviceRotated(NSNotification notification)
+    {
+      string currentOrientation = iOSApp.Orientation;
+      //Console.WriteLine("DeviceRotated {0} --> {1} before: {2}",
+      //  UIDevice.CurrentDevice.Orientation, currentOrientation, m_currentOrientation);
+      if (!iOSApp.ValidOrientation || m_currentOrientation == currentOrientation) {
+        return;
+      }
+
+      PerformAction(currentOrientation);
+    }
+    static void PerformAction(string orientation, bool isInit = false)
+    {
+      m_currentOrientation = orientation;
+      int currentTab = iOSApp.Instance.SelectedTab;
+
+      if (!isInit) {
+        iOSApp.RemoveAll();
+      }
+
+      string action = iOSApp.IsLandscape ? m_actionLandscape : m_actionPortrait;
+      iOSApp.Instance.OffsetTabBar(false);
+
+      UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");
+
+      if (!isInit && currentTab >= 0) {
+        iOSApp.SelectTab(currentTab);
+      }
+    }
+  }
   public class OrientationChangeFunction : ParserFunction
   {
     string m_action;
+    static UIDeviceOrientation m_currentOrientation = UIDeviceOrientation.Unknown;
     protected override Variable Evaluate(ParsingScript script)
     {
       Variable actionValue = Utils.GetItem(script);
@@ -1331,14 +1472,21 @@ public class AddLongClickFunction : ParserFunction
     }
     void DeviceRotated(NSNotification notification)
     {
-      System.Diagnostics.Debug.WriteLine(UIDevice.CurrentDevice.Orientation);
-      UIVariable.GetAction(m_action, "\"ROOT\"", "\"" + UIDevice.CurrentDevice.Orientation + "\"");
+      UIDeviceOrientation currentOrientation = UIDevice.CurrentDevice.Orientation;
+      if (m_currentOrientation == currentOrientation) {
+        return;
+      }
+      m_currentOrientation = currentOrientation;
+      iOSApp.Instance.OffsetTabBar(false);
+      UIVariable.GetAction(m_action, "\"ROOT\"", "\"" + m_currentOrientation + "\"");
     }
   }
   public class OrientationFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
+      script.MoveForwardIf(Constants.END_ARG_ARRAY);
+
       UIInterfaceOrientation orientation = AppDelegate.GetCurrentController().InterfaceOrientation;
       orientation = UIApplication.SharedApplication.StatusBarOrientation;
       string or = orientation == UIInterfaceOrientation.LandscapeLeft ||
@@ -1347,6 +1495,41 @@ public class AddLongClickFunction : ParserFunction
       UIDeviceOrientation orientatation2 = UIDevice.CurrentDevice.Orientation;
 
       return new Variable(or);
+    }
+  }
+  public class KillMeFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      UIApplication app = UIApplication.SharedApplication;
+      app.PerformSelector(new ObjCRuntime.Selector("suspend"), null, 0.25);
+      NSThread.SleepFor(0.5);
+
+      System.Diagnostics.Process.GetCurrentProcess().CloseMainWindow();
+      NSThread.SleepFor(0.5);
+      System.Threading.Thread.CurrentThread.Abort();
+
+      return Variable.EmptyInstance;
+    }
+  }
+  public class OnEnterBackgroundFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string strAction = args[0].AsString();
+
+      AppDelegate.OnEnterBackgroundDelegate += () => {
+        AppDelegate.GetCurrentController().InvokeOnMainThread(() => {
+          UIVariable.GetAction(strAction, "\"ROOT\"", "\"OnEnterBackground\"");
+        });
+      };
+
+      return Variable.EmptyInstance;
     }
   }
 

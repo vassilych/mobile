@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" initialViewController="01J-lp-oVM">
     <dependencies>
-        <deployment identifier="iOS" />
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530" />
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -10,18 +10,64 @@
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="Llm-lL-Icb" />
-                        <viewControllerLayoutGuide type="bottom" id="xb3-aO-Qok" />
+                        <viewControllerLayoutGuide type="top" id="Llm-lL-Icb"/>
+                        <viewControllerLayoutGuide type="bottom" id="xb3-aO-Qok"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600" />
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" />
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite" />
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder" />
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="53" y="375" />
+            <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="drawable/ru_RU.png" width="32" height="32"/>
+        <image name="drawable/pt_BR.png" width="32" height="32"/>
+        <image name="drawable/ja_JP.png" width="32" height="32"/>
+        <image name="drawable/it_IT.png" width="32" height="32"/>
+        <image name="drawable/fr_FR.png" width="32" height="32"/>
+        <image name="drawable/es_MX.png" width="32" height="32"/>
+        <image name="drawable/es_ES.png" width="32" height="32"/>
+        <image name="drawable/en_US.png" width="32" height="32"/>
+        <image name="drawable/en_GB.png" width="32" height="32"/>
+        <image name="drawable/de_DE.png" width="32" height="32"/>
+        <image name="drawable/de_CH.png" width="32" height="32"/>
+        <image name="drawable/ar_SA.png" width="32" height="32"/>
+        <image name="drawable/zh_CN.png" width="32" height="32"/>
+        <image name="drawable/ar_bg.png" width="640" height="480"/>
+        <image name="drawable/br_bg.png" width="480" height="640"/>
+        <image name="drawable/ch_bg.png" width="480" height="640"/>
+        <image name="drawable/cn_bg.png" width="640" height="480"/>
+        <image name="drawable/de_bg.png" width="640" height="480"/>
+        <image name="drawable/es_bg.png" width="640" height="480"/>
+        <image name="drawable/fr_bg.png" width="480" height="640"/>
+        <image name="drawable/gb_bg.png" width="640" height="480"/>
+        <image name="drawable/it_bg.png" width="480" height="640"/>
+        <image name="drawable/jp_bg.png" width="480" height="640"/>
+        <image name="drawable/mx_bg.png" width="640" height="480"/>
+        <image name="drawable/ru_bg.png" width="480" height="640"/>
+        <image name="drawable/us_bg.png" width="480" height="640"/>
+        <image name="drawable/test.png" width="41" height="33"/>
+        <image name="drawable/test2.png" width="41" height="33"/>
+        <image name="drawable/learn.png" width="41" height="33"/>
+        <image name="drawable/learn2.png" width="41" height="33"/>
+        <image name="drawable/monkey.png" width="100" height="100"/>
+        <image name="drawable/settings.png" width="41" height="33"/>
+        <image name="drawable/settings2.png" width="41" height="33"/>
+        <image name="drawable/sound_off.png" width="50" height="60"/>
+        <image name="drawable/sound_on.png" width="60" height="60"/>
+        <image name="drawable/abdomen.png" width="100" height="100"/>
+        <image name="drawable/actor.png" width="100" height="100"/>
+        <image name="drawable/airplane.png" width="100" height="100"/>
+        <image name="drawable/airport.png" width="100" height="100"/>
+        <image name="drawable/ancient.png" width="100" height="100"/>
+        <image name="drawable/angry.png" width="100" height="100"/>
+        <image name="drawable/apartment.png" width="100" height="100"/>
+        <image name="drawable/apple.png" width="100" height="100"/>
+        <image name="drawable/dog.png" width="100" height="100"/>
+    </resources>
 </document>

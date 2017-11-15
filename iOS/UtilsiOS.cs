@@ -114,16 +114,34 @@ namespace scripting.iOS
       controller.PresentViewController(okCancelAlertController, true, null);
     }
 
+    public static CGSize GetNativeScreenSize()
+    {
+      var bounds = UIScreen.MainScreen.NativeBounds;
+      var width = bounds.Width;
+      var height = bounds.Height;
+      return new CGSize(width, height);
+    }
     public static CGSize GetScreenSize()
     {
       //var bounds = UIScreen.MainScreen.NativeBounds;
       var bounds = UIScreen.MainScreen.Bounds;
-      return new CGSize(bounds.Width, bounds.Height);
+      var width = bounds.Width;
+      var height = bounds.Height;
+      return new CGSize(width, height);
     }
-    public static CGSize GetNativeScreenSize()
+    public static int GetRealScreenWidth()
     {
       var bounds = UIScreen.MainScreen.NativeBounds;
-      return new CGSize(bounds.Width, bounds.Height);
+      var width  = bounds.Width < bounds.Height ?
+                   bounds.Width : bounds.Height;
+      return (int)width;
+    }
+    public static int GetRealScreenHeight()
+    {
+      var bounds = UIScreen.MainScreen.NativeBounds;
+      var height = bounds.Width > bounds.Height ?
+                   bounds.Width : bounds.Height;
+      return (int)height;
     }
     public static double WidthMultiplier()
     {
@@ -138,10 +156,10 @@ namespace scripting.iOS
       }
       var native = UIScreen.MainScreen.NativeBounds;
       var bounds = UIScreen.MainScreen.Bounds;
-      xdiff = native.Width / bounds.Width;
-      double ydiff = native.Height / bounds.Height;
+      var nativeWidth   = Math.Min(native.Width, native.Height);
+      var currWidth = Math.Min(bounds.Width, bounds.Height);
+      xdiff = currWidth > 0 && nativeWidth > 0 ? nativeWidth / currWidth : 1.0;
 
-      xdiff = xdiff == 0.0 ? 1.0 : xdiff;
       m_doubleCache["screenRatio"] = xdiff;
       return xdiff;
     }

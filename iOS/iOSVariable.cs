@@ -82,7 +82,20 @@ namespace scripting.iOS
       return AppDelegate.GetCurrentView();
     }
 
-    public UIView CreateStepper(CGRect rect, string extraLabel)
+    public void CreateComplexView(CGRect rect, string extraLabel)
+    {
+      if (WidgetType == UIType.STEPPER &&
+          ViewX != null && ViewX.Subviews.Length > 1) {
+        // Already created: just move it.
+        ViewX.Frame = rect;
+        return;
+      }
+      if (WidgetType == UIType.STEPPER) {
+        CreateStepper(rect, extraLabel);
+      }
+    }
+
+    public void CreateStepper(CGRect rect, string extraLabel)
     {
       UIView parent = GetParentView();
       WidgetType = UIVariable.UIType.STEPPER;
@@ -124,7 +137,7 @@ namespace scripting.iOS
       stepper.StepValue = (float)Step;
 
       m_viewX.AddSubview(stepper);
-      m_viewY = stepper;
+      //m_viewY = stepper;
 
       stepper.ValueChanged += (sender, e) => {
         CurrVal = stepper.Value;
@@ -133,8 +146,6 @@ namespace scripting.iOS
         }
         ActionDelegate?.Invoke(WidgetName, CurrVal.ToString());
       };
-
-      return m_viewX;
     }
 
     public void SetValue(double val) {
