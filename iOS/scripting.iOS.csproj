@@ -105,6 +105,19 @@
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
     <ImageAsset Include="Assets.xcassets\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small%403x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-40%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-40%403x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-60%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-60%403x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-60%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-40%401x.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch2208.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1334.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch960.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1136.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -141,7 +154,6 @@
     <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\script.cscs" />
     <BundleResource Include="..\scripting\Resources\drawable\ru_RU.png">
       <Link>Resources\drawable\ru_RU.png</Link>
     </BundleResource>
@@ -275,6 +287,12 @@
       <Link>Resources\drawable\dog.png</Link>
     </BundleResource>
     <BundleResource Include="GoogleService-Info.plist" />
+    <BundleResource Include="..\scripting\Resources\script.cscs">
+      <Link>Resources\script.cscs</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\Launch2208.png">
+      <Link>Resources\drawable\Launch2208.png</Link>
+    </BundleResource>
   </ItemGroup>
   <Import Project="..\scripting\scripting.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
