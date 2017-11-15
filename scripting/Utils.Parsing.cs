@@ -136,6 +136,7 @@ namespace SplitAndMerge
             break;
           case Constants.END_STATEMENT:
             return;
+          case Constants.TERNARY_OPERATOR:
           case Constants.NEXT_ARG:
             if (argRead <= 0) {
               return;

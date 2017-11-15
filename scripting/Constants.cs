@@ -23,7 +23,8 @@ namespace SplitAndMerge
     public const char FOR_EACH = ':';
     public const char CONTINUE_LINE = '\\';
     public const char EMPTY = '\0';
-
+    public const char TERNARY_OPERATOR  = '?';
+ 
     public const string ASSIGNMENT = "=";
     public const string AND = "&&";
     public const string OR = "||";
@@ -160,10 +161,10 @@ namespace SplitAndMerge
     public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=" };
     public static string[] MATH_ACTIONS = { "&&", "||", "==", "!=", "<=", ">=", "++", "--",
                                                   "%", "*", "/", "+", "-", "^", "<", ">", "="};
-
     // Actions: always decreasing by the number of characters.
     public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
+    public static char[] TERNARY_SEPARATOR = { ':' };
     public static char[] NEXT_ARG_ARRAY = NEXT_ARG.ToString().ToCharArray();
     public static char[] END_ARG_ARRAY = END_ARG.ToString().ToCharArray();
     public static char[] END_ARRAY_ARRAY = END_ARRAY.ToString().ToCharArray();

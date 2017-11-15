@@ -36,7 +36,8 @@ namespace scripting
 
       ParserFunction.RegisterFunction("AddWidgetData", new AddWidgetDataFunction());
       ParserFunction.RegisterFunction("AddWidgetImages", new AddWidgetImagesFunction());
-      ParserFunction.RegisterFunction("AddTab", new AddTabFunction());
+      ParserFunction.RegisterFunction("AddTab", new AddTabFunction(true));
+      ParserFunction.RegisterFunction("AddOrSelectTab", new AddTabFunction(false));
       ParserFunction.RegisterFunction("GetSelectedTab", new GetSelectedTabFunction());
       ParserFunction.RegisterFunction("SelectTab", new SelectTabFunction());
       ParserFunction.RegisterFunction("OnTabSelected", new OnTabSelectedFunction());
@@ -51,7 +52,10 @@ namespace scripting
       ParserFunction.RegisterFunction("SetVisible", new ShowHideFunction(true));
       ParserFunction.RegisterFunction("RemoveView", new RemoveViewFunction());
       ParserFunction.RegisterFunction("RemoveAllViews", new RemoveAllViewsFunction());
-      ParserFunction.RegisterFunction("MoveView", new MoveViewFunction());
+      ParserFunction.RegisterFunction("GetX", new GetCoordinateFunction(true));
+      ParserFunction.RegisterFunction("GetY", new GetCoordinateFunction(false));
+      ParserFunction.RegisterFunction("MoveView", new MoveViewFunction(false));
+      ParserFunction.RegisterFunction("MoveViewTo", new MoveViewFunction(true));
       ParserFunction.RegisterFunction("SetBackgroundColor", new SetBackgroundColorFunction());
       ParserFunction.RegisterFunction("SetBackground", new SetBackgroundImageFunction());
       ParserFunction.RegisterFunction("SetText", new SetTextFunction());
@@ -65,7 +69,11 @@ namespace scripting
       ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
 
       ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
+      ParserFunction.RegisterFunction("AllowedOrientation", new AllowedOrientationFunction());
       ParserFunction.RegisterFunction("OnOrientationChange", new OrientationChangeFunction());
+      ParserFunction.RegisterFunction("RegisterOrientationChange", new RegisterOrientationChangeFunction());
+      ParserFunction.RegisterFunction("OnEnterBackground", new OnEnterBackgroundFunction());
+      ParserFunction.RegisterFunction("KillMe", new KillMeFunction());
       ParserFunction.RegisterFunction("ShowToast", new ShowToastFunction());
       ParserFunction.RegisterFunction("AlertDialog", new AlertDialogFunction());
       ParserFunction.RegisterFunction("CallNative", new InvokeNativeFunction());

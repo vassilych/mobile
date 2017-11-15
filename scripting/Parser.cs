@@ -46,9 +46,9 @@ namespace SplitAndMerge
       int negated = 0;
 
       string rest = script.Rest;
-      if (rest == "b[a[0]];") {
-        int stop = 1;
-      }
+      //if (rest == "b[a[0]];") {
+      //  int stop = 1;
+      //}
 
       do { // Main processing cycle of the first part.
         string negateSymbol = Utils.IsNotSign(script.Rest);
@@ -78,7 +78,14 @@ namespace SplitAndMerge
         if (SkipOrAppendIfNecessary(item, ch, to)) {
           continue;
         }
+
         string token = item.ToString();
+
+        bool ternary = UpdateIfTernary(script, token, ch, ref listToMerge);
+        if (ternary) {
+          return listToMerge;
+        }
+
         CheckConsistency(token, listToMerge, script);
 
         script.MoveForwardIf(Constants.SPACE);
@@ -196,8 +203,8 @@ namespace SplitAndMerge
       return false;
     }
 
-    private static bool StillCollecting(string item, char[] to, ParsingScript script,
-                                        ref string action)
+    static bool StillCollecting(string item, char[] to, ParsingScript script,
+                                ref string action)
     {
       char prev = script.TryPrevPrev();
       char ch = script.TryPrev();
@@ -230,10 +237,36 @@ namespace SplitAndMerge
         return false;
       }
 
+      if (ch == Constants.TERNARY_OPERATOR) {
+        script.Backward();
+        return false;
+      }
       return true;
     }
 
-    private static bool UpdateIfBool(ParsingScript script, ref Variable current, ref List<Variable> listToMerge)
+    static bool UpdateIfTernary(ParsingScript script, string token, char ch, ref List<Variable> listToMerge)
+    {
+      if (listToMerge.Count < 1 || ch != Constants.TERNARY_OPERATOR || token.Length > 0) {
+        return false;
+      }
+
+      Variable arg1 = MergeList(listToMerge);
+      script.MoveForwardIf(Constants.TERNARY_OPERATOR);
+      Variable arg2 = script.Execute(Constants.TERNARY_SEPARATOR);
+      script.MoveForwardIf(Constants.TERNARY_SEPARATOR);
+      Variable arg3 = script.Execute(Constants.NEXT_OR_END_ARRAY);
+      script.MoveForwardIf(Constants.NEXT_OR_END_ARRAY);
+
+      double condition = arg1.AsDouble();
+      Variable result = condition != 0 ? arg2 : arg3;
+
+      listToMerge.Clear();
+      listToMerge.Add(result);
+
+      return true;
+     }
+
+    static bool UpdateIfBool(ParsingScript script, ref Variable current, ref List<Variable> listToMerge)
     {
       // Short-circuit evaluation: check if don't need to evaluate more.
       bool needToAdd = true;
