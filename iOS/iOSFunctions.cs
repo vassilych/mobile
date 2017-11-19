@@ -19,19 +19,21 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 4, m_name);
 
       string viewNameX = args[0].AsString();
-      string ruleStrX = args[1].AsString();
+      string ruleStrX  = args[1].AsString();
       string viewNameY = args[2].AsString();
-      string ruleStrY = args[3].AsString();
+      string ruleStrY  = args[3].AsString();
 
       int leftMargin = Utils.GetSafeInt(args, 4);
       int topMargin = Utils.GetSafeInt(args, 5);
 
-      string autoSize = Utils.GetSafeString(args, 6);
-      double multiplier = Utils.GetSafeDouble(args, 7);
-      AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
-                   UtilsiOS.GetRealScreenWidth(), autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, 6, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 7);
+        AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
+                     (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+      }
 
-      Variable parentView = Utils.GetSafeVariable(args, 9, null);
+      Variable parentView = Utils.GetSafeVariable(args, 8, null);
 
       UIView referenceViewX = iOSVariable.GetView(viewNameX, script);
       UIView referenceViewY = iOSVariable.GetView(viewNameY, script);
@@ -51,8 +53,6 @@ namespace scripting.iOS
   }
   public class AddWidgetFunction : ParserFunction
   {
-    // Extending Combobox width with respect to Android:
-    const double COMBOBOX_EXTENTION = 3.6;
     public AddWidgetFunction(string widgetType = "", string extras = "")
     {
       m_widgetType = widgetType;
@@ -82,20 +82,14 @@ namespace scripting.iOS
       int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
       int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
-      string autoSize = Utils.GetSafeString(args, start + 5);
-      double multiplier = Utils.GetSafeDouble(args, start + 6);
-      AutoScaleFunction.TransformSizes(ref width, ref height,
-            UtilsiOS.GetRealScreenWidth(), autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, start + 6);
+        AutoScaleFunction.TransformSizes(ref width, ref height,
+                     (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+      }
 
-      if (widgetType == "Combobox") {
-        height = (int)(height * COMBOBOX_EXTENTION);
-      } else if (widgetType == "AdMobBanner") {
-        AdMob.GetAdSize(text, ref width, ref height);
-      }
-      if (widgetType == "Combobox" || widgetType == "TypePicker") {
-        height = Math.Max(height, 162);
-      }
-      location.SetSize(width, height);
+      UtilsiOS.AdjustSizes(widgetType, location, text, ref width, ref height);
       CGSize parentSize = location.GetParentSize();
 
       location.X = UtilsiOS.String2Position(location.RuleX, location.ViewX, location, parentSize, true);
@@ -427,10 +421,12 @@ namespace scripting.iOS
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
 
-      string autoSize = Utils.GetSafeString(args, 3);
-      double multiplier = Utils.GetSafeDouble(args, 4);
-      AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
-                        (int)UtilsiOS.GetNativeScreenSize().Width, autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 4);
+        AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
+                     (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+      }
 
       UIView view = viewVar.ViewX;
       Utils.CheckNotNull(view, m_name);

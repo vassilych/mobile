@@ -7,13 +7,15 @@ namespace scripting.iOS
 {
   public class UtilsiOS
   {
-    public const int ROOT_TOP_MIN      = 18;
-    public const int ROOT_BOTTOM_MIN   = 10;
-    public const int ROOT_BOTTOM_MIN_X = 14;
+    public const int ROOT_TOP_MIN           = 18;
+    public const int ROOT_BOTTOM_MIN        = 10;
+    public const int ROOT_BOTTOM_MIN_X      = 14;
 
     // Extending Combobox width with respect to Android:
-    public const double COMBOBOX_EXTENTION = 2.4;
-    public const int COMBOBOX_Y_MARGIN     = -20;
+    //public const double COMBOBOX_EXTENTION = 2.4;
+    public const double COMBOBOX_EXTENTION  = 3.6;
+    public const int MAX_COMBO_HEIGHT_SMALL = 144;
+    public const int COMBOBOX_Y_MARGIN      = -20;
 
     static Dictionary<string, double> m_doubleCache = new Dictionary<string, double>();
 
@@ -32,12 +34,23 @@ namespace scripting.iOS
       };
     }
 
-    public static void AdjustSizes(string widgetType, iOSVariable location, ref int width, ref int height)
+    public static void AdjustSizes(string widgetType, iOSVariable location,
+                                   string text, ref int width, ref int height)
     {
       if (widgetType == "Combobox") {
         height = (int)(height * COMBOBOX_EXTENTION);
-        location.TranslationY += COMBOBOX_Y_MARGIN;
+        //location.TranslationY += COMBOBOX_Y_MARGIN;
+      } else if (widgetType == "AdMobBanner") {
+        AdMob.GetAdSize(text, ref width, ref height);
       }
+      if (widgetType == "Combobox" || widgetType == "TypePicker") {
+        int screenWidth = (int)UtilsiOS.GetRealScreenWidth();
+        if (screenWidth <= AutoScaleFunction.BASE_WIDTH) {
+          // Check Combo height for smaller iPhones
+          height = Math.Max(height, MAX_COMBO_HEIGHT_SMALL);
+        }
+      }
+      location.SetSize(width, height);
     }
 
     public static void ShowToast(String message, UIColor fgColor = null,
