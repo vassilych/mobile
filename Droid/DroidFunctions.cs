@@ -34,10 +34,12 @@ namespace scripting.Droid
       int leftMargin = Utils.GetSafeInt(args, 4);
       int topMargin = Utils.GetSafeInt(args, 5);
 
-      string autoSize = Utils.GetSafeString(args, 6);
-      double multiplier = Utils.GetSafeDouble(args, 7);
-      AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
-                        UtilsDroid.GetScreenSize().Width, autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, 6, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 7);
+        AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
+                          UtilsDroid.GetScreenSize().Width, multiplier);
+      }
 
       Variable parentView = Utils.GetSafeVariable(args, 9, null);
 
@@ -90,11 +92,13 @@ namespace scripting.Droid
       int width = Utils.GetSafeInt(args, start + 3);
       int height = Utils.GetSafeInt(args, start + 4);
 
-      string autoSize = Utils.GetSafeString(args, start + 5);
-      double multiplier = Utils.GetSafeDouble(args, start + 6);
       ScreenSize screenSize = UtilsDroid.GetScreenSize();
-      AutoScaleFunction.TransformSizes(ref width, ref height,
-                                       screenSize.Width, autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, start + 6);
+        AutoScaleFunction.TransformSizes(ref width, ref height,
+                                         screenSize.Width, multiplier);
+      }
 
       location.SetSize(width, height);
       location.LayoutRuleX = UtilsDroid.String2LayoutParam(location, true);
@@ -483,10 +487,12 @@ namespace scripting.Droid
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
 
-      string autoSize = Utils.GetSafeString(args, 3);
-      double multiplier = Utils.GetSafeDouble(args, 4);
-      AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
-                        UtilsDroid.GetScreenSize().Width, autoSize, multiplier);
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) != 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 4);
+        AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
+                          UtilsDroid.GetScreenSize().Width, multiplier);
+      }
 
       View view = viewVar.ViewX;
       Utils.CheckNotNull(view, m_name);
