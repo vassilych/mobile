@@ -130,9 +130,9 @@ namespace scripting
       bool isList = false;
       List<Variable> args = Utils.GetArgs(script,
           Constants.START_ARG, Constants.END_ARG, out isList);
-      Utils.CheckArgs(args.Count, 1, m_name);
+      Utils.CheckArgs(args.Count, 0, m_name);
 
-      ScaleX = Utils.GetSafeDouble(args, 0);
+      ScaleX = Utils.GetSafeDouble(args, 0, 1.0);
       ScaleY = Utils.GetSafeDouble(args, 1, ScaleX);
 
       return Variable.EmptyInstance;
@@ -179,8 +179,15 @@ namespace scripting
           return size;
         }
       }
-      return (int)(size * screenWidth * extra / BASE_WIDTH);
-    }  }
+      int oldSize = (int)(size * screenWidth * extra / BASE_WIDTH);
+      double newSize = (size * screenWidth / BASE_WIDTH);
+      double delta = (newSize - size) * extra;
+      size = (int)(size + delta);
+
+      return size;
+      //return (int)(size * screenWidth * extra / BASE_WIDTH);
+    }
+  }
   public class SetBaseWidthFunction : ParserFunction
   {
 
