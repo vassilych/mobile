@@ -114,7 +114,6 @@ namespace scripting
 
       ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
 
-
     }
   }
 
@@ -145,18 +144,9 @@ namespace scripting
       }
       return isWidth ? ScaleX : ScaleY;
     }
-    public static void TransformSizes(ref int width, ref int height, int screenWidth, string option, double extra = 0.0)
+    public static void TransformSizes(ref int width, ref int height,
+                                      int screenWidth, double extra = 0.0)
     {
-      if (!string.IsNullOrWhiteSpace(option) && option != "auto") {
-        return;
-      }
-      /*if (extra == 0.0) {
-        extra = ScaleX;
-        if (extra == 0.0) {
-          return;
-        }
-      }*/
-
       int newWidth = TransformSize(width, screenWidth, extra);
       if (width != 0) {
         double ratio = (double)newWidth / (double)width;
@@ -170,22 +160,18 @@ namespace scripting
     }
     public static int TransformSize(int size, int screenWidth, double extra)
     {
-      //if (screenWidth <= BASE_WIDTH) {
-      //  return size;
-      //}
       if (extra == 0.0) {
         extra = ScaleX;
         if (extra == 0.0) {
           return size;
         }
       }
-      int oldSize = (int)(size * screenWidth * extra / BASE_WIDTH);
+      //int oldSize = (int)(size * screenWidth * extra / BASE_WIDTH);
       double newSize = (size * screenWidth / BASE_WIDTH);
       double delta = (newSize - size) * extra;
       size = (int)(size + delta);
 
       return size;
-      //return (int)(size * screenWidth * extra / BASE_WIDTH);
     }
   }
   public class SetBaseWidthFunction : ParserFunction
