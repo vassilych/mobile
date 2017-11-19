@@ -95,6 +95,37 @@ namespace scripting.iOS
 
     }
 
+    bool m_isHidden;
+
+    public void HideTabBar()
+    {
+      if (m_isHidden)
+        return;
+
+      var screenRect = UIScreen.MainScreen.Bounds;
+      var height = screenRect.Height;
+
+      if (UIApplication.SharedApplication.StatusBarOrientation == UIInterfaceOrientation.LandscapeLeft
+          || UIApplication.SharedApplication.StatusBarOrientation == UIInterfaceOrientation.LandscapeRight) {
+        height = screenRect.Width;
+      }
+
+      UIView.BeginAnimations(null);
+      UIView.SetAnimationDuration(0.4);
+
+      foreach (UIView view in this.View.Subviews) {
+        if (view is UITabBar)
+          view.Frame = new CGRect(view.Frame.X, height, view.Frame.Width, view.Frame.Height);
+        else {
+          view.Frame = new CGRect(view.Frame.X, view.Frame.Y, view.Frame.Width, height);
+          view.BackgroundColor = UIColor.Black;
+        }
+      }
+
+      UIView.CommitAnimations();
+
+      m_isHidden = true;
+    }
     public static string Orientation
     {
       get {
@@ -129,7 +160,7 @@ namespace scripting.iOS
     public void OffsetTabBar(bool move = true)
     {
       bool down = ViewControllers == null || ViewControllers.Length == 0;
-      var tabFrame = TabBar.Frame; //self.TabBar is IBOutlet of your TabBar
+      var tabFrame = TabBar.Frame;
       if (move) {
         int offset = down ? (int)tabFrame.Size.Height : -1 * (int)tabFrame.Size.Height;
         tabFrame.Y += offset; //.Offset(0, offset);
@@ -138,15 +169,30 @@ namespace scripting.iOS
       CurrentOffset = down ? 0 : (int)tabFrame.Size.Height;
     }
 
+    static int GetMinBottomOffset()
+    {
+      if (Instance.m_selectedTab < 0) {
+        return IsiPhoneX() ? UtilsiOS.ROOT_BOTTOM_MIN_X : 0;
+      }
+      return UtilsiOS.ROOT_BOTTOM_MIN;
+    }
+
+    public static bool IsiPhoneX()
+    {
+      CGSize screen = UtilsiOS.GetNativeScreenSize();
+      return screen.Width == 1125;
+    }
+
     public static int GetVerticalOffset()
     {
+      int offset = GetMinBottomOffset();
       if (iOSApp.CurrentOffset == 0) {
-        return 0;
+        return offset;
       }
-      int offset = (int)(iOSApp.CurrentOffset * 0.8);
-      CGSize screen = UtilsiOS.GetNativeScreenSize();
+      offset += (int)(iOSApp.CurrentOffset * 0.8);
+
       // Special dealing with iPhone X:
-      if (screen.Width == 1125) {
+      if (IsiPhoneX()) {
         offset += 6;
       }
       if (IsLandscape) {
@@ -224,6 +270,8 @@ namespace scripting.iOS
 
       if (m_selectedTab >= 0) {
         SelectTab(m_selectedTab);
+      } else if (TabBar != null) {
+        TabBar.Hidden = true;
       }
     }
 
@@ -231,7 +279,8 @@ namespace scripting.iOS
     {
       CommonFunctions.RegisterFunctions();
 
-      string[] lines = System.IO.File.ReadAllLines("script.cscs");
+      //string[] lines = System.IO.File.ReadAllLines("script.cscs");
+      string[] lines = System.IO.File.ReadAllLines("iLanguage.cscs");
       string script = string.Join("\n", lines);
 
       Variable result = null;

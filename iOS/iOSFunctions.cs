@@ -805,7 +805,7 @@ namespace scripting.iOS
       UIView view = iOSVariable.GetView(varName, script);
       if (view == null) {
         view = AppDelegate.GetCurrentView();
-      }
+      }    
 
       if (strColor.Equals("transparent", StringComparison.OrdinalIgnoreCase)) {
         view.Opaque = true;
@@ -1551,6 +1551,8 @@ public class AddLongClickFunction : ParserFunction
       List<Variable> args = Utils.GetArgs(script,
                             Constants.START_ARG, Constants.END_ARG, out isList);
       Utils.CheckArgs(args.Count, 1, m_name);
+
+      TTS.Init();
 
       string phrase = args[0].AsString();
       TTS.Voice     = Utils.GetSafeString(args, 1, TTS.Voice);

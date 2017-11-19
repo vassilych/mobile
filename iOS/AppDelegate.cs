@@ -28,6 +28,8 @@ namespace scripting.iOS
       m_view = Window.RootViewController.View;
       m_viewController = Window.RootViewController;
 
+      m_view.BackgroundColor = UIColor.White;
+
       // Will execute the CSCS script:
       controller.Run();
 

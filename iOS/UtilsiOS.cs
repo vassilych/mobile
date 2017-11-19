@@ -7,12 +7,13 @@ namespace scripting.iOS
 {
   public class UtilsiOS
   {
-    const int ROOT_TOP_MIN    = 18;
-    const int ROOT_BOTTOM_MIN = 10;
+    public const int ROOT_TOP_MIN      = 18;
+    public const int ROOT_BOTTOM_MIN   = 10;
+    public const int ROOT_BOTTOM_MIN_X = 14;
 
     // Extending Combobox width with respect to Android:
-    const double COMBOBOX_EXTENTION = 2.4;
-    const int COMBOBOX_Y_MARGIN     = -20;
+    public const double COMBOBOX_EXTENTION = 2.4;
+    public const int COMBOBOX_Y_MARGIN     = -20;
 
     static Dictionary<string, double> m_doubleCache = new Dictionary<string, double>();
 
@@ -201,7 +202,7 @@ namespace scripting.iOS
                            refY - widgetHeight;
         case "ALIGN_PARENT_BOTTOM":
         case "ALIGN_BOTTOM":
-          int offset1 = useRoot ? parentHeight - widgetHeight - ROOT_BOTTOM_MIN :
+          int offset1 = useRoot ? parentHeight - widgetHeight :
                                   refY + refHeight - widgetHeight;
           // if there is a tabbar, move the bottom part up:
           if (useRoot && !isX) {
@@ -209,7 +210,7 @@ namespace scripting.iOS
           }
           return offset1;
         case "BOTTOM":
-          int offset2 = useRoot ? parentHeight - widgetHeight - ROOT_BOTTOM_MIN :
+          int offset2 = useRoot ? parentHeight - widgetHeight :
                                  refY + refHeight;
           // if there is a tabbar, move the bottom part up:
           if (useRoot && !isX) {
