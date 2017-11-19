@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minHeight="25px">
+    <ImageView
+        android:id="@+id/spinner_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="2dp" />
+    <TextView
+        android:id="@+id/spinner_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="2dp"
+        android:textStyle="bold"
+        android:maxLines="5"
+        android:textSize="13sp" />
+</LinearLayout>
