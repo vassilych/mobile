@@ -1,46 +1,51 @@
 ﻿<Properties StartupConfiguration="{67A58DA0-04AA-464F-971B-CFAE8F1F15D9}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="scripting/Interpreter.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="scripting/UIVariable.cs">
     <Files>
-      <File FileName="iOS/iOSVariable.cs" Line="97" Column="44" />
-      <File FileName="iOS/Resources/script.cscs" Line="163" Column="1" />
-      <File FileName="Droid/Assets/script.cscs" Line="68" Column="14" />
-      <File FileName="Droid/UtilsDroid.cs" Line="1" Column="1" />
-      <File FileName="iOS/TypePickerViewModel.cs" Line="29" Column="35" />
-      <File FileName="Droid/DroidVariable.cs" Line="21" Column="33" />
-      <File FileName="iOS/iOSFunctions.cs" Line="716" Column="54" />
-      <File FileName="Droid/Fragment.cs" Line="1" Column="1" />
-      <File FileName="iOS/AppDelegate.cs" Line="30" Column="30" />
-      <File FileName="iOS/iOSApp.cs" Line="128" Column="74" />
-      <File FileName="iOS/ViewController.cs" Line="1" Column="1" />
-      <File FileName="iOS/UtilsiOS.cs" Line="135" Column="20" />
-      <File FileName="Droid/Resources/values/values-v14.xml" Line="10" Column="1" />
-      <File FileName="scripting/Functions.Flow.cs" Line="294" Column="3" />
-      <File FileName="scripting/Functions.OS.cs" Line="1" Column="1" />
-      <File FileName="scripting/UIVariable.cs" Line="48" Column="47" />
-      <File FileName="scripting/ParsingScript.cs" Line="29" Column="37" />
-      <File FileName="scripting/Interpreter.cs" Line="163" Column="15" />
-      <File FileName="scripting/Variable.cs" Line="178" Column="30" />
-      <File FileName="scripting/Parser.cs" Line="29" Column="54" />
-      <File FileName="scripting/Utils.Parsing.cs" Line="16" Column="37" />
-      <File FileName="scripting/Constants.cs" Line="128" Column="1" />
-      <File FileName="Droid/Properties/AndroidManifest.xml" Line="3" Column="1" />
+      <File FileName="scripting/CommonFunctions.cs" Line="86" Column="1" />
+      <File FileName="iOS/iOSFunctions.cs" Line="1664" Column="1" />
+      <File FileName="scripting/Constants.cs" Line="25" Column="34" />
+      <File FileName="scripting/Functions.OS.cs" Line="487" Column="8" />
+      <File FileName="scripting/Resources/msdnScript.cscs" Line="141" Column="22" />
+      <File FileName="iOS/STT.cs" Line="25" Column="31" />
+      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/gui.cscs" Line="359" Column="76" />
+      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/functions.cscs" Line="459" Column="11" />
+      <File FileName="scripting/Resources/script.cscs" Line="300" Column="27" />
+      <File FileName="iOS/AppDelegate.cs" Line="26" Column="34" />
+      <File FileName="iOS/Main.cs" Line="21" Column="1" />
+      <File FileName="iOS/UtilsiOS.cs" Line="147" Column="1" />
+      <File FileName="Droid/MainActivity.cs" Line="94" Column="57" />
+      <File FileName="Droid/DroidFunctions.cs" Line="1726" Column="8" />
+      <File FileName="Droid/UtilsDroid.cs" Line="128" Column="5" />
+      <File FileName="Droid/Properties/AndroidManifest.xml" Line="3" Column="48" />
+      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/iLanguage.cscs" Line="193" Column="1" />
+      <File FileName="scripting/Functions.Flow.cs" Line="121" Column="36" />
+      <File FileName="scripting/Interpreter.cs" Line="651" Column="1" />
       <File FileName="scripting/ParserFunction.cs" Line="249" Column="1" />
-      <File FileName="scripting/Utils.cs" Line="558" Column="8" />
-      <File FileName="Droid/DroidFunctions.cs" Line="698" Column="58" />
-      <File FileName="Droid/MainActivity.cs" Line="185" Column="1" />
-      <File FileName="scripting/Statics.cs" Line="13" Column="1" />
-      <File FileName="scripting/Translation.cs" Line="9" Column="24" />
+      <File FileName="scripting/Parser.cs" Line="21" Column="1" />
+      <File FileName="iOS/iOSApp.cs" Line="293" Column="6" />
+      <File FileName="scripting/Utils.cs" Line="531" Column="6" />
+      <File FileName="scripting/Variable.cs" Line="229" Column="1" />
+      <File FileName="iOS/TypePickerViewModel.cs" Line="109" Column="1" />
+      <File FileName="scripting/ParsingScript.cs" Line="243" Column="1" />
+      <File FileName="scripting/Utils.Parsing.cs" Line="245" Column="1" />
+      <File FileName="Droid/TTS.cs" Line="32" Column="23" />
+      <File FileName="iOS/TTS.cs" Line="18" Column="6" />
+      <File FileName="Droid/STT.cs" Line="1" Column="1" />
+      <File FileName="iOS/IAP.cs" Line="1" Column="1" />
+      <File FileName="scripting/UIVariable.cs" Line="105" Column="44" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
+      <Breakpoint file="/Users/vk/Projects/scripting/iOS/TTS.cs" relfile="iOS/TTS.cs" line="13" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting/iOS/iOSFunctions.cs" relfile="iOS/iOSFunctions.cs" line="1583" column="1" />
       <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
-      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Breakpoint file="/Users/vk/Projects/scripting/scripting/Functions.Flow.cs" relfile="scripting/Functions.Flow.cs" line="224" column="1" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.scripting.Droid AndroidDesignerPreferredDevice="Nexus 4" PreferredExecutionTarget="Android.nexus4" />
-  <MonoDevelop.Ide.ItemProperties.scripting.iOS PreferredExecutionTarget="MonoDevelop.IPhone.IPhoneSimulatorTarget.9E70ACF8-0FC5-43EB-AA85-AE0C5AC43F3E" />
+  <MonoDevelop.Ide.ItemProperties.scripting.Droid AndroidDesignerPreferredDevice="Nexus 4" PreferredExecutionTarget="Android.1440_2560" />
+  <MonoDevelop.Ide.ItemProperties.scripting.iOS PreferredExecutionTarget="MonoDevelop.IPhone.IPhoneSimulatorTarget.23086F41-F927-4930-949F-A5D27BBAB6EA" />
   <MultiItemStartupConfigurations />
 </Properties>

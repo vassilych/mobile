@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "scripting", "scripting\scripting.shproj", "{C5A6BA80-96D7-48E9-8847-D1B9F50F2938}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "scripting.Shared", "scripting\scripting.Shared.shproj", "{C5A6BA80-96D7-48E9-8847-D1B9F50F2938}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scripting.Droid", "Droid\scripting.Droid.csproj", "{39287967-C219-41AD-9DE6-F5A8D885B939}"
 EndProject
