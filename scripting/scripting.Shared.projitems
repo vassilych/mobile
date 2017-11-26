@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>{C5A6BA80-96D7-48E9-8847-D1B9F50F2938}</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>scripting</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Functions.Flow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Functions.Math.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Functions.OS.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interpreter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Main.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Parser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParserFunction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParsingScript.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Translation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.Parsing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Variable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Statics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonFunctions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Trie.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)App.config" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ru_RU.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pt_BR.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ja_JP.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\it_IT.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fr_FR.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\es_MX.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\es_ES.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\en_US.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\en_GB.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\de_DE.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\de_CH.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ar_SA.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\zh_CN.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ar_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\br_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ch_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\cn_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\de_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\es_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fr_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\gb_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\it_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\jp_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\mx_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\ru_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\us_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\test.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\test2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\learn.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\learn2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\monkey.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\sound_off.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\sound_on.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\abdomen.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\actor.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\angry.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\apple.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\dog.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\script.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Launch2208.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\msdnScript.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\us_w_bg.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pictures.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\start.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\eu_EU.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\coins.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\settings_active.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\settings_inactive.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\rates_inactive.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\rates_active.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Resources\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Resources\drawable\" />
+  </ItemGroup>
+</Project>

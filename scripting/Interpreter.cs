@@ -154,6 +154,7 @@ namespace SplitAndMerge
       ParserFunction.RegisterFunction(Constants.TAIL, new TailFunction());
       ParserFunction.RegisterFunction(Constants.THREAD, new ThreadFunction());
       ParserFunction.RegisterFunction(Constants.THREAD_ID, new ThreadIDFunction());
+      ParserFunction.RegisterFunction(Constants.TIMESTAMP, new TimestampFunction());
       ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
       ParserFunction.RegisterFunction(Constants.TOKENIZE_LINES, new TokenizeLinesFunction());
       ParserFunction.RegisterFunction(Constants.TOKEN_COUNTER, new TokenCounterFunction());
@@ -295,6 +296,7 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.TAIL, tr1, tr2);
                 Translation.Add(languageSection, Constants.THREAD, tr1, tr2);
                 Translation.Add(languageSection, Constants.THREAD_ID, tr1, tr2);
+                Translation.Add(languageSection, Constants.TIMESTAMP, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKENIZE, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKENIZE_LINES, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKEN_COUNTER, tr1, tr2);
@@ -630,6 +632,8 @@ namespace SplitAndMerge
       int blockStart = script.Pointer;
       int startCount = 0;
       int endCount = 0;
+      bool inQuotes = false;
+      char previous = Constants.EMPTY;
       while (startCount == 0 || startCount > endCount) {
         if (!script.StillValid()) {
           throw new ArgumentException("Couldn't skip block [" +
@@ -637,9 +641,11 @@ namespace SplitAndMerge
         }
         char currentChar = script.CurrentAndForward();
         switch (currentChar) {
-          case Constants.START_GROUP: startCount++; break;
-          case Constants.END_GROUP: endCount++; break;
+          case Constants.QUOTE: if (previous != '\\') inQuotes = !inQuotes; break;
+          case Constants.START_GROUP: if (!inQuotes) startCount++; break;
+          case Constants.END_GROUP: if (!inQuotes) endCount++; break;
         }
+        previous = currentChar;
       }
 
       if (startCount != endCount) {

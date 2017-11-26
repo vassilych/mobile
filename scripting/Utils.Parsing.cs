@@ -500,13 +500,14 @@ namespace SplitAndMerge
       int braces = 0;
       bool inQuotes = false;
       bool checkBraces = true;
+      char previous = Constants.EMPTY;
 
       for (; script.StillValid(); script.Forward()) {
         char ch = script.Current;
 
         if (close != Constants.QUOTE) {
           checkBraces = !inQuotes;
-          if (ch == Constants.QUOTE) {
+          if (ch == Constants.QUOTE && previous != '\\') {
             inQuotes = !inQuotes;
           }
         }
@@ -520,6 +521,7 @@ namespace SplitAndMerge
         }
 
         sb.Append(ch);
+        previous = ch;
         if (braces == -1) {
           if (ch == close) {
             sb.Remove(sb.Length - 1, 1);

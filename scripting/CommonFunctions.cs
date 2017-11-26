@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using SplitAndMerge;
 
 #if __ANDROID__
@@ -105,6 +107,7 @@ namespace scripting
       ParserFunction.RegisterFunction("SearchTrie", new SearchTrieFunction());
       ParserFunction.RegisterFunction("ImportFile", new ImportFileFunction());
       ParserFunction.RegisterFunction("OpenUrl", new OpenURLFunction());
+      ParserFunction.RegisterFunction("WebRequest", new WebRequestFunction());
 
       ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
       ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));
@@ -114,6 +117,35 @@ namespace scripting
 
       ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
 
+    }
+    public static void RunScript()
+    {
+      RegisterFunctions();
+
+      //string fileName = "iLanguage.cscs";
+      string fileName = "msdnScript.cscs";
+
+      string script = "";
+#if __ANDROID__
+      Android.Content.Res.AssetManager assets = MainActivity.TheView.Assets;
+      using (StreamReader sr = new StreamReader(assets.Open(fileName))) {
+        script = sr.ReadToEnd();
+      }
+#endif
+#if __IOS__
+      string[] lines = System.IO.File.ReadAllLines(fileName);
+      script = string.Join("\n", lines);
+#endif
+
+      Variable result = null;
+      try {
+        result = Interpreter.Instance.Process(script);
+      } catch (Exception exc) {
+        Console.WriteLine("Exception: " + exc.Message);
+        Console.WriteLine(exc.StackTrace);
+        ParserFunction.InvalidateStacksAfterLevel(0);
+        throw;
+      }
     }
   }
 
@@ -298,6 +330,31 @@ namespace scripting
       }
 
       return new Variable(results);
+    }
+  }
+  public class WebRequestFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 1, m_name);
+      string uri = args[0].AsString();
+
+      WebRequest request = WebRequest.Create(uri);
+      WebResponse response = request.GetResponse();
+
+      Console.WriteLine("{0} response: {1}", uri, ((HttpWebResponse)response).StatusDescription);
+
+      Stream dataStream = response.GetResponseStream();
+      StreamReader reader = new StreamReader(dataStream);
+      string responseFromServer = reader.ReadToEnd();
+
+      reader.Close();
+      response.Close();
+
+      return new Variable(responseFromServer);
     }
   }
   public class ProductIdDescriptionFunction : ParserFunction
