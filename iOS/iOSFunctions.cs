@@ -26,7 +26,7 @@ namespace scripting.iOS
       int leftMargin = Utils.GetSafeInt(args, 4);
       int topMargin = Utils.GetSafeInt(args, 5);
 
-      bool autoResize = Utils.GetSafeInt(args, 6, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, 6, 1) == 1;
       if (autoResize) {
         double multiplier = Utils.GetSafeDouble(args, 7);
         AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
@@ -82,7 +82,7 @@ namespace scripting.iOS
       int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
       int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
-      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) == 1;
       if (autoResize) {
         double multiplier = Utils.GetSafeDouble(args, start + 6);
         AutoScaleFunction.TransformSizes(ref width, ref height,
@@ -421,7 +421,7 @@ namespace scripting.iOS
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
 
-      bool autoResize = Utils.GetSafeInt(args, 3, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
       if (autoResize) {
         double multiplier = Utils.GetSafeDouble(args, 4);
         AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
@@ -1228,28 +1228,36 @@ public class AddLongClickFunction : ParserFunction
       List<Variable> args = Utils.GetArgs(script,
           Constants.START_ARG, Constants.END_ARG, out isList);
 
-      Utils.CheckArgs(args.Count, 3, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name);
       string varName = Utils.GetSafeString(args, 0);
       Utils.CheckNotEmpty(script, varName, m_name);
 
-      Variable width = Utils.GetSafeVariable(args, 1);
-      Utils.CheckNonNegativeInt(width);
+      Variable widthVar = Utils.GetSafeVariable(args, 1);
+      Utils.CheckNonNegativeInt(widthVar);
+      int width = widthVar.AsInt();
 
-      Variable height = Utils.GetSafeVariable(args, 2);
-      Utils.CheckNonNegativeInt(height);
+      Variable heightVar = Utils.GetSafeVariable(args, 2);
+      Utils.CheckNonNegativeInt(heightVar);
+      int height = heightVar.AsInt();
 
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 4);
+        AutoScaleFunction.TransformSizes(ref width, ref height,
+                     (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+      }
       UIView view = iOSVariable.GetView(varName, script);
 
       if (view is UIPickerView) {
         UIPickerView pickerView = view as UIPickerView;
         TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
         if (model != null) {
-          model.SetSize(width.AsInt(), height.AsInt());
+          model.SetSize(width, height);
           pickerView.Model = model;
         }
       } else {
         CGRect newFrame = view.Frame;
-        newFrame.Size = new CGSize((int)width.Value, (int)height.Value);
+        newFrame.Size = new CGSize(width, height);
         view.Frame = newFrame;
       }
 
@@ -1415,7 +1423,7 @@ public class AddLongClickFunction : ParserFunction
           new NSString("UIDeviceOrientationDidChangeNotification"), DeviceRotated);
 
       if (startNow) {
-        PerformAction(DEFAULT_ORIENTATION, true);
+        PerformAction(iOSApp.Orientation, true);
       }
 
       return Variable.EmptyInstance;
@@ -1440,7 +1448,9 @@ public class AddLongClickFunction : ParserFunction
         iOSApp.RemoveAll();
       }
 
-      string action = iOSApp.IsLandscape ? m_actionLandscape : m_actionPortrait;
+      //string action = iOSApp.IsLandscape ? m_actionLandscape : m_actionPortrait;
+      string action = orientation.Contains("Portrait") ?
+                                  m_actionPortrait : m_actionLandscape;
       iOSApp.Instance.OffsetTabBar(false);
 
       UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");

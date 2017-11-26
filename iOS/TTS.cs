@@ -16,10 +16,10 @@ namespace scripting.iOS
         return m_sound;
       }
     }
-    static public float SpeechRate { set; get; }
-    static public float Volume { set; get; }
-    static public float PitchMultiplier { set; get; }
-    static public string Voice { set; get; }
+    static public float  SpeechRate { set; get; }      = 0.5f;
+    static public float  Volume { set; get; }          = 0.7f;
+    static public float  PitchMultiplier { set; get; } = 1.0f;
+    static public string Voice { set; get; }           = "en-US";
 
     static bool m_initDone;
 
@@ -33,10 +33,6 @@ namespace scripting.iOS
       AVAudioSession.SharedInstance().Init();
       AVAudioSession.SharedInstance().SetCategory(AVAudioSessionCategory.Playback,
                                       AVAudioSessionCategoryOptions.DefaultToSpeaker);
-      SpeechRate = 0.5f;
-      Volume = 0.7f;
-      PitchMultiplier = 1.0f;
-      Voice = "en-US";
     }
 
     public static void Speak(string text, bool force = false)

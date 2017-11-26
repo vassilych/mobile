@@ -264,9 +264,7 @@ namespace scripting.iOS
 
       this.ViewControllerSelected += OnTabSelected;
 
-      //iosTabController.SelectedIndex = 0;
-
-      RunScript();
+      CommonFunctions.RunScript();
 
       if (m_selectedTab >= 0) {
         SelectTab(m_selectedTab);
@@ -275,24 +273,11 @@ namespace scripting.iOS
       }
     }
 
-    public void RunScript()
+    private void RunScript()
     {
-      CommonFunctions.RegisterFunctions();
-
-      //string[] lines = System.IO.File.ReadAllLines("script.cscs");
-      string[] lines = System.IO.File.ReadAllLines("iLanguage.cscs");
-      string script = string.Join("\n", lines);
-
-      Variable result = null;
-      try {
-        result = Interpreter.Instance.Process(script);
-      } catch (Exception exc) {
-        Console.WriteLine("Exception: " + exc.Message);
-        Console.WriteLine(exc.StackTrace);
-        ParserFunction.InvalidateStacksAfterLevel(0);
-        throw;
-      }
+      throw new NotImplementedException();
     }
+
     public static bool TabExists(string text)
     {
       return m_allTabs.ContainsKey(text);

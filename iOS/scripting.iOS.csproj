@@ -85,21 +85,17 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Configuration">
-      <HintPath>..\..\..\Downloads\System.Configuration\System.Configuration.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Google.MobileAds">
+      <HintPath>..\packages\Xamarin.Google.iOS.MobileAds.7.24.1\lib\Xamarin.iOS10\Google.MobileAds.dll</HintPath>
     </Reference>
     <Reference Include="Firebase.Core">
-      <HintPath>..\packages\Xamarin.Firebase.iOS.Core.4.0.3\lib\Xamarin.iOS10\Firebase.Core.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Firebase.iOS.Core.4.0.8\lib\Xamarin.iOS10\Firebase.Core.dll</HintPath>
     </Reference>
     <Reference Include="Firebase.InstanceID">
-      <HintPath>..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.0\lib\Xamarin.iOS10\Firebase.InstanceID.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.4\lib\Xamarin.iOS10\Firebase.InstanceID.dll</HintPath>
     </Reference>
     <Reference Include="Firebase.Analytics">
-      <HintPath>..\packages\Xamarin.Firebase.iOS.Analytics.4.0.2\lib\Xamarin.iOS10\Firebase.Analytics.dll</HintPath>
-    </Reference>
-    <Reference Include="Google.MobileAds">
-      <HintPath>..\packages\Xamarin.Google.iOS.MobileAds.7.21.0\lib\Xamarin.iOS10\Google.MobileAds.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Firebase.iOS.Analytics.4.0.4\lib\Xamarin.iOS10\Firebase.Analytics.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -135,10 +131,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="ViewController.cs" />
-    <Compile Include="ViewController.designer.cs">
-      <DependentUpon>ViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="iOSVariable.cs" />
     <Compile Include="iOSFunctions.cs" />
     <Compile Include="UtilsiOS.cs" />
@@ -247,12 +239,6 @@
     <BundleResource Include="..\scripting\Resources\drawable\monkey.png">
       <Link>Resources\drawable\monkey.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\settings.png">
-      <Link>Resources\drawable\settings.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\settings2.png">
-      <Link>Resources\drawable\settings2.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\sound_off.png">
       <Link>Resources\drawable\sound_off.png</Link>
     </BundleResource>
@@ -265,20 +251,8 @@
     <BundleResource Include="..\scripting\Resources\drawable\actor.png">
       <Link>Resources\drawable\actor.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\airplane.png">
-      <Link>Resources\drawable\airplane.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\airport.png">
-      <Link>Resources\drawable\airport.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\ancient.png">
-      <Link>Resources\drawable\ancient.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\angry.png">
       <Link>Resources\drawable\angry.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\apartment.png">
-      <Link>Resources\drawable\apartment.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\apple.png">
       <Link>Resources\drawable\apple.png</Link>
@@ -293,12 +267,42 @@
     <BundleResource Include="..\scripting\Resources\drawable\Launch2208.png">
       <Link>Resources\drawable\Launch2208.png</Link>
     </BundleResource>
+    <BundleResource Include="..\scripting\Resources\msdnScript.cscs">
+      <Link>Resources\msdnScript.cscs</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\us_w_bg.png">
+      <Link>Resources\drawable\us_w_bg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\start.png">
+      <Link>Resources\drawable\start.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\pictures.png">
+      <Link>Resources\drawable\pictures.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\eu_EU.png">
+      <Link>Resources\drawable\eu_EU.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\coins.png">
+      <Link>Resources\drawable\coins.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\rates_inactive.png">
+      <Link>Resources\drawable\rates_inactive.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\rates_active.png">
+      <Link>Resources\drawable\rates_active.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\settings_active.png">
+      <Link>Resources\drawable\settings_active.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\settings_inactive.png">
+      <Link>Resources\drawable\settings_inactive.png</Link>
+    </BundleResource>
   </ItemGroup>
-  <Import Project="..\scripting\scripting.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.projitems')" />
+  <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
-  <Import Project="..\packages\Xamarin.Firebase.iOS.Core.4.0.3\build\Xamarin.Firebase.iOS.Core.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Core.4.0.3\build\Xamarin.Firebase.iOS.Core.targets')" />
-  <Import Project="..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.0\build\Xamarin.Firebase.iOS.InstanceID.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.0\build\Xamarin.Firebase.iOS.InstanceID.targets')" />
-  <Import Project="..\packages\Xamarin.Firebase.iOS.Analytics.4.0.2\build\Xamarin.Firebase.iOS.Analytics.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Analytics.4.0.2\build\Xamarin.Firebase.iOS.Analytics.targets')" />
-  <Import Project="..\packages\Xamarin.Google.iOS.MobileAds.7.21.0\build\Xamarin.Google.iOS.MobileAds.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.MobileAds.7.21.0\build\Xamarin.Google.iOS.MobileAds.targets')" />
   <Import Project="..\packages\Xamarin.Build.Download.0.4.7\build\Xamarin.Build.Download.targets" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.7\build\Xamarin.Build.Download.targets')" />
+  <Import Project="..\packages\Xamarin.Google.iOS.MobileAds.7.24.1\build\Xamarin.Google.iOS.MobileAds.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.MobileAds.7.24.1\build\Xamarin.Google.iOS.MobileAds.targets')" />
+  <Import Project="..\packages\Xamarin.Firebase.iOS.Core.4.0.8\build\Xamarin.Firebase.iOS.Core.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Core.4.0.8\build\Xamarin.Firebase.iOS.Core.targets')" />
+  <Import Project="..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.4\build\Xamarin.Firebase.iOS.InstanceID.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.4\build\Xamarin.Firebase.iOS.InstanceID.targets')" />
+  <Import Project="..\packages\Xamarin.Firebase.iOS.Analytics.4.0.4\build\Xamarin.Firebase.iOS.Analytics.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Analytics.4.0.4\build\Xamarin.Firebase.iOS.Analytics.targets')" />
 </Project>

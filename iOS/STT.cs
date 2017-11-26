@@ -21,8 +21,8 @@ namespace scripting.iOS
 
     static System.Timers.Timer m_speechTimer;
 
-    const int m_wordTimeout = 5000;
-    const int m_phraseTimeout = 10000;
+    const int m_wordTimeout    = 5000;
+    const int m_phraseTimeout  = 10000;
     const int m_silenceTimeout = 1000;
     static int m_timeout;
 
