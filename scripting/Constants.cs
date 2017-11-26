@@ -142,6 +142,7 @@ namespace SplitAndMerge
     public const string TAIL = "tail";
     public const string THREAD = "thread";
     public const string THREAD_ID = "threadid";
+    public const string TIMESTAMP = "Timestamp";
     public const string TOKENIZE = "tokenize";
     public const string TOKENIZE_LINES = "TokenizeLines";
     public const string TOKEN_COUNTER = "CountTokens";

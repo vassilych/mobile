@@ -486,6 +486,9 @@ namespace SplitAndMerge
         comp = StringComparison.OrdinalIgnoreCase;
       }
 
+      source   = source.Replace("\\\"", "\"");
+      argument = argument.Replace("\\\"", "\"");
+
       switch (m_mode) {
         case Mode.CONTAINS:
           return new Variable(source.IndexOf(argument, comp) >= 0);
@@ -506,6 +509,8 @@ namespace SplitAndMerge
         case Mode.TRIM:
           return new Variable(source.Trim());
         case Mode.SUBSTRING:
+          startFrom = Utils.GetSafeInt(args, 1, 0);
+          length = Utils.GetSafeInt(args, 2, source.Length);
           return new Variable(source.Substring(startFrom, length));
       }
 
@@ -1086,6 +1091,36 @@ namespace SplitAndMerge
     }
   }
 
+  class TimestampFunction : ParserFunction
+  {
+    bool m_millis = false;
+    public TimestampFunction(bool millis = false)
+    {
+      m_millis = millis;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+        Constants.START_ARG, Constants.END_ARG, out isList);
+
+      double timestamp = Utils.GetSafeDouble(args, 0);
+      string strFormat = Utils.GetSafeString(args, 1, "yyyy/MM/dd HH:mm:ss.fff");
+      Utils.CheckNotEmpty(strFormat, m_name);
+
+      var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+      if (m_millis) {
+        dt = dt.AddMilliseconds(timestamp);
+      } else {
+        dt = dt.AddSeconds(timestamp);
+      }
+
+      DateTime runtimeKnowsThisIsUtc = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+      DateTime localVersion = runtimeKnowsThisIsUtc.ToLocalTime();
+      string when = localVersion.ToString(strFormat);
+      return new Variable(when);
+    }
+  }
   class DateTimeFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
@@ -1094,7 +1129,7 @@ namespace SplitAndMerge
       List<Variable> args = Utils.GetArgs(script,
         Constants.START_ARG, Constants.END_ARG, out isList);
 
-      string strFormat = Utils.GetSafeString(args, 0, "hh:mm:ss.fff");
+      string strFormat = Utils.GetSafeString(args, 0, "HH:mm:ss.fff");
       Utils.CheckNotEmpty(strFormat, m_name);
 
       string when = DateTime.Now.ToString(strFormat);

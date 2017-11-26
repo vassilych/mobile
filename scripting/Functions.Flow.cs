@@ -206,28 +206,28 @@ namespace SplitAndMerge
     private int           m_parentOffset = 0;
   }
 
-    class StringOrNumberFunction : ParserFunction
+  class StringOrNumberFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
     {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // First check if the passed expression is a string between quotes.
-            if (Item.Length > 1 &&
-                Item[0] == Constants.QUOTE &&
-                Item[Item.Length - 1]  == Constants.QUOTE) {
-              return new Variable(Item.Substring(1, Item.Length - 2));
-            }
+      // First check if the passed expression is a string between quotes.
+      if (Item.Length > 1 &&
+          Item[0] == Constants.QUOTE &&
+          Item[Item.Length - 1] == Constants.QUOTE) {
+        return new Variable(Item.Substring(1, Item.Length - 2));
+      }
 
-            // Otherwise this should be a number.
-            double num;
-            if (!Double.TryParse(Item, NumberStyles.Number | NumberStyles.AllowExponent,
-                                 CultureInfo.InvariantCulture, out num)) {
-                Utils.ThrowException(script, "parseToken", Item, "parseTokenExtra");
-            }
-            return new Variable(num);
-        }
-    
-        public string Item { private get; set; }
+      // Otherwise this should be a number.
+      double num;
+      if (!Double.TryParse(Item, NumberStyles.Number | NumberStyles.AllowExponent,
+                           CultureInfo.InvariantCulture, out num)) {
+        Utils.ThrowException(script, "parseToken", Item, "parseTokenExtra");
+      }
+      return new Variable(num);
     }
+
+    public string Item { private get; set; }
+  }
 
   class AddFunction : ParserFunction
   {

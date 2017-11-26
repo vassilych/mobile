@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -515,16 +516,33 @@ namespace SplitAndMerge
       if (args.Count <= index) {
         return defaultValue;
       }
-      Utils.CheckNumber(args[index]);
-      return args[index].AsInt();
+      Variable numberVar = args[index];
+      if (numberVar.Type != Variable.VarType.NUMBER) {
+        int num;
+        if (!Int32.TryParse(numberVar.String, NumberStyles.Number | NumberStyles.AllowExponent,
+                             CultureInfo.InvariantCulture, out num)) {
+          throw new ArgumentException("Expected an integer instead of [" + numberVar.AsString() + "]");
+        }
+        return num;
+      }
+      return numberVar.AsInt();
     }
     public static double GetSafeDouble(List<Variable> args, int index, double defaultValue = 0.0)
     {
       if (args.Count <= index) {
         return defaultValue;
       }
-      Utils.CheckNumber(args[index]);
-      return args[index].AsDouble();
+
+      Variable numberVar = args[index];
+      if (numberVar.Type != Variable.VarType.NUMBER) {
+        double num;
+        if (!Double.TryParse(numberVar.String, NumberStyles.Number | NumberStyles.AllowExponent,
+                             CultureInfo.InvariantCulture, out num)) {
+          throw new ArgumentException("Expected a double instead of [" + numberVar.AsString() + "]");
+        }
+        return num;
+      }
+      return numberVar.AsDouble();
     }
     public static string GetSafeString(List<Variable> args, int index, string defaultValue = "")
     {
