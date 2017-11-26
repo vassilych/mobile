@@ -34,7 +34,7 @@ namespace scripting.Droid
       int leftMargin = Utils.GetSafeInt(args, 4);
       int topMargin = Utils.GetSafeInt(args, 5);
 
-      bool autoResize = Utils.GetSafeInt(args, 6, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, 6, 1) == 1;
       if (autoResize) {
         double multiplier = Utils.GetSafeDouble(args, 7);
         AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
@@ -93,9 +93,9 @@ namespace scripting.Droid
       int height = Utils.GetSafeInt(args, start + 4);
 
       ScreenSize screenSize = UtilsDroid.GetScreenSize();
-      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, start + 5, 1) == 1;
+      double multiplier = Utils.GetSafeDouble(args, start + 6);
       if (autoResize) {
-        double multiplier = Utils.GetSafeDouble(args, start + 6);
         AutoScaleFunction.TransformSizes(ref width, ref height,
                                          screenSize.Width, multiplier);
       }
@@ -487,7 +487,7 @@ namespace scripting.Droid
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
 
-      bool autoResize = Utils.GetSafeInt(args, 3, 1) != 1;
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
       if (autoResize) {
         double multiplier = Utils.GetSafeDouble(args, 4);
         AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
@@ -698,20 +698,28 @@ namespace scripting.Droid
       string varName = Utils.GetSafeString(args, 0);
       Utils.CheckNotEmpty(script, varName, m_name);
 
-      Variable width = Utils.GetSafeVariable(args, 1);
-      Utils.CheckNonNegativeInt(width);
+      Variable widthVar = Utils.GetSafeVariable(args, 1);
+      Utils.CheckNonNegativeInt(widthVar);
+      int width = widthVar.AsInt();
 
-      Variable height = Utils.GetSafeVariable(args, 2);
-      Utils.CheckNonNegativeInt(height);
+      Variable heightVar = Utils.GetSafeVariable(args, 2);
+      Utils.CheckNonNegativeInt(heightVar);
+      int height = heightVar.AsInt();
 
+      bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
+      if (autoResize) {
+        double multiplier = Utils.GetSafeDouble(args, 4);
+        AutoScaleFunction.TransformSizes(ref width, ref height,
+                          UtilsDroid.GetScreenSize().Width, multiplier);
+      }
       View view = DroidVariable.GetView(varName, script);
 
       var layoutParams = view.LayoutParameters;
-      if (width.AsInt() > 0) {
-        layoutParams.Width = width.AsInt();
+      if (width > 0) {
+        layoutParams.Width = width;
       }
-      if (height.AsInt() > 0) {
-        layoutParams.Height = height.AsInt();
+      if (height > 0) {
+        layoutParams.Height = height;
       }
       view.LayoutParameters = layoutParams;
 
@@ -1458,7 +1466,7 @@ namespace scripting.Droid
       bool startNow = Utils.GetSafeInt(args, 2, 1) != 0;
 
       if (startNow) {
-        PerformAction(DEFAULT_ORIENTATION, true);
+        PerformAction(MainActivity.Orientation, true);
       }
 
       MainActivity.OnOrientationChange += (newOrientation) => {
@@ -1472,6 +1480,7 @@ namespace scripting.Droid
     {
       string currentOrientation = MainActivity.Orientation;
       if (m_currentOrientation == currentOrientation) {
+        Console.WriteLine("Same Orientation: {0}", currentOrientation);
         return;
       }
 
@@ -1486,7 +1495,10 @@ namespace scripting.Droid
         MainActivity.RemoveAll();
       }
 
-      string action = MainActivity.IsLandscape ? m_actionLandscape : m_actionPortrait;
+      string action = orientation.Contains("Portrait") ? 
+                                  m_actionPortrait: m_actionLandscape;
+      Console.WriteLine("PerformAction {0} Orient: {1} isInit={2}", action, m_currentOrientation, isInit);
+
       UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");
 
       if (!isInit && currentTab >= 0) {

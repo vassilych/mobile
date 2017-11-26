@@ -130,6 +130,9 @@ namespace scripting.Droid
     }
     public void ChangeTab(int tabId)
     {
+      if (m_actionBars.Count <= tabId) {
+        return;
+      }
       CurrentTabId = tabId;
       ActionBar.Tab tab = m_actionBars[tabId];
       tab.Select();
@@ -215,26 +218,6 @@ namespace scripting.Droid
       ScriptingFragment.RemoveAll();
     }
 
-    public static void RunScript()
-    {
-      CommonFunctions.RegisterFunctions();
-
-      string script = "";
-      AssetManager assets = TheView.Assets;
-      using (StreamReader sr = new StreamReader(assets.Open("script.cscs"))) {
-        script = sr.ReadToEnd();
-      }
-
-      Variable result = null;
-      try {
-        result = Interpreter.Instance.Process(script);
-      } catch (Exception exc) {
-        Console.WriteLine("Exception: " + exc.Message);
-        Console.WriteLine(exc.StackTrace);
-        ParserFunction.InvalidateStacksAfterLevel(0);
-        throw;
-      }
-    }
     public static void AddView(View view, ViewGroup parent)
     {
       ScriptingFragment.AddView(view, parent);
@@ -355,9 +338,7 @@ namespace scripting.Droid
       var vto = MainActivity.TheLayout.ViewTreeObserver;
       vto.RemoveOnGlobalLayoutListener(this);
 
-      MainActivity.RunScript();
-      // TODO: set tab if not set in the script:
-      //MainActivity.SelectTab(0);
+      CommonFunctions.RunScript();
     }
   }
 }

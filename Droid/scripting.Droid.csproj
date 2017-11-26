@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\xamstore-xamarin.inappbilling.1.5\build\monoandroid\xamstore-xamarin.inappbilling.props" Condition="Exists('..\packages\xamstore-xamarin.inappbilling.1.5\build\monoandroid\xamstore-xamarin.inappbilling.props')" />
   <Import Project="..\packages\Xamarin.Build.Download.0.4.7\build\Xamarin.Build.Download.props" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.7\build\Xamarin.Build.Download.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -51,9 +50,6 @@
     <Reference Include="Xamarin.GooglePlayServices.Ads.Lite">
       <HintPath>..\packages\Xamarin.GooglePlayServices.Ads.Lite.42.1021.1\lib\MonoAndroid70\Xamarin.GooglePlayServices.Ads.Lite.dll</HintPath>
     </Reference>
-    <Reference Include="Xamarin.InAppBilling">
-      <HintPath>..\..\..\Desktop\iLanguageApp\Components\xamarin.inappbilling-2.2\lib\android\Xamarin.InAppBilling.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.Android.Support.Annotations">
       <HintPath>..\packages\Xamarin.Android.Support.Annotations.26.1.0.1\lib\MonoAndroid80\Xamarin.Android.Support.Annotations.dll</HintPath>
     </Reference>
@@ -92,6 +88,9 @@
     </Reference>
     <Reference Include="Xamarin.Android.Support.v7.AppCompat">
       <HintPath>..\packages\Xamarin.Android.Support.v7.AppCompat.26.1.0.1\lib\MonoAndroid80\Xamarin.Android.Support.v7.AppCompat.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.InAppBilling">
+      <HintPath>..\Components\xamarin.inappbilling-2.2\lib\android\Xamarin.InAppBilling.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -221,12 +220,6 @@
     <AndroidResource Include="..\scripting\Resources\drawable\monkey.png">
       <Link>Resources\drawable\monkey.png</Link>
     </AndroidResource>
-    <AndroidResource Include="..\scripting\Resources\drawable\settings.png">
-      <Link>Resources\drawable\settings.png</Link>
-    </AndroidResource>
-    <AndroidResource Include="..\scripting\Resources\drawable\settings2.png">
-      <Link>Resources\drawable\settings2.png</Link>
-    </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\sound_off.png">
       <Link>Resources\drawable\sound_off.png</Link>
     </AndroidResource>
@@ -265,6 +258,36 @@
     <AndroidResource Include="..\scripting\Resources\drawable\Launch2208.png">
       <Link>Resources\drawable\Launch2208.png</Link>
     </AndroidResource>
+    <AndroidResource Include="..\..\scripting_iLanguage\scripting\Resources\drawable\mx_w_bg.png">
+      <Link>Resources\drawable\mx_w_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\us_w_bg.png">
+      <Link>Resources\drawable\us_w_bg.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\start.png">
+      <Link>Resources\drawable\start.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\pictures.png">
+      <Link>Resources\drawable\pictures.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\eu_EU.png">
+      <Link>Resources\drawable\eu_EU.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\coins.png">
+      <Link>Resources\drawable\coins.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\settings_active.png">
+      <Link>Resources\drawable\settings_active.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\settings_inactive.png">
+      <Link>Resources\drawable\settings_inactive.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\rates_inactive.png">
+      <Link>Resources\drawable\rates_inactive.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\rates_active.png">
+      <Link>Resources\drawable\rates_active.png</Link>
+    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\drawable\" />
@@ -274,8 +297,17 @@
     <AndroidAsset Include="..\scripting\Resources\script.cscs">
       <Link>Assets\script.cscs</Link>
     </AndroidAsset>
+    <AndroidAsset Include="..\scripting\Resources\msdnScript.cscs">
+      <Link>Assets\msdnScript.cscs</Link>
+    </AndroidAsset>
   </ItemGroup>
-  <Import Project="..\scripting\scripting.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.projitems')" />
+  <ItemGroup>
+    <XamarinComponentReference Include="xamarin.inappbilling">
+      <Version>2.2</Version>
+      <Visible>False</Visible>
+    </XamarinComponentReference>
+  </ItemGroup>
+  <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="..\packages\Xamarin.GooglePlayServices.Basement.42.1021.1\build\MonoAndroid70\Xamarin.GooglePlayServices.Basement.targets" Condition="Exists('..\packages\Xamarin.GooglePlayServices.Basement.42.1021.1\build\MonoAndroid70\Xamarin.GooglePlayServices.Basement.targets')" />
   <Import Project="..\packages\Xamarin.GooglePlayServices.Ads.Lite.42.1021.1\build\MonoAndroid70\Xamarin.GooglePlayServices.Ads.Lite.targets" Condition="Exists('..\packages\Xamarin.GooglePlayServices.Ads.Lite.42.1021.1\build\MonoAndroid70\Xamarin.GooglePlayServices.Ads.Lite.targets')" />

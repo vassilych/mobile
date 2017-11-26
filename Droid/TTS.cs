@@ -12,35 +12,28 @@ namespace scripting.Droid
   public class TTS : Java.Lang.Object, TextToSpeech.IOnInitListener, IDisposable
   {
     public static readonly int TTS_INSTALLED_DATA = 101;
-    public static readonly int TTS_CHECK_DATA = 102;
-    public static readonly int TTS_REQUEST_DATA = 103;
+    public static readonly int TTS_CHECK_DATA     = 102;
+    public static readonly int TTS_REQUEST_DATA   = 103;
     static Context m_context;
 
-    static public bool Sound { set; get; }
-    static public float SpeechRate { set; get; }
-    static public float Volume { set; get; }
-    static public float PitchMultiplier { set; get; }
-    static public string Voice { set; get; }
+    static public bool   Sound { set; get; }           = true;
+    static public float  SpeechRate { set; get; }      = 1.0f;
+    static public float  Volume { set; get; }          = 0.7f;
+    static public float  PitchMultiplier { set; get; } = 1.0f;
+    static public string Voice { set; get; }           = "en-US";
 
     static bool m_initDone;
 
     static List<string> m_initVoices = new List<string>() {
-        "en_US", "en_GB", "de_DE", "es_MX", "SPA",
-        "ru_RU", "it_IT", "fr_FR", "BRA", "CHN", "JPN", "ar" };
+        "en_US", "es_MX" };
 
     public static void Init(Context context)
     {
-      if (m_initDone)
-      {
+      if (m_initDone) {
         return;
       }
       m_initDone = true;
       m_context = context;
-      Sound = true;
-      SpeechRate = 1.0f;
-      Volume = 0.7f;
-      PitchMultiplier = 1.0f;
-      Voice = "en-US";
     }
 
     TextToSpeech m_textToSpeech;
@@ -84,6 +77,13 @@ namespace scripting.Droid
       return m_textToSpeech.AvailableLanguages;
     }
 
+    /*public static void Speak(string text, bool force = false)
+    {
+      if (!force && !Sound) {
+        return;
+      }
+    }*/
+
     public void Speak(string text, bool force = false)
     {
       m_text = text;
@@ -91,8 +91,7 @@ namespace scripting.Droid
       m_textToSpeech.Stop();
 
       m_force = force;
-      if (!Sound && !m_force)
-      {
+      if (!Sound && !force) {
         return;
       }
 
