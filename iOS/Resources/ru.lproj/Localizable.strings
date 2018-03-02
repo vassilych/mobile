@@ -1,0 +1,89 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "Учить";
+"Quiz" = "Тест";
+"Settings" = "Настройки";
+"Learn_wide" = "Учить";
+"Quiz_wide" = "Тест";
+"Settings_wide" = "Настройки";
+
+// Tab 1
+"Word %d/%d" = "Слово %d/%d";
+"Word:"    = "Слово:";
+"Words"   = "Слова";
+"Translate"  = "Перевести";
+"Word with %@ not found" = "Нет слов, содержащих %@";
+"Part of word or word id" = "Часть слова или номер слова";
+
+"Please wait..." = "Пожалуйста, подождите...";
+"Check your internet connection"="Проверьте подключение к Интернету";
+
+// Tab 2
+"Best score:" = "Рекорд:";
+"Correct: %d%% (%d/%d)" = "Правильно: %d%% (%d/%d)";
+"Correct:"    = "Правильно:";
+"Quiz Type:"  = "Тип теста:";
+"Quiz Mode:"  = "Режим теста:";
+"Quiz Words:" = "Слов в тесте:";
+"Mode:" = "Режим:";
+// Speech:
+"Speech" = "Речь";
+"You said:" = "Вы сказали:";
+"Speak:" = "Скажите:";
+"No speech was recognized" = "Речь не распознана";
+"Excellent!" = "Отлично!";
+"False" = "Неправильно";
+"Finished" = "Тест закончен";
+"yes" = "правильно";
+"no" = "нет";
+"Phrases" = "Фразы";
+"Images" = "Картинки";
+"Text" = "Текст";
+
+// Tab 3
+"Language to learn:" = "Изучаемый язык:";
+"Translate to:" = "Язык перевода:";
+"Speech Rate:" = "Скорость голоса:";
+"Sound:" = "Звук:";
+"Accent:" = "Произношение:";
+"hello" = "привет";
+"bye" = "пока";
+
+// Types
+"all" = "все слова";
+"animal world" = "животный мир";
+"body parts" = "части тела";
+"colors, figures" = "цвет, фигуры";
+"clothing" = "одежда";
+"food and beverage" = "еда и напитки";
+"fruits & vegetables" = "фрукты и овощи";
+"numbers & math" = "числа и математика";
+"sport" = "спорт";
+"hobby, music, chess" = "хобби, музыка, шахматы";
+"transport" = "транспорт";
+"household" = "дом";
+"kitchen" = "кухня";
+"school and office" = "школа и офис";
+"accesories" = "личные вещи";
+"tools and appliances" = "приборы и инструменты";
+"bed and bath" = "спальня и ванна";
+"verbs" = "глаголы";
+"adjectives" = "прилагательные";
+"family & kids" = "семья и дети";
+"profession" = "профессии";
+"countries" = "страны";
+"environment" = "окружающая среда";
+"calendar, time" = "календарь, время";
+"basic phrases" = "базовые фразы";
+"phrases greetings" = "фразы приветствия";
+"phrases traveling" = "фразы путешествуя";
+"phrases in hotel" = "фразы в гостинице";
+"phrases in restaurant" = "фразы в ресторане";
+"flirting phrases" = "фразы для флирта";

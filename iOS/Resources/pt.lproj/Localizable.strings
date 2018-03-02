@@ -1,0 +1,76 @@
+"Learn" = "Aprender";
+"Quiz" = "Quiz";
+"Settings" = "Configurações";
+"Learn_wide" = "Aprender";
+"Quiz_wide" = "Quiz";
+"Settings_wide" = "Configurações";
+
+"Word %d/%d" = "Palavra %d/%d";
+"Word:"    = "Palavra:";
+"Words"   = "Palavras";
+"Translate"  = "Traduzir";
+"Word with %@ not found" = "Palavra com %@ não encontrado";
+"Part of word or word id" = "Parte da palavra ou palavra numérica ID";
+
+"Please wait..." = "Por favor espere...";
+"Check your internet connection"="Verifique a sua ligação à Internet";
+
+"Best score:" = "Melhor pontuação:";
+"Correct: %d%% (%d/%d)" = "Correto: %d%% (%d/%d)";
+"Correct:"    = "Correto:";
+"Quiz Type:"  = "Tipo do quiz:";
+"Quiz Mode:"  = "Modo do quiz:";
+"Quiz Words:" = "Palavras do quiz:";
+"Mode:" = "Modo:";
+// Speech:
+"Speech" = "Discurso";
+"You said:" = "Você disse:";
+"Speak:" = "Fala:";
+"No speech was recognized" = "No speech was recognized";
+"Excellent!" = "Excelente!";
+"False" = "Falso";
+"Finished" = "Terminado";
+"yes" = "sim";
+"no" = "não";
+"Phrases" = "Frases";
+"Images" = "Imagens";
+"Text" = "Texto";
+
+"Language to learn:" = "Linguagem a aprender:";
+"Translate to:" = "Traduzir para:";
+"Speech Rate:" = "Taxa de voz:";
+"Sound:" = "Som:";
+"Accent:" = "Acento:";
+"hello" = "olá";
+"bye" = "tchau";
+
+"all" = "tudo";
+"animal world" = "mundo animal";
+"body parts" = "partes do corpo";
+"clothing" = "vestuário";
+"colors, figures" = "cores, formas";
+"food and beverage" = "alimentos e bebidas";
+"fruits & vegetables" = "frutas e vegetais";
+"numbers & math" = "números e matemática";
+"sport" = "esporte";
+"hobby, music, chess" = "passatempo, música, xadrez";
+"transport" = "transporte";
+"household" = "cuidados com a casa";
+"kitchen" = "cozinha";
+"school and office" = "escola e escritório";
+"accesories" = "acessórios";
+"tools and appliances" = "ferramentas e aparelhos";
+"bed and bath" = "cama e banho";
+"verbs" = "verbos";
+"adjectives" = "adjetivos";
+"family & kids" = "família e crianças";
+"profession" = "profissões";
+"countries" = "países";
+"environment" = "meio ambiente";
+"calendar, time" = "calendário, horas";
+"basic phrases" = "frases básicas";
+"phrases greetings" = "frases para cumprimentar";
+"phrases traveling" = "frases para viajar";
+"phrases in hotel" = "frases no hotel";
+"phrases in restaurant" = "frases no restaurante";
+"flirting phrases" = "frases para paquerar";

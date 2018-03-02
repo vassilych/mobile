@@ -1,0 +1,89 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "Apprends";
+"Quiz" = "Quiz";
+"Settings" = "Réglages";
+"Learn_wide" = "Apprends";
+"Quiz_wide" = "Quiz";
+"Settings_wide" = "Réglages";
+
+// Tab 1
+"Word %d/%d" = "Mot %d/%d";
+"Word:"    = "Mot:";
+"Words"   = "Mots";
+"Translate"  = "Traduire";
+"Word with %@ not found" = "Pas de mots contenant %@";
+"Part of word or word id" = "Partie du mot ou identification";
+
+"Please wait..." = "S'il vous plaît, attendez...";
+"Check your internet connection"="Check your internet connection";
+
+// Tab 2
+"Best score:" = "Record:";
+"Correct: %d%% (%d/%d)" = "Exacte: %d%% (%d/%d)";
+"Correct:"    = "Exacte:";
+"Quiz Type:"  = "Type de quiz:";
+"Quiz Mode:"  = "Mode quiz:";
+"Quiz Words:" = "Quiz mots:";
+"Mode:" = "Mode:";
+// Speech:
+"Speech" = "Discours";
+"You said:" = "Tu as dit:";
+"Speak:" = "Parler:";
+"No speech was recognized" = "Aucun discours n'a été reconnu";
+"Excellent!" = "Excellent!";
+"False" = "Faux";
+"Finished" = "Fini";
+"yes" = "voilà";
+"no" = "non";
+"Phrases" = "Phrases";
+"Images" = "Images";
+"Text" = "Texte";
+
+// Tab 3
+"Language to learn:" = "Langue à apprendre:";
+"Translate to:" = "Traduire en:";
+"Speech Rate:" = "Vitesse d'élocution:";
+"Sound:" = "Son:";
+"Accent:" = "Accent:";
+"hello" = "Salut";
+"bye" = "au revoir";
+
+// Types
+"all" = "tous";
+"animal world" = "règne animal";
+"body parts" = "parties du corps";
+"clothing" = "vêtements";
+"colors, figures" = "couleurs, figures";
+"food and beverage" = "nourriture et boisson";
+"fruits & vegetables" = "fruits et légumes";
+"numbers & math" = "nombres et maths";
+"sport" = "sport";
+"hobby, music, chess" = "hobby, musique, échecs";
+"transport" = "transport";
+"household" = "maison";
+"kitchen" = "cuisine";
+"school and office" = "école et bureau";
+"accesories" = "accessoires";
+"tools and appliances" = "outils et appareils";
+"bed and bath" = "chambre";
+"verbs" = "verbes";
+"adjectives" = "adjectifs";
+"family & kids" = "famille et enfants";
+"profession" = "professions";
+"countries" = "les pays";
+"environment" = "environnement";
+"calendar, time" = "calendrier, l'heure";
+"basic phrases" = "phrases basiques";
+"phrases greetings" = "phrases pour saluer";
+"phrases traveling" = "phrases en voyage";
+"phrases in hotel" = "phrases à l'hôtel";
+"phrases in restaurant" = "phrases au restaurant";
+"flirting phrases" = "phrases de drague";

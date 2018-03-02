@@ -1,0 +1,89 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "学ぶ";
+"Quiz" = "クイズ";
+"Settings" = "設定";
+"Learn_wide" = "学ぶ";
+"Quiz_wide" = "クイズ";
+"Settings_wide" = "設定";
+
+// Tab 1
+"Word %d/%d" = "ワード %d/%d";
+"Word:"    = "ワード:";
+"Words"   = "個の単語のクイズ";
+"Translate"  = "翻訳";
+"Word with %@ not found" = "ワード %@ が見つかりません。";
+"Part of word or word id" = "単語または単語IDの一部です";
+
+"Please wait..." = "お待ちください...";
+"Check your internet connection"="Check your internet connection";
+
+// Tab 2
+"Best score:" = "最高スコア:";
+"Correct: %d%% (%d/%d)" = "正： %d%% (%d/%d)";
+"Correct:"    = "正：";
+"Quiz Type:"  = "クイズの種類:";
+"Quiz Mode:"  = "クイズモード:";
+"Quiz Words:" = "クイズの単語数：";
+"Mode:" = "モード:";
+// Speech:
+"Speech" = "スピーチ";
+"You said:" = "あなたが言った：";
+"Speak:" = "話す:";
+"No speech was recognized" = "音声が認識されなかった";
+"Excellent!" = "優れた!";
+"False" = "違う";
+"Finished" = "終了";
+"yes" = "正解"; // correct
+"no" = "いいえ";
+"Phrases" = "短语";
+"Images" = "イメージ";
+"Text" = "文章";
+
+// Tab 3
+"Language to learn:" = "学習言語：";
+"Translate to:" = "翻訳：";
+"Sound:" = "音：";
+"Speech Rate:" = "会話速度：";
+"Accent:" = "アクセント：";
+"hello" = "こんにちは";
+"bye" = "さようなら";
+
+// Types
+"all" = "すべて";
+"animal world" = "動物の世界";
+"body parts" = "体の各部";
+"clothing" = "服";
+"colors, figures" = "色、数字";
+"food and beverage" = "食品および飲料";
+"fruits & vegetables" = "果物・野菜";
+"numbers & math" = "数字・数学";
+"sport" = "スポーツ";
+"hobby, music, chess" = "趣味、音楽、チェス";
+"transport" = "交通手段";
+"household" = "家庭";
+"kitchen" = "キッチン";
+"school and office" = "学校やオフィス";
+"accesories" = "アクセサリー";
+"tools and appliances" = "道具と機器";
+"bed and bath" = "ベッド、バス";
+"verbs" = "動詞";
+"adjectives" = "形容詞";
+"family & kids" = "家族・子供";
+"profession" = "職業";
+"countries" = "国";
+"environment" = "環境";
+"calendar, time" = "カレンダー、時間";
+"basic phrases" = "基本的なフレーズ";
+"phrases greetings" = "挨拶のフレーズ";
+"phrases traveling" = "旅行のフレーズ";
+"phrases in hotel" = "ホテルでのフレーズ";
+"phrases in restaurant" = "レストランでのフレーズ";
+"flirting phrases" = "フレーズいちゃつきます";

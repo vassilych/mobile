@@ -1,0 +1,90 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "学习";
+"Quiz" = "测试";
+"Settings" = "设定";
+"Learn_wide" = "学习";
+"Quiz_wide" = "测试";
+"Settings_wide" = "设定";
+
+// Tab 1
+"Word %d/%d" = "单词 %d/%d";
+"Word:"    = "单词:";
+"Words"   = "测试单词";
+"Translate"   = "翻译";
+"Word with %@ not found" = "未发现含有 %@ 词";
+"Part of word or word id" = "字或数字ID的一部分";
+
+"Please wait..." = "请稍候...";
+"Check your internet connection"="检查您的互联网连接";
+
+// Tab 2
+"Best score:" = "最佳成绩:";
+"Correct: %d%% (%d/%d)" = "正确: %d%% (%d/%d)";
+"Correct:"    = "正确:";
+"Quiz Type:"  = "测验类型:";
+"Quiz Mode:"  = "测验模式:";
+"Quiz Words:" = "测试单词:";
+"Mode:" = "模式:";
+// Speech:
+"Speech" = "言語";
+"You said:" = "你說:";
+"Speak:" = "说话:";
+"No speech was recognized" = "没有发表言论";
+"Excellent!" = "優秀!";
+"False" = "假";
+"Finished" = "完成";
+"yes" = "正确";
+"no" = "错误";
+"Phrases" = "短语";
+"Images" = "图片";
+"Text" = "文本";
+
+// Tab 3
+"Language to learn:" = "语言学习:";
+"Translate to:" = "翻译:";
+"Sound:" = "声音:";
+"Speech Rate:" = "语速:";
+"Accent:" = "口音:";
+"hello" = "你好";
+"bye" = "再见";
+
+// Types
+"all" = "所有";
+"animal world" = "动物世界";
+"body parts" = "身体部位";
+"clothing" = "衣物";
+"colors, figures" = "颜色，数字";
+"food and beverage" = "食物和饮料";
+"fruits & vegetables" = "水果和蔬菜";
+"numbers & math" = "数字和数学";
+"sport" = "体育";
+"hobby, music, chess" = "爱好，音乐，棋";
+"transport" = "运输";
+"household" = "家庭日常的";
+"kitchen" = "厨房";
+"school and office" = "学校与办公室";
+"accesories" = "配件、装饰";
+"tools and appliances" = "工具和装置";
+"bed and bath" = "卧室和浴室";
+"verbs" = "动词";
+"adjectives" = "形容词";
+"family & kids" = "家庭和儿童";
+"profession" = "行业";
+"countries" = "国家";
+"environment" = "环境";
+"calendar, time" = "日历，时间";
+"basic phrases" = "基本短语";
+"phrases greetings" = "问候短语";
+"phrases traveling" = "旅游短语";
+"phrases in hotel" = "酒店短语";
+"phrases in restaurant" = "餐厅短语";
+"flirting phrases" = "调情短语";
+

@@ -1,0 +1,91 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "Learn";
+"Quiz" = "Quiz";
+"Settings" = "Settings";
+"Learn_wide" = "Learn";
+"Quiz_wide" = "Quiz";
+"Settings_wide" = "Settings";
+
+// Tab 1
+"Word %d/%d" = "Word %d/%d";
+"Word:"    = "Word:";
+"Words"   = "Words";
+"Translate"  = "Translate";
+"Word with %@ not found" = "Word with %@ not found";
+"Part of word or word id" = "Part of word or word numeric ID";
+
+"Please wait..." = "Please wait...";
+"Check your internet connection"="Check your internet connection";
+
+// Tab 2
+"Best score:" = "Best score:";
+"Correct: %d%% (%d/%d)" = "Correct: %d%% (%d/%d)";
+"Correct:"    = "Correct:";
+"Quiz Type:"  = "Quiz Type:";
+"Quiz Mode:"  = "Quiz Mode:";
+"Quiz Words:" = "Quiz Words:";
+"Mode:" = "Mode:";
+// Speech:
+"Speech" = "Speech";
+"You said:" = "You said:";
+"Speak:" = "Speak:";
+"No speech was recognized" = "No speech was recognized";
+"You don't seem to have a microphone" = "You don't seem to have a microphone";
+"Excellent!" = "Excellent!";
+"False" = "False";
+"Finished" = "Finished";
+"yes" = "correct";
+"no" = "no";
+"Phrases" = "Phrases";
+"Images" = "Images";
+"Text" = "Text";
+
+// Tab 3
+"Language to learn:" = "Language to learn:";
+"Translate to:" = "Translate to:";
+"Sound:" = "Sound:";
+"Speech Rate:" = "Speech Rate:";
+"Quiz Words:" = "Quiz Words:";
+"Accent:" = "Accent:";
+"hello" = "hello";
+"bye" = "good bye";
+
+// Types
+"all" = "all";
+"animal world" = "animal world";
+"body parts" = "body parts";
+"clothing" = "clothing";
+"colors, figures" = "colors, figures";
+"food and beverage" = "food and beverages";
+"fruits & vegetables" = "fruits and vegetables";
+"numbers & math" = "numbers and math";
+"sport" = "sport";
+"hobby, music, chess" = "hobby, music, chess";
+"transport" = "transport";
+"household" = "household";
+"kitchen" = "kitchen";
+"school and office" = "school and office";
+"accesories" = "accesories";
+"tools and appliances" = "tools and appliances";
+"bed and bath" = "bed and bath";
+"verbs" = "verbs";
+"adjectives" = "adjectives";
+"family & kids" = "family and kids";
+"profession" = "professions";
+"countries" = "countries";
+"environment" = "environment";
+"calendar, time" = "calendar, time";
+"basic phrases" = "basic phrases";
+"phrases greetings" = "phrases greetings";
+"phrases traveling" = "phrases traveling";
+"phrases in hotel" = "phrases in hotel";
+"phrases in restaurant" = "phrases restaurant, hotel";
+"flirting phrases" = "flirting phrases";

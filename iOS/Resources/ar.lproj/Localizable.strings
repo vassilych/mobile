@@ -1,0 +1,89 @@
+/*
+ Localizable.strings
+ VocaBuilder
+ 
+ Created by VassiliMac on 22/01/15.
+ Copyright (c) 2015 Vassili Kaplan. All rights reserved.
+ */
+
+// Tabs
+"Learn" = "تعلم";
+"Quiz" = "اختبر نفسك";
+"Settings" = "اعدادات";
+"Learn_wide" = "تعلم";
+"Quiz_wide" = "اختبر نفسك";
+"Settings_wide" = "اعدادات";
+
+// Tab 1
+"Word %d/%d" = "كلمة %d/%d";
+"Word:"    = ":كلمة";
+"Words"   = "كلمات الاختبار";
+"Translate"  = "ترجم";
+"Word with %@ not found" = "كلمة بحرف%@ غير موجود";
+"Part of word or word id" = "جزء من كلمة أو كلمة عددية معرفة";
+
+"Please wait..." = "أرجو الإنتظار";
+"Check your internet connection"="تحقق من اتصالك بالإنترنت";
+
+// Tab 2
+"Best score:" = ":أفضل نتيجة";
+"Correct: %d%% (%d/%d)" = "صحيح: %d%% (%d/%d)";
+"Correct:"    = ":صحيح";
+"Quiz Type:"  = ":نوع مسابقة";
+"Quiz Mode:"  = ":وضع مسابقة";
+"Quiz Words:" = ":كلمات الاختبار";
+"Mode:" = ":أسلوب";
+// Speech:
+"Speech" = "خطاب";
+"You said:" = ":أنت قلت";
+"Speak:" = ":تحدث";
+"No speech was recognized" = "ولم يعترف بأي خطاب";
+"Excellent!" = "ممتاز";
+"False" = "خاطئة";
+"Finished" = "انتهى";
+"yes" = "انتهى";
+"no" = "لا";
+"Phrases" = "عبارات";
+"Images" = "صورة";
+"Text" = "نص";
+
+// Tab 3
+"Language to learn:" = ":اللغة المستهدفة";
+"Translate to:" = ":ترجم الى";
+"Sound:" = ":صوت";
+"Speech Rate:" = ":سرعة الكلام";
+"Accent:" = ":لكنة";
+"hello" = "مرحبا";
+"bye" = "الى اللقاء";
+
+// Types
+"all" = "كل";
+"animal world" = "عالم الحيوان";
+"body parts" = "اجزاء الجسم";
+"clothing" = "الملابس";
+"colors, figures" = "الالوان, الاشكال";
+"food and beverage" = "الطعام و الشراب";
+"fruits & vegetables" = "الخضر والفواكه";
+"numbers & math" = "الاعداد والحساب";
+"sport" = "الرياضة";
+"hobby, music, chess" = "هواية, موسيقى, شطرنج";
+"transport" = "النقل";
+"household" = "المنزل والعائلة";
+"kitchen" = "المطبخ";
+"school and office" = "المدرسة والمكتب";
+"accesories" = "الملحقات";
+"tools and appliances" = "لوازم وتجهيزات";
+"bed and bath" = "السرير والدش";
+"verbs" = "الافعال";
+"adjectives" = "الصفات";
+"family & kids" = "العائلة والاطفال";
+"profession" = "المهن";
+"countries" = "المدن";
+"environment" = "البيئة";
+"calendar, time" = "الرزنامة, الوقت";
+"basic phrases" = "عبارات أساسية";
+"phrases greetings" = "عبارات التحية";
+"phrases traveling" = "عبارات السفر";
+"phrases in hotel" = "عبارات الفندق";
+"phrases in restaurant" = "عبارات المطعم";
+"flirting phrases" = "عبارات الغزل والغرام";
