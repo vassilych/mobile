@@ -8,12 +8,14 @@ namespace SplitAndMerge
   {
     public Action<string, string> ActionDelegate;
 
+    public static List<UIVariable> WidgetTypes = new List<UIVariable>();
+
     protected static int m_currentTag;
 
     public enum UIType
     {
-      NONE, LOCATION, VIEW, BUTTON, LABEL, TEXT_FIELD, TEXT_VIEW, PICKER_VIEW,
-      LIST_VIEW, COMBOBOX, IMAGE_VIEW, SWITCH, SLIDER, STEPPER, SEGMENTED, ADMOB
+      NONE, LOCATION, VIEW, BUTTON, LABEL, TEXT_FIELD, TEXT_VIEW, PICKER_VIEW, PICKER_IMAGES,
+      LIST_VIEW, COMBOBOX, IMAGE_VIEW, SWITCH, SLIDER, STEPPER, SEGMENTED, CUSTOM
     };
     public UIVariable()
     {
@@ -28,36 +30,10 @@ namespace SplitAndMerge
       RefViewY = refViewY;
     }
 
-    public override void Copy(Variable other)
+    public override Variable Clone()
     {
-      base.Copy(other);
-      UIVariable otherUI = other as UIVariable;
-      if (otherUI == null) {
-        return;
-      }
-
-      Height = otherUI.Height;
-      Width = otherUI.Width;
-      X = otherUI.X;
-      Y = otherUI.Y;
-      TranslationX = otherUI.TranslationX;
-      TranslationY = otherUI.TranslationY;
-      RuleX = otherUI.RuleX;
-      RuleY = otherUI.RuleY;
-      Location = otherUI.Location;
-      RefViewX = otherUI.RefViewX;
-      RefViewY = otherUI.RefViewY;
-      ParentView = otherUI.ParentView;
-
-      WidgetType = otherUI.WidgetType;
-      WidgetName = otherUI.WidgetName;
-
-      InitValue = otherUI.InitValue;
-      Alignment = otherUI.Alignment;
-      MinVal = otherUI.MinVal;
-      MaxVal = otherUI.MaxVal;
-      CurrVal = otherUI.CurrVal;
-      Step = otherUI.Step;
+      UIVariable newVar = (UIVariable)this.MemberwiseClone();
+      return newVar;
     }
 
     public void SetSize(int width, int height)
@@ -74,7 +50,6 @@ namespace SplitAndMerge
       get { return WidgetName; }
     }
 
-    // TODO: when adding a new property, don't forget to add it in the Copy()!!!
     public UIType WidgetType { get; set; }
     public string WidgetName { get; set; }
     public int Width { get; set; }
@@ -108,8 +83,7 @@ namespace SplitAndMerge
       return WidgetName;
     }
 
-    public static Variable GetAction(string funcName, string senderName, string eventArg,
-                                     string eventArg2 = null)
+    public static Variable GetAction(string funcName, string senderName, string eventArg)
     {
       if (senderName == "") {
         senderName = "\"\"";
@@ -117,16 +91,7 @@ namespace SplitAndMerge
       if (eventArg == "") {
         eventArg = "\"\"";
       }
-      string body = string.Format("{0}({1},{2}", funcName, senderName, eventArg);
-
-      if (eventArg2 != null) {
-        if (eventArg2 == "") {
-          eventArg2 = "\"\"";
-        }
-        body += "," + eventArg2;
-      }
-
-      body += ");";
+      string body = string.Format("{0}({1},{2});", funcName, senderName, eventArg);
 
       ParsingScript tempScript = new ParsingScript(body);
       Variable result = tempScript.ExecuteTo();
@@ -135,3 +100,4 @@ namespace SplitAndMerge
     }
   }
 }
+

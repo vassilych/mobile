@@ -7,8 +7,7 @@ using SplitAndMerge;
 
 #if __ANDROID__
 using scripting.Droid;
-#endif
-#if __IOS__
+#elif __IOS__
 using scripting.iOS;
 #endif
 
@@ -26,6 +25,7 @@ namespace scripting
       ParserFunction.RegisterFunction("AddTextEdit", new AddWidgetFunction("TextEdit"));
       ParserFunction.RegisterFunction("AddTextView", new AddWidgetFunction("TextView"));
       ParserFunction.RegisterFunction("AddImageView", new AddWidgetFunction("ImageView"));
+      ParserFunction.RegisterFunction("AddPickerView", new AddWidgetFunction("Picker"));
       ParserFunction.RegisterFunction("AddTypePickerView", new AddWidgetFunction("TypePicker"));
       ParserFunction.RegisterFunction("AddSwitch", new AddWidgetFunction("Switch"));
       ParserFunction.RegisterFunction("AddSlider", new AddWidgetFunction("Slider"));
@@ -67,6 +67,10 @@ namespace scripting
       ParserFunction.RegisterFunction("SetImage", new SetImageFunction());
       ParserFunction.RegisterFunction("SetFontColor", new SetFontColorFunction());
       ParserFunction.RegisterFunction("SetFontSize", new SetFontSizeFunction());
+      ParserFunction.RegisterFunction("SetFont", new SetFontFunction());
+      ParserFunction.RegisterFunction("SetBold", new SetFontTypeFunction(SetFontTypeFunction.FontType.BOLD));
+      ParserFunction.RegisterFunction("SetItalic", new SetFontTypeFunction(SetFontTypeFunction.FontType.ITALIC));
+      ParserFunction.RegisterFunction("SetNormalFont", new SetFontTypeFunction(SetFontTypeFunction.FontType.NORMAL));
       ParserFunction.RegisterFunction("AlignText", new AlignTitleFunction());
       ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
 
@@ -85,9 +89,6 @@ namespace scripting
       ParserFunction.RegisterFunction("StopVoiceRecognition", new StopVoiceFunction());
       ParserFunction.RegisterFunction("Localize", new LocalizedFunction());
       ParserFunction.RegisterFunction("TranslateTabBar", new TranslateTabBar());
-      ParserFunction.RegisterFunction("InitAds", new InitAds());
-      ParserFunction.RegisterFunction("ShowInterstitial", new ShowInterstitial());
-      ParserFunction.RegisterFunction("AddBanner", new AddWidgetFunction("AdMobBanner"));
       ParserFunction.RegisterFunction("InitIAP", new InitIAPFunction());
       ParserFunction.RegisterFunction("InitTTS", new InitTTSFunction());
       ParserFunction.RegisterFunction("Purchase", new PurchaseFunction());
@@ -100,6 +101,7 @@ namespace scripting
       ParserFunction.RegisterFunction("SetAppLocale", new SetAppLocale());
       ParserFunction.RegisterFunction("GetSetting", new GetSettingFunction());
       ParserFunction.RegisterFunction("SetSetting", new SetSettingFunction());
+      ParserFunction.RegisterFunction("SetStyle", new SetStyleFunction());
       ParserFunction.RegisterFunction("DisplayWidth", new GadgetSizeFunction(true));
       ParserFunction.RegisterFunction("DisplayHeight", new GadgetSizeFunction(false));
       ParserFunction.RegisterFunction("Orientation", new OrientationFunction());
@@ -111,31 +113,24 @@ namespace scripting
 
       ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
       ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));
-      ParserFunction.RegisterFunction("_VERSION_", new GetVersionFunction());
+      ParserFunction.RegisterFunction("_DEVICE_INFO_", new GetDeviceInfoFunction());
+      ParserFunction.RegisterFunction("_VERSION_INFO_", new GetVersionInfoFunction());
       ParserFunction.RegisterFunction("_VERSION_NUMBER_", new GetVersionNumberFunction());
       ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
       ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
-
     }
-    public static void RunScript()
+    public static void RunScript(string fileName)
     {
       RegisterFunctions();
 
-      //string fileName = "iLanguage.cscs";
-      string fileName = "msdnScript.cscs";
-
-      string script = "";
 #if __ANDROID__
-      Android.Content.Res.AssetManager assets = MainActivity.TheView.Assets;
-      using (StreamReader sr = new StreamReader(assets.Open(fileName))) {
-        script = sr.ReadToEnd();
-      }
+      UIVariable.WidgetTypes.Add(new DroidVariable());
+#elif __IOS__
+      UIVariable.WidgetTypes.Add(new iOSVariable());
 #endif
-#if __IOS__
-      string[] lines = System.IO.File.ReadAllLines(fileName);
-      script = string.Join("\n", lines);
-#endif
+
+      string script = FileToString(fileName);
 
       Variable result = null;
       try {
@@ -146,6 +141,20 @@ namespace scripting
         ParserFunction.InvalidateStacksAfterLevel(0);
         throw;
       }
+    }
+    public static string FileToString(string filename)
+    {
+      string contents = "";
+#if __ANDROID__
+      Android.Content.Res.AssetManager assets = MainActivity.TheView.Assets;
+      using (StreamReader sr = new StreamReader(assets.Open(filename))) {
+        contents = sr.ReadToEnd();
+      }
+#elif __IOS__
+      string[] lines = System.IO.File.ReadAllLines(filename);
+      contents = string.Join("\n", lines);
+#endif
+      return contents;
     }
   }
 
@@ -190,7 +199,7 @@ namespace scripting
 
       return;
     }
-    public static int TransformSize(int size, int screenWidth, double extra)
+    public static int TransformSize(int size, int screenWidth, double extra = 0.0)
     {
       if (extra == 0.0) {
         extra = ScaleX;
@@ -204,6 +213,39 @@ namespace scripting
       size = (int)(size + delta);
 
       return size;
+    }
+    public static float ConvertFontSize(float original, int widgetWidth)
+    {
+      float newSize = original;
+      if (widgetWidth <= 480) {
+        newSize -= 2.5f;
+      } else if (widgetWidth <= 540) {
+        newSize -= 2.0f;
+      } else if (widgetWidth <= 600) {
+        newSize -= 1.0f;
+      } else if (widgetWidth <= 640) {
+        newSize -= 0f;
+      } else if (widgetWidth <= 720) {
+        newSize += 0.5f;
+      } else if (widgetWidth <= 800) {
+        newSize += 1.0f;
+      } else if (widgetWidth <= 900) {
+        newSize += 1.5f;
+      } else if (widgetWidth <= 960) {
+        newSize += 2.0f;
+      } else if (widgetWidth <= 1024) {
+        newSize += 2.5f; 
+      } else if (widgetWidth <= 1200) {
+        newSize += 3.0f;
+      } else if (widgetWidth <= 1300) {
+        newSize += 3.5f;
+      } else if (widgetWidth <= 1400) {
+        newSize += 4.0f;
+      } else {
+        newSize += 4.0f;
+      }
+
+      return newSize;
     }
   }
   public class SetBaseWidthFunction : ParserFunction
@@ -318,7 +360,7 @@ namespace scripting
       Trie trie = Utils.GetSafeVariable(args, 0, null) as Trie;
       Utils.CheckNotNull(trie, m_name);
       string text = args[1].AsString();
-      int max = Utils.GetSafeInt(args, 2, 7);
+      int max = Utils.GetSafeInt(args, 2, 10);
 
       List<WordHint> words = new List<WordHint>();
 
@@ -342,37 +384,20 @@ namespace scripting
       Utils.CheckArgs(args.Count, 1, m_name);
       string uri = args[0].AsString();
 
+      string responseFromServer = "";
       WebRequest request = WebRequest.Create(uri);
-      WebResponse response = request.GetResponse();
 
-      Console.WriteLine("{0} response: {1}", uri, ((HttpWebResponse)response).StatusDescription);
-
-      Stream dataStream = response.GetResponseStream();
-      StreamReader reader = new StreamReader(dataStream);
-      string responseFromServer = reader.ReadToEnd();
-
-      reader.Close();
-      response.Close();
+      using (WebResponse response = request.GetResponse()) {
+        Console.WriteLine("{0} status: {1}", uri,
+                          ((HttpWebResponse)response).StatusDescription);
+        using (StreamReader sr = new StreamReader(response.GetResponseStream())) {
+            responseFromServer = sr.ReadToEnd();
+        }
+      }
 
       return new Variable(responseFromServer);
     }
   }
-  public class ProductIdDescriptionFunction : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
-    {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
-      Utils.CheckArgs(args.Count, 1, m_name);
-      string productId = args[0].AsString();
-
-      string description = IAP.GetDescription(productId);
-
-      return new Variable(description);
-    }
-  }
-
   class CheckOSFunction : ParserFunction
   {
     public enum OS { NONE, IOS, ANDROID, WINDOWS_PHONE, MAC, WINDOWS };
@@ -389,28 +414,44 @@ namespace scripting
 
 #if __ANDROID__
             isTheOS = m_os == OS.ANDROID;
-#endif
-#if __IOS__
+#elif __IOS__
       isTheOS = m_os == OS.IOS;
-#endif
-#if SILVERLIGHT
+#elif SILVERLIGHT
             isTheOS = m_os == OS.WINDOWS_PHONE;
 #endif
 
       return new Variable(isTheOS);
     }
   }
-  class GetVersionFunction : ParserFunction
+  class GetDeviceInfoFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      string deviceName = "";
+
+#if __ANDROID__
+      deviceName   = Android.OS.Build.Brand;
+      string model = Android.OS.Build.Model;
+      if (!model.Contains("Android")) {
+        // Simulators have "Android" in both, Brand and Model.
+        deviceName += " " + model;
+      }
+#elif __IOS__
+      deviceName = UtilsiOS.GetDeviceName();
+#endif
+      return new Variable(deviceName);
+    }
+  }
+  class GetVersionInfoFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
       string version = "";
 
 #if __ANDROID__
-      version = Android.OS.Build.Brand + " " + Android.OS.Build.VERSION.Release +
-                " - " + Android.OS.Build.VERSION.Sdk;
-#endif
-#if __IOS__
+      version = Android.OS.Build.VERSION.Release + " - " + 
+                Android.OS.Build.VERSION.Sdk;
+#elif __IOS__
       version = UIKit.UIDevice.CurrentDevice.SystemName + " " +
                 UIKit.UIDevice.CurrentDevice.SystemVersion;
 #endif
@@ -423,8 +464,7 @@ namespace scripting
     {
 #if __ANDROID__
       string strVersion = Android.OS.Build.VERSION.Release;
-#endif
-#if __IOS__
+#elif __IOS__
       string strVersion = UIKit.UIDevice.CurrentDevice.SystemVersion;
 #endif
 

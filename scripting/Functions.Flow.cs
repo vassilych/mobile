@@ -218,11 +218,13 @@ namespace SplitAndMerge
       }
 
       // Otherwise this should be a number.
-      double num;
-      if (!Double.TryParse(Item, NumberStyles.Number | NumberStyles.AllowExponent,
+      double num = Utils.ConvertToDouble(Item, m_name);
+      /*if (!Double.TryParse(Item, NumberStyles.Number |
+                           NumberStyles.AllowExponent |
+                           NumberStyles.Float,
                            CultureInfo.InvariantCulture, out num)) {
         Utils.ThrowException(script, "parseToken", Item, "parseTokenExtra");
-      }
+      }*/
       return new Variable(num);
     }
 
@@ -233,23 +235,19 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate (ParsingScript script)
     {
-      // 1. Get the name of the variable.
-      string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-      Utils.CheckNotEnd(script, m_name);
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      // 2. Get the current value of the variable.
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(varName, func);
-      Variable currentValue = func.GetValue(script);
+      Variable currentValue = Utils.GetSafeVariable(args, 0);
+      Variable item = Utils.GetSafeVariable(args, 1);
 
-      // 3. Get the variable to add.
-      Variable item = Utils.GetItem(script);
-
-      // 4. Add it to the tuple.
       currentValue.AddVariable(item);
-
-      ParserFunction.AddGlobalOrLocalVariable(varName,
-                                              new GetVarFunction (currentValue));
+      if (!currentValue.ParsingToken.Contains(Constants.START_ARRAY.ToString())) {
+        ParserFunction.AddGlobalOrLocalVariable(currentValue.ParsingToken,
+                                                new GetVarFunction(currentValue));
+      }
 
       return currentValue;
     }
@@ -338,22 +336,85 @@ namespace SplitAndMerge
 
   class BoolFunction : ParserFunction
   {
-      bool m_value;
-      public BoolFunction(bool init)
-      {
-        m_value = init;  
-      }
-      protected override Variable Evaluate(ParsingScript script)
-      {
-        return new Variable(m_value);
-      }
+    bool m_value;
+    public BoolFunction(bool init)
+    {
+      m_value = init;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      return new Variable(m_value);
+    }
+  }
+  class ToDoubleFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      Variable arg = args[0];
+
+      double result = Utils.ConvertToDouble(arg.AsString());
+      return new Variable(result);
+    }
+  }
+  class ToIntFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      Variable arg = args[0];
+
+      int result = Utils.ConvertToInt(arg.AsString());
+      return new Variable(result);
+    }
+  }
+  class ToBoolFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      Variable arg = args[0];
+
+      double result = Utils.ConvertToBool(arg.AsString()) ? 1 : 0;
+      return new Variable(result);
+    }
+  }
+  class ToDecimalFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      Variable arg = args[0];
+
+      string result = Decimal.Parse(arg.AsString(), NumberStyles.Any).ToString();
+      return new Variable(result);
+    }
+  }
+  class ToStringFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      //List<Variable> args = script.GetArgs();
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      Variable arg = args[0];
+
+      string result = arg.AsString();
+      return new Variable(result);
+    }
   }
   class IdentityFunction : ParserFunction
   {
-      protected override Variable Evaluate(ParsingScript script)
-      {
-        return script.ExecuteTo(Constants.END_ARG);
-      }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      return script.ExecuteTo(Constants.END_ARG);
+    }
   }
 
   class IfStatement : ParserFunction
@@ -449,7 +510,6 @@ namespace SplitAndMerge
     private int m_delta = 0;
     private List<Variable> m_arrayIndices = null;
   }
-
   class IncrementDecrementFunction : ActionFunction
   {
     protected override Variable Evaluate(ParsingScript script)

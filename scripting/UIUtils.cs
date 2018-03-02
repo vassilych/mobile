@@ -35,7 +35,7 @@ namespace scripting
     static List<string> reserved = new List<string>() { "case", "catch", "class", "double", "else", "for",
       "if", "int", "internal", "long", "private", "public", "return", "short", "static", "switch", "try",
       "turkey", "while" };
-    static public string String2ImageName(string name)
+    public static string String2ImageName(string name)
     {
       // Hooks for similar names:
       if (reserved.Contains(name)) {
@@ -48,6 +48,76 @@ namespace scripting
               Replace(",", "" ).Replace("__", "_").
               Replace("\"", "").Replace(".png", "");
       return imagefileName;
+    }
+
+    public struct Rect
+    {
+      public int X, Y, W, H;
+      public Rect(int x, int y, int w, int h)
+      {
+        X = x;
+        Y = y;
+        W = w;
+        H = h;
+      }
+    }
+    static Dictionary<string, List<Tuple<string, Rect>>> m_widgetLocations =
+       new Dictionary<string, List<Tuple<string, Rect>>>();
+    static Dictionary<string, Tuple<string, Rect>> m_widget2Location =
+       new Dictionary<string, Tuple<string, Rect>>();
+    
+    public static void RegisterWidget(string widgetName, Rect rect,
+                                      string parent = "", int tabId = 0)
+    {
+      string key = parent + "_" + tabId;
+      List <Tuple<string, Rect >> locations;
+      if (!m_widgetLocations.TryGetValue(key, out locations)) {
+        locations = new List<Tuple<string, Rect>>();
+      } else {
+        Tuple<string, Rect> existing;
+        if (m_widget2Location.TryGetValue(widgetName, out existing)) {
+          locations.Remove(existing);
+        }
+      }
+      var location = new Tuple<string, Rect>(widgetName, rect);
+      locations.Add(location);
+      m_widgetLocations[key] = locations;
+      m_widget2Location[widgetName] = location;
+    }
+
+    public static List<string> FindWidgets(Rect location, string parent = "", int tabId = 0,
+                                           string exceptWidget = "")
+    {
+      List<string> results = new List<string>();
+      string key = parent + "_" + tabId;
+      List<Tuple<string, Rect>> locations;
+      if (!m_widgetLocations.TryGetValue(key, out locations)) {
+        return results;
+      }
+
+      foreach (Tuple<string, Rect> tuple in locations) {
+        if (exceptWidget == null) {
+          results.Add(tuple.Item1);
+          continue;
+        }
+        if (exceptWidget == tuple.Item1) {
+          continue;
+        }
+        var loc = tuple.Item2;
+        var horizLeft  = loc.X >= location.X && loc.X <= location.X + location.W;
+        var horizRight = loc.X + loc.W >= location.X && loc.X + loc.W <= location.X + location.W;
+        if (!horizLeft && !horizRight) {
+          continue;
+        }
+        var vertTop    = loc.Y >= location.Y && loc.Y <= location.Y + location.H;
+        var vertButtom = loc.Y + loc.H >= location.Y && loc.Y + loc.H <= location.Y + location.H;
+        if (!vertTop && !vertButtom) {
+          continue;
+        }
+        results.Add(tuple.Item1);
+      }
+
+      return results;
     }
   }
 }

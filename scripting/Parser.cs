@@ -99,6 +99,7 @@ namespace SplitAndMerge
         // item is a function or if the next item is starting with a START_ARG '('.
         ParserFunction func = new ParserFunction(script, token, ch, ref action);
         Variable current = func.GetValue(script);
+        current.ParsingToken = token;
 
         if (negated > 0 && current.Type == Variable.VarType.NUMBER) {
           // If there has been a NOT sign, this is a boolean.
@@ -381,9 +382,6 @@ namespace SplitAndMerge
         rightCell.Value = rightCell.AsDouble();
       }
       switch (leftCell.Action) {
-        case "^":
-          leftCell.Value = Math.Pow(leftCell.Value, rightCell.Value);
-          break;
         case "%":
           leftCell.Value %= rightCell.Value;
           break;
@@ -423,6 +421,15 @@ namespace SplitAndMerge
           break;
         case "!=":
           leftCell.Value = Convert.ToDouble(leftCell.Value != rightCell.Value);
+          break;
+        case "&":
+          leftCell.Value = (int)leftCell.Value & (int)rightCell.Value;
+          break;
+        case "^":
+          leftCell.Value = (int)leftCell.Value ^ (int)rightCell.Value;
+          break;
+        case "|":
+          leftCell.Value = (int)leftCell.Value | (int)rightCell.Value;
           break;
         case "&&":
           leftCell.Value = Convert.ToDouble(
@@ -483,29 +490,31 @@ namespace SplitAndMerge
     {
       switch (action) {
         case "++":
-        case "--": return 10;
-        case "^": return 9;
+        case "--": return 11;
         case "%":
         case "*":
-        case "/": return 8;
+        case "/":  return 10;
         case "+":
-        case "-": return 7;
+        case "-":  return 9;
         case "<":
         case ">":
         case ">=":
-        case "<=": return 6;
+        case "<=": return 8;
         case "==":
-        case "!=": return 5;
-        case "&&": return 4;
-        case "||": return 3;
+        case "!=": return 7;
+        case "&":  return 6;
+        case "|":  return 5;
+        case "^":  return 4;
+        case "&&": return 3;
+        case "||": return 2;
         case "+=":
         case "-=":
         case "*=":
         case "/=":
         case "%=":
-        case "=": return 2;
+        case "=":  return 1;
       }
-      return 0;
+      return 0; // NULL action has priority 0.
     }
   }
 }

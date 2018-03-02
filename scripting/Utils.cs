@@ -13,9 +13,9 @@ namespace SplitAndMerge
 {
   public partial class Utils
   {
-    public static void CheckArgs(int args, int expected, string msg)
+    public static void CheckArgs(int args, int expected, string msg, bool exactMatch = false)
     {
-      if (args < expected) {
+      if (args < expected || (exactMatch && args != expected)) {
         throw new ArgumentException("Expecting " + expected +
             " arguments but got " + args + " in " + msg);
       }
@@ -105,7 +105,11 @@ namespace SplitAndMerge
     public static string GetPathDetails(FileSystemInfo fs, string name)
     {
       string pathname = fs.FullName;
-      bool isDir = (fs.Attributes & FileAttributes.Directory) != 0;
+#if !__MonoCS__
+      bool isDir = Directory.Exists(pathname);
+#else
+      bool isDir = (fs.Attributes & System.IO.FileAttributes.Directory) != 0;
+#endif
 
       char d = isDir ? 'd' : '-';
       string last = fs.LastWriteTime.ToString("MMM dd yyyy HH:mm");
@@ -115,6 +119,7 @@ namespace SplitAndMerge
       string links = null;
       string permissions = "rwx";
       long size = 0;
+
 
 #if __MonoCS__
             Mono.Unix.UnixFileSystemInfo info;
@@ -151,13 +156,13 @@ namespace SplitAndMerge
 
       if (isDir) {
         user = Directory.GetAccessControl(fs.FullName).GetOwner(
-    typeof(System.Security.Principal.NTAccount)).ToString();
+          typeof(System.Security.Principal.NTAccount)).ToString();
 
         DirectoryInfo di = fs as DirectoryInfo;
         size = di.GetFileSystemInfos().Length;
       } else {
         user = File.GetAccessControl(fs.FullName).GetOwner(
-    typeof(System.Security.Principal.NTAccount)).ToString();
+          typeof(System.Security.Principal.NTAccount)).ToString();
         FileInfo fi = fs as FileInfo;
         size = fi.Length;
 
@@ -519,7 +524,7 @@ namespace SplitAndMerge
       Variable numberVar = args[index];
       if (numberVar.Type != Variable.VarType.NUMBER) {
         int num;
-        if (!Int32.TryParse(numberVar.String, NumberStyles.Number | NumberStyles.AllowExponent,
+        if (!Int32.TryParse(numberVar.String, NumberStyles.Number,
                              CultureInfo.InvariantCulture, out num)) {
           throw new ArgumentException("Expected an integer instead of [" + numberVar.AsString() + "]");
         }
@@ -536,8 +541,10 @@ namespace SplitAndMerge
       Variable numberVar = args[index];
       if (numberVar.Type != Variable.VarType.NUMBER) {
         double num;
-        if (!Double.TryParse(numberVar.String, NumberStyles.Number | NumberStyles.AllowExponent,
-                             CultureInfo.InvariantCulture, out num)) {
+        if (!Double.TryParse(numberVar.String, NumberStyles.Number |
+                           NumberStyles.AllowExponent |
+                           NumberStyles.Float,
+                           CultureInfo.InvariantCulture, out num)) {
           throw new ArgumentException("Expected a double instead of [" + numberVar.AsString() + "]");
         }
         return num;
@@ -591,6 +598,122 @@ namespace SplitAndMerge
 
       string result = func(paramValue);
       return new Variable(result);
+    }
+    public static double ConvertToDouble(object obj, string errorOrigin = "")
+    {
+      string str = obj.ToString();
+      double num = 0;
+
+      if (!Double.TryParse(str, NumberStyles.Number |
+                           NumberStyles.AllowExponent |
+                           NumberStyles.Float,
+                           CultureInfo.InvariantCulture, out num) &&
+          !string.IsNullOrWhiteSpace(errorOrigin)) {
+        throw new ArgumentException("Couldn't parse [" + str + "] to a double in " + errorOrigin);
+      }
+      return num;
+    }
+    public static bool ConvertToBool(object obj)
+    {
+      string str = obj.ToString();
+      double dRes = 0;
+      if (Double.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent,
+                          CultureInfo.InvariantCulture, out dRes)) {
+        return dRes != 0;
+      }
+      bool res = false;
+
+      Boolean.TryParse(str, out res);
+      return res;
+    }
+    public static int ConvertToInt(object obj, string errorOrigin = "")
+    {
+      double num = ConvertToDouble(obj, errorOrigin);
+      return (int)num;
+    }
+    public static void Extract(string data, ref string str1, ref string str2,
+                               ref string str3, ref string str4)
+    {
+      string[] vals = data.Split(new char[] { ',', ':' });
+      str1 = vals[0];
+      if (vals.Length > 1) {
+        str2 = vals[1];
+        if (vals.Length > 2) {
+          str3 = vals[2];
+          if (vals.Length > 3) {
+            str4 = vals[3];
+          }
+        }
+      }
+    }
+    public static void Extract(string data, ref double val1, ref double val2,
+                                            ref double val3, ref double val4)
+    {
+      string[] vals = data.Split(new char[] { ',', ':' });
+      val1 = ConvertToDouble(vals[0].Trim());
+
+      if (vals.Length > 1) {
+        val2 = ConvertToDouble(vals[1].Trim());
+        if (vals.Length > 2) {
+          val3 = ConvertToDouble(vals[2].Trim());
+        }
+        if (vals.Length > 3) {
+          val4 = ConvertToDouble(vals[3].Trim());
+        }
+      } else {
+        val3 = val2 = val1;
+      }
+    }
+    public static void GetDir(string dir = "./", bool recursive = true)
+    {
+      var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+      string dirPath = Path.Combine(documentsPath, dir);
+
+      var directories = Directory.EnumerateDirectories(dirPath);
+      var files = Directory.GetFiles(dirPath);
+      foreach (var file in files) {
+        Console.WriteLine("    " + file);
+      } 
+      foreach (var directory in directories) {
+        Console.WriteLine(directory);
+        if (recursive) {
+          GetDir(directory, recursive);
+        }
+      }
+    }
+    public static bool SaveFile(string filename, Stream stream)
+    {
+      var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+      string filePath = Path.Combine(documentsPath, filename);
+
+      try {
+        var fileStream = File.Create(filePath);
+        stream.Seek(0, SeekOrigin.Begin);
+        stream.CopyTo(fileStream);
+        fileStream.Close();
+      } catch (Exception exc) {
+        Console.WriteLine("Couldn't save {0}: {1}", filePath, exc.Message);
+        return false;
+      }
+      return true;
+    }
+    public static Stream OpenFile(string filename)
+    {
+      var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+      string filePath = Path.Combine(documentsPath, filename);
+      MemoryStream ms = new MemoryStream();
+
+      try {
+        using (FileStream file = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
+          byte[] bytes = new byte[file.Length];
+          file.Read(bytes, 0, (int)file.Length);
+          ms.Write(bytes, 0, (int)file.Length);
+        }
+      } catch (Exception exc) {
+        Console.WriteLine("Couldn't open {0}: {1}", filePath, exc.Message);
+        return null;
+      }
+      return ms;
     }
   }
 }

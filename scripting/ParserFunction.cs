@@ -103,19 +103,18 @@ namespace SplitAndMerge
       return theAction;
     }
 
-    public static ParserFunction GetFunction(string item)
+    public static ParserFunction GetFunction(string name)
     {
       ParserFunction impl;
       // First search among local variables.
-
       if (s_locals.Count > 0) {
         Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
-        if (local.TryGetValue(item, out impl)) {
+        if (local.TryGetValue(name, out impl)) {
           // Local function exists (a local variable)
           return impl;
         }
       }
-      if (s_functions.TryGetValue(item, out impl)) {
+      if (s_functions.TryGetValue(name, out impl)) {
         // Global function exists and is registered (e.g. pi, exp, or a variable)
         return impl.NewInstance();
       }
@@ -123,6 +122,25 @@ namespace SplitAndMerge
       return null;
     }
 
+    public static void UpdateFunction(Variable variable)
+    {
+      UpdateFunction(variable.ParsingToken, new GetVarFunction(variable));
+    }
+    public static void UpdateFunction(string name, ParserFunction function)
+    {
+      // First search among local variables.
+      if (s_locals.Count > 0) {
+        Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
+
+        if (local.ContainsKey(name)) {
+          // Local function exists (a local variable)
+          local[name] = function;
+          return;
+        }
+      }
+      // If it's not a local variable, update global.
+      s_functions[name] = function;
+    }
     public static ActionFunction GetAction(string action)
     {
       if (string.IsNullOrWhiteSpace(action)) {

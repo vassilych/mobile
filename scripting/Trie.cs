@@ -37,7 +37,6 @@ namespace SplitAndMerge
   public class TrieCell
   {
     string m_name;
-    int m_level;
     WordHint m_wordHint;
 
     Dictionary<string, TrieCell> m_children = new Dictionary<string, TrieCell>();
@@ -169,3 +168,4 @@ namespace SplitAndMerge
     }
   }
 }
+

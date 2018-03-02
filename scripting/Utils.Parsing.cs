@@ -7,7 +7,7 @@ namespace SplitAndMerge
 {
   public partial class Utils
   {
-    public static Variable GetItem(ParsingScript script)
+    public static Variable GetItem(ParsingScript script, bool eatLast = true)
     {
       script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
       Utils.CheckNotEnd(script);
@@ -31,7 +31,9 @@ namespace SplitAndMerge
       if (inQuotes) {
         script.MoveForwardIf(Constants.QUOTE);
       }
-      script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
+      if (eatLast) {
+        script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
+      }
       return value;
     }
 
@@ -241,7 +243,7 @@ namespace SplitAndMerge
       // character belonging to the body between start and end characters. 
 
       while (script.Pointer < tempScript.Pointer) {
-        Variable item = Utils.GetItem(script);
+        Variable item = Utils.GetItem(script, false);
         args.Add(item);
         rest = script.Rest;
         if (script.Pointer == tempScript.Pointer) {
@@ -631,3 +633,4 @@ namespace SplitAndMerge
 
   }
 }
+
