@@ -78,7 +78,7 @@ namespace scripting.iOS
       double screenRatio = UtilsiOS.GetScreenRatio();
 
       string varName = args[start + 1].AsString();
-      string text    = Utils.GetSafeString(args, start + 2);
+      string config  = Utils.GetSafeString(args, start + 2);
       int width      = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
       int height     = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
 
@@ -89,7 +89,7 @@ namespace scripting.iOS
                      (int)UtilsiOS.GetRealScreenWidth(), multiplier);
       }
 
-      UtilsiOS.AdjustSizes(widgetType, location, text, ref width, ref height);
+      UtilsiOS.AdjustSizes(widgetType, location, config, ref width, ref height);
       CGSize parentSize = location.GetParentSize();
 
       location.X = UtilsiOS.String2Position(location.RuleX, location.ViewX, location, parentSize, true);
@@ -103,165 +103,36 @@ namespace scripting.iOS
       iOSVariable widgetFunc = ExistingWidget(script, varName);
       bool existing = widgetFunc != null;
       if (!existing) {
-        widgetFunc = GetWidget(widgetType, varName, text, rect);
+        widgetFunc = GetWidget(widgetType, varName, config, rect);
       } else {
         widgetFunc.ViewX.Frame = rect;
       }
       Utils.CheckNotNull(widgetFunc, m_name);
 
-      widgetFunc.CreateComplexView(rect, m_extras);
+      //widgetFunc.CreateComplexView(rect, m_extras, config);
 
       var currView = location.GetParentView();
       currView.Add(widgetFunc.ViewX);
 
+      widgetFunc.Location = location;
+
       iOSApp.AddView(widgetFunc);
+      RegisterWidget(widgetFunc);
 
       ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
       return widgetFunc;
     }
+
     public static iOSVariable GetWidget(string widgetType, string widgetName, string initArg, CGRect rect)
     {
-      UIVariable.UIType type = UIVariable.UIType.NONE;
-      UIView widget = null;
-      switch (widgetType) {
-        case "View":
-          type = UIVariable.UIType.VIEW;
-          widget = new UIView(rect);
-          break;
-        case "Button":
-          type = UIVariable.UIType.BUTTON;
-          widget = new UIButton(rect);
-          //widget = new UIButton(UIButtonType.System);
-          ((UIButton)widget).SetTitleColor(UIColor.Black, UIControlState.Normal);
-          ((UIButton)widget).SetTitle(initArg, UIControlState.Normal);
-          AddBorderFunction.AddBorder(widget);
-          break;
-        case "Label":
-          type = UIVariable.UIType.LABEL;
-          widget = new UILabel(rect);
-          ((UILabel)widget).TextColor = UIColor.Black;
-          ((UILabel)widget).Text = initArg;
-          break;
-        case "TextEdit":
-          type = UIVariable.UIType.TEXT_FIELD;
-          widget = new UITextField(rect);
-          ((UITextField)widget).TextColor = UIColor.Black;
-          ((UITextField)widget).Placeholder = initArg;
-          MakeBottomBorder(widget, (int)rect.Width, (int)rect.Height);
-          break;
-        case "TextView":
-          type = UIVariable.UIType.TEXT_VIEW;
-          widget = new UITextView(rect);
-          ((UITextView)widget).TextColor = UIColor.Black;
-          ((UITextView)widget).Text = initArg;
-          AddBorderFunction.AddBorder(widget);
-          break;
-        case "ImageView":
-          type = UIVariable.UIType.IMAGE_VIEW;
-          widget = new UIImageView(rect);
-          if (!string.IsNullOrWhiteSpace(initArg)) {
-            UIImage img = UtilsiOS.LoadImage(initArg);
-            ((UIImageView)widget).Image = img;
-          }
-          break;
-        case "Combobox":
-        case "TypePicker":
-          type = UIVariable.UIType.PICKER_VIEW;
-          widget = new UIPickerView(rect);
-          ((UIPickerView)widget).AutosizesSubviews = true;
-          break;
-        case "ListView":
-          type = UIVariable.UIType.LIST_VIEW;
-          widget = new UITableView(rect);
-          ((UITableView)widget).AutosizesSubviews = true;
-          ((UITableView)widget).AutoresizingMask = UIViewAutoresizing.FlexibleBottomMargin;
-          ((UITableView)widget).BackgroundColor = UIColor.Clear;
-          break;
-        case "Switch":
-          type = UIVariable.UIType.SWITCH;
-          widget = new UISwitch(rect);
-          break;
-        case "Slider":
-          type = UIVariable.UIType.SLIDER;
-          widget = new UISlider(rect);
-          break;
-        case "Stepper":
-          type = UIVariable.UIType.STEPPER;
-          //widget = new UIStepper(rect);
-          break;
-        case "SegmentedControl":
-          type = UIVariable.UIType.SEGMENTED;
-          widget = new UISegmentedControl(rect);
-          break;
-        case "AdMobBanner":
-          type = UIVariable.UIType.ADMOB;
-          var banView = new AdMob();
-          widget = banView.AddBanner(AppDelegate.GetCurrentController(), rect, initArg);
-          break;
-        default:
-          type = UIVariable.UIType.VIEW;
-          widget = new UIView(rect);
-          break;
-      }
-      SetOptionsFunction.SetMultiline(widget);
-
-      iOSVariable widgetFunc = new iOSVariable(type, widgetName, widget);
-      SetValues(widgetFunc, initArg);
-
-      return widgetFunc;
-    }
-    public static void MakeBottomBorder(UIView view, int width, int height, float borderWidth = 1)
-    {
-      CALayer border = new CALayer();
-      border.BorderColor = UIColor.DarkTextColor.CGColor;
-      border.Frame = new CGRect(0, height - borderWidth, width, height);
-      border.BorderWidth = borderWidth;
-      view.Layer.AddSublayer(border);
-      view.Layer.MasksToBounds = true;
-    }
-    public static void SetValues(iOSVariable widgetFunc, string valueStr)
-    {
-      if (string.IsNullOrWhiteSpace(valueStr)) {
-        return;
-      }
-      widgetFunc.InitValue = new Variable(valueStr);
-
-      // currValue:minValue:maxValue:step
-
-      double minValue = 0, maxValue = 1, currValue = 0, step = 1.0;
-      string[] vals = valueStr.Split(new char[] { ',', ':' });
-      Double.TryParse(vals[0].Trim(), out currValue);
-
-      if (vals.Length > 1) {
-        Double.TryParse(vals[1].Trim(), out minValue);
-        if (vals.Length > 2) {
-          Double.TryParse(vals[2].Trim(), out maxValue);
+      for (int i = 0; i < UIVariable.WidgetTypes.Count; i++) {
+        iOSVariable var = UIVariable.WidgetTypes[i] as iOSVariable;
+        var widget = var.GetWidget(widgetType, widgetName, initArg, rect);
+        if (widget != null) {
+          return widget;
         }
-        if (vals.Length > 3) {
-          Double.TryParse(vals[3].Trim(), out step);
-        }
-      } else {
-        minValue = maxValue = currValue;
       }
-
-      if (widgetFunc.ViewX is UISwitch) {
-        ((UISwitch)widgetFunc.ViewX).On = (int)currValue == 1;
-      } else if (widgetFunc.ViewX is UISlider) {
-        ((UISlider)widgetFunc.ViewX).MinValue = (float)minValue;
-        ((UISlider)widgetFunc.ViewX).MaxValue = (float)maxValue;
-        ((UISlider)widgetFunc.ViewX).Value = (float)currValue;
-      } else if (widgetFunc.ViewX is UISegmentedControl) {
-        UISegmentedControl seg = widgetFunc.ViewX as UISegmentedControl;
-        for (int i = 0; i < vals.Length; i++) {
-          seg.InsertSegment(vals[i], i, false);
-        }
-        seg.SelectedSegment = 0;
-      } else {
-        widgetFunc.CurrVal = currValue;
-        widgetFunc.MinVal  = minValue;
-        widgetFunc.MaxVal  = maxValue;
-        widgetFunc.Step    = step;
-      }
+      return null;
     }
     public static iOSVariable ExistingWidget(ParsingScript script, string varName)
     {
@@ -272,6 +143,17 @@ namespace scripting.iOS
       iOSVariable viewVar = func.GetValue(script) as iOSVariable;
       RemoveViewFunction.RemoveView(viewVar);
       return viewVar;
+    }
+
+    public static void RegisterWidget(iOSVariable widget)
+    {
+      var location = widget.Location;
+      var parent   = location.ParentView;
+      string parentName = parent == null ? "" : parent.WidgetName;
+      int tabId = iOSApp.Instance.SelectedTab;
+      UIUtils.Rect rect = new UIUtils.Rect(location.X, location.Y, location.Width, location.Height);
+
+      UIUtils.RegisterWidget(widget.WidgetName, rect, parentName, tabId);
     }
 
     string m_widgetType;
@@ -304,40 +186,10 @@ namespace scripting.iOS
       }
 
       string strAction = Utils.GetSafeString(args, 2);
-      string alignment = Utils.GetSafeString(args, 3);
+      string extra = Utils.GetSafeString(args, 3);
 
-      if (viewVar.ViewX is UIPickerView) {
-        UIPickerView pickerView = viewVar.ViewX as UIPickerView;
-
-        TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
-        if (model == null) {
-          model = new TypePickerViewModel(AppDelegate.GetCurrentController());
-        }
-        model.Data = types;
-
-        if (!string.IsNullOrWhiteSpace(strAction)) {
-          model.RowSelected += (row) => {
-            UIVariable.GetAction(strAction, varName, row.ToString());
-          };
-        }
-        if (!string.IsNullOrWhiteSpace(alignment)) {
-          var al = AlignTitleFunction.GetAlignment(alignment);
-          model.Alignment = al.Item2;
-        }
-
-        model.SetSize((int)pickerView.Bounds.Width, (int)pickerView.Bounds.Height / 4);
-        pickerView.Model = model;
-      } else if (viewVar.ViewX is UITableView) {
-        UITableView tableView = viewVar.ViewX as UITableView;
-
-        TableViewSource source = tableView.Source as TableViewSource;
-        if (source == null) {
-          source = new TableViewSource();
-        }
-        source.Data = types;
-        tableView.Source = source;
-        tableView.ReloadData();
-      }
+      viewVar.AddData(types, varName, strAction, extra);
+      ParserFunction.UpdateFunction(viewVar);
 
       return Variable.EmptyInstance;
     }
@@ -370,30 +222,7 @@ namespace scripting.iOS
 
       string strAction = Utils.GetSafeString(args, 2);
 
-      if (viewVar.ViewX is UIPickerView) {
-        UIPickerView pickerView = viewVar.ViewX as UIPickerView;
-
-        TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
-        if (model == null) {
-          model = new TypePickerViewModel(AppDelegate.GetCurrentController());
-        }
-        model.Images = images;
-
-        if (!string.IsNullOrWhiteSpace(strAction)) {
-          AddActionFunction.AddAction(viewVar, varName, strAction);
-        }
-        model.SetSize((int)pickerView.Bounds.Width, (int)pickerView.Bounds.Height / 4);
-        pickerView.Model = model;
-      } else if (viewVar.ViewX is UITableView) {
-        UITableView tableView = viewVar.ViewX as UITableView;
-
-        TableViewSource source = tableView.Source as TableViewSource;
-        if (source == null) {
-          source = new TableViewSource();
-        }
-        source.Images = images;
-        tableView.Source = source;
-      }
+      viewVar.AddImages(images, varName, strAction);
 
       return Variable.EmptyInstance;
     }
@@ -476,7 +305,7 @@ namespace scripting.iOS
       if (m_isX) {
         coord = (int)view.Frame.X;
       } else {
-        coord = (int)view.Frame.X;
+        coord = (int)view.Frame.Y;
       }
 
       return new Variable(coord);
@@ -486,35 +315,28 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable title = Utils.GetItem(script);
-      string strTitle = title.AsString();
+      string varName = args[0].AsString();
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(iosVar, m_name);
+      string strTitle = args[1].AsString();
+      string alignment = Utils.GetSafeString(args, 2);
 
-      iosVar.SetText(strTitle);
+      bool isSet = viewVar.SetText(strTitle, alignment);
 
-      return iosVar;
+      return new Variable(isSet ? 1 : 0);
     }
-    public static void SetText(iOSVariable iosVar, string text)
+
+    public static bool SetText(iOSVariable iosVar, string text)
     {
-      if (iosVar.ViewX is UIButton) {
-        ((UIButton)iosVar.ViewX).SetTitle(text, UIControlState.Normal);
-      } else if (iosVar.ViewX is UILabel) {
-        ((UILabel)iosVar.ViewX).Text = text;
-      } else if (iosVar.ViewX is UITextField) {
-        ((UITextField)iosVar.ViewX).Text = text;
-      } else if (iosVar.ViewX is UITextView) {
-        ((UITextView)iosVar.ViewX).Text = text;
-      } else if (iosVar.ViewX is UIPickerView) {
-        UIPickerView picker = iosVar.ViewX as UIPickerView;
-        TypePickerViewModel model = picker.Model as TypePickerViewModel;
-        int row = model.StringToRow(text);
-        SetValueFunction.SetValue(iosVar, row);
-      }
+      return iosVar.SetText(text);
     }
   }
   public class GetTextFunction : ParserFunction
@@ -531,58 +353,28 @@ namespace scripting.iOS
     }
     public static string GetText(iOSVariable iosVar)
     {
-      string result = "";
-      if (iosVar.ViewX is UIButton) {
-        result = ((UIButton)iosVar.ViewX).Title(UIControlState.Normal);
-      } else if (iosVar.ViewX is UILabel) {
-        result = ((UILabel)iosVar.ViewX).Text;
-      } else if (iosVar.ViewX is UITextField) {
-        result = ((UITextField)iosVar.ViewX).Text;
-      } else if (iosVar.ViewX is UITextView) {
-        result = ((UITextView)iosVar.ViewX).Text;
-      } else if (iosVar.ViewX is UIPickerView) {
-        UIPickerView pickerView = iosVar.ViewX as UIPickerView;
-        TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
-        int row = (int)GetValueFunction.GetValue(iosVar);
-        result = model.RowToString(row);
-      }
-      return result;
+      return iosVar.GetText();
     }
   }
   public class SetValueFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable arg = Utils.GetItem(script);
+      string varName = args[0].AsString();
+      Variable arg1 = Utils.GetSafeVariable(args, 1);
+      Variable arg2 = Utils.GetSafeVariable(args, 2);
 
       iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
       Utils.CheckNotNull(iosVar, m_name);
 
-      SetValue(iosVar, arg.Value);
+      bool isSet = iosVar.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
 
-      return iosVar;
-    }
-    public static void SetValue(iOSVariable iosVar, double val)
-    {
-      if (iosVar.ViewX is UISwitch) {
-        ((UISwitch)iosVar.ViewX).On = (int)val == 1;
-      } else if (iosVar.ViewX is UISlider) {
-        ((UISlider)iosVar.ViewX).Value = (float)val;
-      } else if (iosVar.ViewX is UIStepper) {
-        ((UIStepper)iosVar.ViewX).Value = (float)val;
-      } else if (iosVar.ViewX is UIPickerView) {
-        UIPickerView picker = iosVar.ViewX as UIPickerView;
-        picker.Select((int)val, 0, true);
-        TypePickerViewModel model = picker.Model as TypePickerViewModel;
-        model?.Selected(picker, (int)val, 0);
-      } else if (iosVar.ViewX is UISegmentedControl) {
-        ((UISegmentedControl)iosVar.ViewX).SelectedSegment = (nint)val;
-      } else {
-        iosVar.SetValue(val);
-      }
+      return new Variable(isSet ? 1 : 0);
     }
   }
   public class GetValueFunction : ParserFunction
@@ -601,21 +393,7 @@ namespace scripting.iOS
     }
     public static double GetValue(iOSVariable iosVar)
     {
-      double result = 0;
-      if (iosVar.ViewX is UISwitch) {
-        result = ((UISwitch)iosVar.ViewX).On ? 1 : 0;
-      } else if (iosVar.ViewX is UISlider) {
-        result = ((UISlider)iosVar.ViewX).Value;
-      } else if (iosVar.ViewX is UIStepper) {
-        result = ((UIStepper)iosVar.ViewX).Value;
-      } else if (iosVar.ViewX is UIPickerView) {
-        result = ((TypePickerViewModel)(((UIPickerView)iosVar.ViewX).Model)).SelectedRow;
-      } else if (iosVar.ViewX is UISegmentedControl) {
-        result = ((UISegmentedControl)iosVar.ViewX).SelectedSegment;
-      } else {
-        result = iosVar.CurrVal;
-      }
-      return result;
+      return iosVar.GetValue();
     }
   }
   public class AlignTitleFunction : ParserFunction
@@ -631,58 +409,10 @@ namespace scripting.iOS
       Utils.CheckNotNull(view, m_name);
 
       string alignment = Utils.GetItem(script).AsString();
-      alignment = alignment.ToLower();
-
-      Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al = GetAlignment(alignment);
+      bool isSet = iosVar.AlignText(alignment);
       iosVar.SetText(GetTextFunction.GetText(iosVar), alignment);
 
-      if (view is UIButton) {
-        ((UIButton)view).HorizontalAlignment = al.Item1;
-      } else if (view is UILabel) {
-        ((UILabel)view).TextAlignment = al.Item2;
-      } else if (view is UITextField) {
-        ((UITextField)view).TextAlignment = al.Item2;
-      } else if (view is UITextView) {
-        ((UITextView)view).TextAlignment = al.Item2;
-      } else if (view is UIPickerView) {
-        TypePickerViewModel model = ((UIPickerView)view).Model as TypePickerViewModel;
-        if (model != null) {
-          model.Alignment = al.Item2;
-        }
-      }
-
-      return iosVar;
-    }
-    public static Tuple<UIControlContentHorizontalAlignment, UITextAlignment>
-                  GetAlignment(string alignment)
-    {
-      UIControlContentHorizontalAlignment al1 = UIControlContentHorizontalAlignment.Center;
-      UITextAlignment al2 = UITextAlignment.Center;
-      switch (alignment) {
-        case "left":
-          al1 = UIControlContentHorizontalAlignment.Left;
-          al2 = UITextAlignment.Left;
-          break;
-        case "right":
-          al1 = UIControlContentHorizontalAlignment.Right;
-          al2 = UITextAlignment.Right;
-          break;
-        case "bottom": // there is no bottom for iOS, only for Android
-        case "center":
-          al1 = UIControlContentHorizontalAlignment.Center;
-          al2 = UITextAlignment.Center;
-          break;
-        case "fill":
-        case "natural":
-          al1 = UIControlContentHorizontalAlignment.Fill;
-          al2 = UITextAlignment.Natural;
-          break;
-        case "justified":
-          al1 = UIControlContentHorizontalAlignment.Center;
-          al2 = UITextAlignment.Justified;
-          break;
-      }
-      return new Tuple<UIControlContentHorizontalAlignment, UITextAlignment>(al1, al2);
+      return new Variable(isSet);
     }
   }
   public class ShowHideFunction : ParserFunction
@@ -792,25 +522,29 @@ namespace scripting.iOS
       List<Variable> args = Utils.GetArgs(script,
           Constants.START_ARG, Constants.END_ARG, out isList);
 
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      if (args.Count == 1) {
+        string rootColor = Utils.GetSafeString(args, 0);
+        AppDelegate.SetBgColor(rootColor);
+        return Variable.EmptyInstance;
+      }
 
       string varName  = Utils.GetSafeString(args, 0);
       string strColor = Utils.GetSafeString(args, 1);
       double alpha    = Utils.GetSafeDouble(args, 2, 1.0);
 
-      UIView view = iOSVariable.GetView(varName, script);
-      if (view == null) {
-        view = AppDelegate.GetCurrentView();
-      }    
-
-      if (strColor.Equals("transparent", StringComparison.OrdinalIgnoreCase)) {
-        view.Opaque = true;
-        alpha = 0.0;
-      } else {
-        view.Opaque = false;
+      if (varName.Equals("ROOT")) {
+        AppDelegate.SetBgColor(strColor, alpha);
+        return Variable.EmptyInstance;
       }
 
-      view.BackgroundColor = UtilsiOS.String2Color(strColor, alpha);
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      viewVar.SetBackgroundColor(strColor, alpha);
       return Variable.EmptyInstance;
     }
   }
@@ -844,83 +578,13 @@ namespace scripting.iOS
       string argument  = Utils.GetSafeString(args, 2);
 
       iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      AddAction(iosVar, varName, strAction, argument);
+      iosVar.AddAction(varName, strAction, argument);
 
       return Variable.EmptyInstance;
     }
-    public static void AddAction(iOSVariable iosVar, string varName,
-                                 string strAction, string argument = "")
-    {
-      if (!string.IsNullOrWhiteSpace(argument)) {
-        if (argument.Equals("FINISHED")) {
-          if (iosVar.ViewX is UITextField) {
-            UITextField textField = iosVar.ViewX as UITextField;
-            textField.EditingDidEnd += (sender, e) => {
-              UIVariable.GetAction(strAction, varName, "\"" + textField.Text + "\"");
-            };
-          }
-          return;
-        }
-      }
-      if (iosVar.ViewX is UIButton) {
-        UIButton button = iosVar.ViewX as UIButton;
-        button.TouchUpInside += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + argument + "\"");
-        };
-      } else if (iosVar.ViewX is UISwitch) {
-        UISwitch sw = iosVar.ViewX as UISwitch;
-        sw.ValueChanged += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + sw.On + "\"");
-        };
-      } else if (iosVar.ViewX is UITextField) {
-        UITextField textField = iosVar.ViewX as UITextField;
-        textField.EditingChanged += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + textField.Text + "\"");
-        };
-      } else if (iosVar.ViewX is UISlider) {
-        UISlider slider = iosVar.ViewX as UISlider;
-        slider.ValueChanged += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + slider.Value + "\"");
-        };
-      } else if (iosVar.ViewX is UISegmentedControl) {
-        UISegmentedControl seg = iosVar.ViewX as UISegmentedControl;
-        seg.ValueChanged += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + seg.SelectedSegment + "\"");
-        };
-      } else if (iosVar.ViewX is UIPickerView) {
-        UIPickerView pickerView = iosVar.ViewX as UIPickerView;
-        TypePickerViewModel model = pickerView.Model as TypePickerViewModel;
-        if (model == null) {
-          model = new TypePickerViewModel(AppDelegate.GetCurrentController());
-        }
-        model.RowSelected += (row) => {
-          UIVariable.GetAction(strAction, varName, row.ToString());
-        };
-        pickerView.Model = model;
-      } else if (iosVar.ViewX is UITableView) {
-        UITableView tableView = iosVar.ViewX as UITableView;
-        TableViewSource source = tableView.Source as TableViewSource;
-        if (source == null) {
-          source = new TableViewSource();
-        }
-        source.RowSelectedDel += (row) => {
-          UIVariable.GetAction(strAction, varName, "\"" + row + "\"");
-        };
-        tableView.Source = source;
-      } else {/*if (iosVar.ViewX is UIStepper) {
-                UIStepper stepper = iosVar.ViewX as UIStepper;
-                stepper.ValueChanged += (sender, e) => {
-                    UIVariable.GetAction(strAction, varName, "\"" + stepper.Value + "\"");
-                };*/
-        iosVar.ActionDelegate += (arg1, arg2) => {
-          UIVariable.GetAction(strAction, varName, "\"" + iosVar.CurrVal + "\"");
-        };
-
-      }
-    }
   }
 
-public class AddLongClickFunction : ParserFunction
+  public class AddLongClickFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
@@ -997,18 +661,22 @@ public class AddLongClickFunction : ParserFunction
       bool isList = false;
       List<Variable> args = Utils.GetArgs(script,
           Constants.START_ARG, Constants.END_ARG, out isList);
-
       Utils.CheckArgs(args.Count, 1, m_name);
-      string varName = Utils.GetSafeString(args, 0);
 
-      UIView view = iOSVariable.GetView(varName, script);
-      Utils.CheckNotNull(view, m_name);
+      string varName   = Utils.GetSafeString(args, 0);
+      string strAction = Utils.GetSafeString(args, 1);
+
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
 
       UIPanGestureRecognizer gesture = new UIPanGestureRecognizer();
-      DragHandler handler = new DragHandler(view);
+      DragHandler handler = new DragHandler(viewVar, strAction);
       // Wire up the event handler (have to use a selector)
       gesture.AddTarget(() => handler.HandleDrag(gesture));
-      view.AddGestureRecognizer(gesture);
+      viewVar.ViewX.AddGestureRecognizer(gesture);
 
       return Variable.EmptyInstance;
     }
@@ -1017,19 +685,25 @@ public class AddLongClickFunction : ParserFunction
     {
       UIView m_view;
       CGRect m_originalFrame;
+      iOSVariable m_variable;
+      string m_widget;
+      string m_action;
 
       const float TOUCH_DELTA = 5;
 
-      public DragHandler(UIView view)
+      public DragHandler(iOSVariable viewVar, string strAction)
       {
-        m_view = view;
+        m_view = viewVar.ViewX;
         m_originalFrame = m_view.Frame;
+        m_widget = viewVar.WidgetName;
+        m_variable = viewVar;
+        m_action = strAction;
       }
       public void HandleDrag(UIPanGestureRecognizer recognizer)
       {
-        if (recognizer.State == (UIGestureRecognizerState.Cancelled |
-                                 UIGestureRecognizerState.Failed |
-                                 UIGestureRecognizerState.Possible)) {
+        if (recognizer.State == UIGestureRecognizerState.Cancelled ||
+            recognizer.State == UIGestureRecognizerState.Failed ||
+            recognizer.State == UIGestureRecognizerState.Possible) {
           return;
         }
         if (recognizer.State == UIGestureRecognizerState.Began) {
@@ -1042,9 +716,24 @@ public class AddLongClickFunction : ParserFunction
         CGRect newFrame = m_originalFrame;
         newFrame.Offset(offset.X, offset.Y);
 
-        //Console.WriteLine("Offsets: {0}, {1} -- {2}, {3}-- {4}, {5}", offset.X, offset.Y,
-        //                  m_originalFrame.X, m_originalFrame.Y, newFrame.X, newFrame.Y);
         m_view.Frame = newFrame;
+
+        if (recognizer.State == UIGestureRecognizerState.Ended) {
+          var parent = m_variable.Location.ParentView;
+          string parentName = parent == null ? "" : parent.WidgetName;
+          int tabId = iOSApp.Instance.SelectedTab;
+          UIUtils.Rect rect = new UIUtils.Rect((int)newFrame.X, (int)newFrame.Y,
+                                               (int)newFrame.Width, (int)newFrame.Height);
+          UIUtils.RegisterWidget(m_widget, rect, parentName, tabId);
+          if (!string.IsNullOrWhiteSpace(m_action)) {
+
+            List<string> involved = UIUtils.FindWidgets(rect, parentName, tabId, m_widget);
+            string arg = string.Join(", ", involved);
+            //Console.WriteLine("Offsets: {0}, {1} -- {2}, {3} -- {4}, {5}", offset.X, offset.Y,
+            //                  m_originalFrame.X, m_originalFrame.Y, newFrame.X, newFrame.Y);
+            UIVariable.GetAction(m_action, m_widget, "\"" + arg + "\"");
+          }
+        }
       }
     }
   }
@@ -1306,32 +995,98 @@ public class AddLongClickFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      //string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-      string varName = Utils.GetItem(script).AsString();
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
       Utils.CheckNotEmpty(script, varName, m_name);
-      script.MoveForwardIf(Constants.NEXT_ARG);
 
-      Variable fontSize = Utils.GetItem(script);
-      Utils.CheckPosInt(fontSize);
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
 
-      UIView view = iOSVariable.GetView(varName, script);
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
 
-      UIFont newFont = UIFont.SystemFontOfSize((int)fontSize.Value);
+      double fontSize = Utils.GetSafeDouble(args, 1);
 
-      if (view is UIButton) {
-        UIButton button = (UIButton)view;
-        button.TitleLabel.Font = newFont; ;
-      } else if (view is UILabel) {
-        ((UILabel)view).Font = newFont;
-      } else if (view is UITextField) {
-        ((UITextField)view).Font = newFont;
-      } else if (view is UITextView) {
-        ((UITextView)view).Font = newFont;
-      } else {
-        return Variable.EmptyInstance;
+      bool autoResize = Utils.GetSafeInt(args, 2, 1) == 1;
+      if (autoResize) {
+        fontSize = AutoScaleFunction.ConvertFontSize((float)fontSize,
+                                                     (int)UtilsiOS.GetRealScreenWidth());
       }
 
-      return fontSize;
+      bool isSet = viewVar.SetFontSize(fontSize);
+
+      return new Variable(isSet ? 1 : 0);
+    }
+  }
+  public class SetFontFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
+      Utils.CheckNotEmpty(script, varName, m_name);
+
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      string fontName = args[1].AsString();
+      double fontSize = Utils.GetSafeDouble(args, 2);
+
+      bool isSet = viewVar.SetFont(fontName, fontSize);
+
+      return new Variable(isSet ? 1 : 0);
+    }
+  }
+  public class SetFontTypeFunction : ParserFunction
+  {
+    public enum FontType { BOLD, ITALIC, NORMAL }
+    FontType m_fontType;
+    public SetFontTypeFunction(FontType fontType) {
+      m_fontType = fontType;
+    }
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
+      Utils.CheckNotEmpty(script, varName, m_name);
+
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      double fontSize = Utils.GetSafeDouble(args, 1);
+
+      bool isSet = false;
+      switch(m_fontType) {
+        case FontType.NORMAL:
+          isSet = viewVar.SetNormalFont(fontSize);
+          break;
+        case FontType.BOLD:
+          isSet = viewVar.SetBold(fontSize);
+          break;
+        case FontType.ITALIC:
+          isSet = viewVar.SetItalic(fontSize);
+          break;
+      }
+
+      return new Variable(isSet ? 1 : 0);
     }
   }
   public class SetFontColorFunction : ParserFunction
@@ -1344,22 +1099,14 @@ public class AddLongClickFunction : ParserFunction
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      UIView view = iOSVariable.GetView(varName, script);
-      Utils.CheckNotNull(view, m_name);
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
 
       string colorStr = args[1].AsString();
-      UIColor color = UtilsiOS.String2Color(colorStr);
-
-      if (view is UIButton) {
-        UIButton button = (UIButton)view;
-        button.SetTitleColor(color, UIControlState.Normal);
-      } else if (view is UILabel) {
-        ((UILabel)view).TextColor = color;
-      } else if (view is UITextField) {
-        ((UITextField)view).TextColor = color;
-      } else if (view is UITextView) {
-        ((UITextView)view).TextColor = color;
-      }
+      viewVar.SetFontColor(colorStr);
 
       return Variable.EmptyInstance;
     }
@@ -1634,13 +1381,13 @@ public class AddLongClickFunction : ParserFunction
 
       UIViewController controller = AppDelegate.GetCurrentController();
       m_speech = new STT(controller);
-      m_speech.SpeechError += (errorStr) => {
+      m_speech.OnSpeechError += (errorStr) => {
         Console.WriteLine(errorStr);
         controller.InvokeOnMainThread(() => {
           UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
         });
       };
-      m_speech.SpeechOK += (recognized) => {
+      m_speech.OnSpeechOK += (recognized) => {
         Console.WriteLine("Recognized: " + recognized);
         controller.InvokeOnMainThread(() => {
           UIVariable.GetAction(strAction, "", "\"" + recognized + "\"");
@@ -1690,41 +1437,15 @@ public class AddLongClickFunction : ParserFunction
       }
 
       localized = Localization.GetText(key);
+      m_localizations[langCode + key] = localized;
 
-      if (!string.IsNullOrWhiteSpace(langCode)) {
+      if (!string.IsNullOrWhiteSpace(langCode) &&
+          !string.IsNullOrWhiteSpace(currentCode) &&
+          langCode != currentCode) {
         Localization.SetProgramLanguageCode(currentCode);
-        m_localizations[langCode + key] = localized;
       }
 
       return new Variable(localized);
-    }
-  }
-  public class InitAds : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
-    {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
-      Utils.CheckArgs(args.Count, 2, m_name);
-
-      string appId = args[0].AsString();
-      string interstId = Utils.GetSafeString(args, 1);
-      string bannerId = Utils.GetSafeString(args, 1);
-
-      AdMob.Init(appId, interstId, bannerId);
-
-      return Variable.EmptyInstance;
-    }
-  }
-  public class ShowInterstitial : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
-    {
-      AdMob.ShowInterstitialAd(AppDelegate.GetCurrentController());
-      script.MoveForwardIf(Constants.END_ARG);
-
-      return Variable.EmptyInstance;
     }
   }
   public class InitIAPFunction : ParserFunction
@@ -1790,6 +1511,21 @@ public class AddLongClickFunction : ParserFunction
       IAP.Purchase(productId);
 
       return Variable.EmptyInstance;
+    }
+  }
+  public class ProductIdDescriptionFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 1, m_name);
+      string productId = args[0].AsString();
+
+      string description = IAP.GetDescription(productId);
+
+      return new Variable(description);
     }
   }
   public class ReadFileFunction : ParserFunction
@@ -1942,11 +1678,15 @@ public class AddLongClickFunction : ParserFunction
 
       switch (strType) {
         case "float":
-        case "double":
           float def = defValue == null ? -1 : (float)defValue.AsDouble();
           float result = Settings.GetFloatSetting(settingName, def);
           return new Variable(result);
+        case "double":
+          double defD = defValue == null ? -1 : defValue.AsDouble();
+          double resultD = Settings.GetDoubleSetting(settingName, defD);
+          return new Variable(resultD);
         case "int":
+        case "long":
           int defInt = defValue == null ? -1 : defValue.AsInt();
           int resultInt = Settings.GetIntSetting(settingName, defInt);
           return new Variable(resultInt);
@@ -1975,11 +1715,15 @@ public class AddLongClickFunction : ParserFunction
 
       switch (strType) {
         case "float":
-        case "double":
           float setting = (float)settingValue.AsDouble();
           Settings.SaveSetting(settingName, setting);
           break;
+        case "double":
+          double settingD = settingValue.AsDouble();
+          Settings.SaveSetting(settingName, settingD);
+          break;
         case "int":
+        case "long":
           int settingInt = settingValue.AsInt();
           Settings.SaveSetting(settingName, settingInt);
           break;
@@ -1992,6 +1736,38 @@ public class AddLongClickFunction : ParserFunction
           Settings.SaveSetting(settingName, settingStr);
           break;
       }
+
+      return Variable.EmptyInstance;
+    }
+  }
+
+  public class SetStyleFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+          Constants.START_ARG, Constants.END_ARG, out isList);
+
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string styleStr      = Utils.GetSafeString(args, 0);
+      string typeName      = Utils.GetSafeString(args, 1);
+      string orientation   = Utils.GetSafeString(args, 2);
+
+      AppDelegate.Style style = AppDelegate.Style.TABS;
+      switch (styleStr) {
+        case "tabs":
+          style = AppDelegate.Style.TABS;
+          break;
+        case "navi":
+          style = AppDelegate.Style.NAVI;
+          break;
+        case "page":
+          style = AppDelegate.Style.PAGE;
+          break;
+      }
+      AppDelegate.SetController(style, typeName, orientation);
 
       return Variable.EmptyInstance;
     }

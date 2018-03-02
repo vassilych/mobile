@@ -18,7 +18,7 @@ namespace scripting.iOS
     UIViewController m_controller;
 
     int m_width = 240, m_height = 40;
-    float m_fontSize = 15f;
+    UIFont m_font = UIFont.SystemFontOfSize(15f);
 
     int m_picSize = 20;
     public int PicSize {
@@ -35,13 +35,17 @@ namespace scripting.iOS
     public int SelectedRow { get; protected set; }
     public string SelectedText {
       get {
-        return m_names[SelectedRow];
+        return SelectedRow >= 0 && SelectedRow < m_names.Count ? m_names[SelectedRow] : "";
       }
     }
 
     public int StringToRow(string text)
     {
       int result = m_names.FindIndex((obj) => obj.Equals(text));
+      if (result < 0) {
+        text = text.Trim();
+        result = m_names.FindIndex((obj) => obj.Equals(text));
+      }
       return result < 0 ? 0 : result;
     }
     public string RowToString(int row)
@@ -58,13 +62,14 @@ namespace scripting.iOS
     public List<string> Data {
       set {
         m_names = value;
-        int maxSize = 0;
+        nfloat maxSize = 0;
         for (int i = 0; i < m_names.Count; i++) {
           if (m_names[i].Length > maxSize) {
             maxSize = m_names[i].Length;
           }
         }
-        m_fontSize = CalculateFontSize(maxSize);
+        var fontSize = CalculateFontSize(maxSize);
+        SetFontSize(fontSize);
       }
       get { return m_names; }
     }
@@ -73,9 +78,9 @@ namespace scripting.iOS
       get { return m_pics; }
     }
 
-    public static float CalculateFontSize(int size)
+    public static nfloat CalculateFontSize(nfloat size)
     {
-      float fontSize = 15f;
+      nfloat fontSize = 15f;
       if (size > 60) {
         fontSize = 10f;
       } else if (size > 50) {
@@ -114,9 +119,17 @@ namespace scripting.iOS
         m_height = height;
       }
     }
-    public void SetFontSize(int fontSize)
+    public UIFont GetFont()
     {
-      m_fontSize = fontSize;
+      return m_font;
+    }
+    public void SetFont(UIFont font)
+    {
+      m_font = font;
+    }
+    public void SetFontSize(nfloat fontSize)
+    {
+      m_font = m_font.WithSize(fontSize);
     }
 
     public override UIView GetView(UIPickerView pickerView, nint row, nint component, UIView view)
@@ -140,7 +153,7 @@ namespace scripting.iOS
           textEdit.TextColor = UIColor.Black;
           textEdit.BackgroundColor = UIColor.Clear;
           textEdit.Text = m_names[(int)row];
-          textEdit.Font = UIFont.SystemFontOfSize(m_fontSize);
+          textEdit.Font = m_font;
           textEdit.TextAlignment = Alignment;
           textEdit.ContentInset = new UIEdgeInsets(-5, 0, 0, 0);
           view.AddSubview(textEdit);

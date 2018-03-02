@@ -10,8 +10,14 @@ namespace scripting.iOS
   [Register("AppDelegate")]
   public class AppDelegate : UIApplicationDelegate
   {
+    public enum Style
+    {
+      TABS, NAVI, PAGE
+    };
+    static Style m_style = Style.TABS;
     static UIView m_view;
-    static UIViewController m_viewController;
+    static iOSApp m_viewController;
+    static UIWindow MainWindow { get; set; }
 
     public override UIWindow Window { get; set; }
 
@@ -19,24 +25,48 @@ namespace scripting.iOS
 
     public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
     {
-      Window = new UIWindow(UIScreen.MainScreen.Bounds);
+      MainWindow = Window = new UIWindow(UIScreen.MainScreen.Bounds);
 
-      iOSApp controller = new iOSApp();
-      Window.RootViewController = controller;
+      m_viewController = new iOSApp();
+      Window.RootViewController = m_viewController;
       Window.MakeKeyAndVisible();
 
       m_view = Window.RootViewController.View;
-      m_viewController = Window.RootViewController;
-
       m_view.BackgroundColor = UIColor.White;
 
       // Will execute the CSCS script:
-      controller.Run();
+      m_viewController.Run();
 
       m_view.AutoresizingMask = UIViewAutoresizing.All;
- 
       return true;
     }
+
+    public static void SetController(Style style, string type, string orient)
+    {
+      m_style = style;
+      UIViewController controller = null;
+      switch (m_style) {
+        case Style.TABS:
+          controller = new iOSApp(); // This is a UITabBarController.
+          break;
+        case Style.NAVI:
+          controller = new UINavigationController();
+          break;
+        case Style.PAGE:
+          controller = new UIPageViewController(type == "scroll" ?
+            UIPageViewControllerTransitionStyle.Scroll :
+            UIPageViewControllerTransitionStyle.PageCurl,
+                                                orient == "horizontal" ?
+            UIPageViewControllerNavigationOrientation.Horizontal :
+            UIPageViewControllerNavigationOrientation.Vertical);
+          break;
+      }
+
+      MainWindow.RootViewController = controller;
+      MainWindow.MakeKeyAndVisible();
+      m_view = MainWindow.RootViewController.View;
+    }
+
     public static UIView GetCurrentView()
     {
       return m_view;
@@ -61,6 +91,11 @@ namespace scripting.iOS
 
       m_view.AddSubview(bgImageView);
       m_view.SendSubviewToBack(bgImageView);
+    }
+    public static void SetBgColor(string colorStr, double alpha = 1.0)
+    {
+      var color = UtilsiOS.String2Color(colorStr, alpha);
+      m_view.BackgroundColor = color;
     }
 
     public override void OnResignActivation(UIApplication application)

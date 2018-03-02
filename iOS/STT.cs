@@ -8,10 +8,10 @@ namespace scripting.iOS
 {
   public class STT
   {
-    public delegate void OnSpeechError(string errorStr);
-    public delegate void OnSpeechOK(string recognized);
+    public Action<string> OnSpeechOK;
+    public Action<string> OnSpeechError;
 
-    static public string Voice { set; get; }
+    static public string Voice { set; get; } = "en-US";
 
     static UIViewController m_controller;
     static AVAudioEngine AudioEngine;
@@ -26,21 +26,13 @@ namespace scripting.iOS
     const int m_silenceTimeout = 1000;
     static int m_timeout;
 
-    static bool m_cancelled;
-    static public bool IsCancelled {
-      get { return m_cancelled; }
-      set { m_cancelled = value; }
-    }
+    static public bool IsCancelled { get; set; }
     static public bool IsRecording { get; set; }
 
     static DateTime m_lastSpeech;
     static DateTime m_startSpeech;
 
-    public OnSpeechError SpeechError;
-    public OnSpeechOK SpeechOK;
-
     public static bool SpeechEnabled { get; set; }
-    public static bool SpeechPossible { get; set; }
     public string LastResult { get; set; }
 
     public STT(UIViewController controller)
@@ -52,19 +44,8 @@ namespace scripting.iOS
       if (SpeechEnabled) {
         return true;
       }
-      SpeechEnabled = SpeechPossible = UIDevice.CurrentDevice.CheckSystemVersion(10, 0);
-      Console.WriteLine("Version {0}, SpeechEnabled: {1}",
-                        UIDevice.CurrentDevice.SystemVersion, SpeechEnabled);
-
-      if (!SpeechEnabled) {
-        return false;
-      }
-
       RequestAuthorization();
-      if (string.IsNullOrWhiteSpace(Voice)) {
-        Voice = "en-US";
-      }
-      return true;
+      return SpeechEnabled;
     }
 
     public static void RequestAuthorization()
@@ -109,7 +90,7 @@ namespace scripting.iOS
       audioSession.SetCategory(AVAudioSessionCategory.Record);
       audioSession.SetMode(AVAudioSession.ModeMeasurement, out error);
       if (error != null) {
-        SpeechError?.Invoke("Audio session error: " + error.ToString());
+        OnSpeechError?.Invoke("Audio session error: " + error.ToString());
         return;
       }
       audioSession.SetActive(true, AVAudioSessionSetActiveOptions.NotifyOthersOnDeactivation);
@@ -118,7 +99,7 @@ namespace scripting.iOS
 
       var node = AudioEngine.InputNode;
       if (node == null) {
-        SpeechError?.Invoke("Couldn't initialize Speech Input");
+        OnSpeechError?.Invoke("Couldn't initialize Speech Input");
         return;
       }
 
@@ -128,14 +109,14 @@ namespace scripting.iOS
           return;
         }
         if (err != null) {
-          SpeechError?.Invoke(err.ToString());
+          OnSpeechError?.Invoke(err.ToString());
         } else if (result != null) {
           LastResult = result.BestTranscription.FormattedString;
           Console.WriteLine("You said: \"{0}\". Final: {1}",
                                 LastResult, result.Final);
           m_lastSpeech = DateTime.Now;
           if (result.Final) {// || !IsRecording) {
-            SpeechOK?.Invoke(LastResult);
+            OnSpeechOK?.Invoke(LastResult);
           }
         }
         if ((result != null && result.Final) || err != null || !IsRecording) {
@@ -158,7 +139,7 @@ namespace scripting.iOS
       AudioEngine.StartAndReturnError(out error);
 
       if (error != null) {
-        SpeechError?.Invoke("Speech init error: " + error.ToString());
+        OnSpeechError?.Invoke("Speech init error: " + error.ToString());
         IsRecording = false;
         return;
       }
@@ -187,9 +168,9 @@ namespace scripting.iOS
         CancelRecording();
         m_controller.InvokeOnMainThread(() => {
           if (string.IsNullOrEmpty(LastResult)) {
-            SpeechError?.Invoke(Localization.GetText("No speech was recognized"));
+            OnSpeechError?.Invoke(Localization.GetText("No speech was recognized"));
           } else {
-            SpeechOK?.Invoke(LastResult);
+            OnSpeechOK?.Invoke(LastResult);
           }
         });
         return;

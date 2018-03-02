@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using CoreGraphics;
 using Firebase.Analytics;
 using Google.MobileAds;
+using SplitAndMerge;
 using UIKit;
 
 namespace scripting.iOS
 {
-  public class AdMob
+  public class AdMob : iOSVariable
   {
     static string m_appId;
     static string m_interstitialId;
@@ -17,6 +19,23 @@ namespace scripting.iOS
     BannerView m_adView;
     bool viewOnScreen = false;
 
+    public AdMob()
+    { }
+    public AdMob(string widgetName, UIViewController controller, CGRect rect, string arg) :
+      base(UIType.CUSTOM, widgetName)
+    {
+      ViewX = AddBanner(controller, rect, arg);
+      ViewX.Tag = ++m_currentTag;
+    }
+
+    public override iOSVariable GetWidget(string widgetType, string widgetName, string initArg, CGRect rect)
+    {
+      switch (widgetType) {
+        case "AdMobBanner":
+          return new AdMob(widgetName, AppDelegate.GetCurrentController(), rect, initArg);
+      }
+      return null;
+    }
     public static void Init(string appId, string interstitialId = null,
                                           string bannerId = null)
     {
@@ -87,8 +106,8 @@ namespace scripting.iOS
     {
       switch (arg) {
         case "SmartBanner":
-        case "SmartBannerLandscape": return AdSizeCons.SmartBannerLandscape;
         case "SmartBannerPortrait": return AdSizeCons.SmartBannerPortrait;
+        case "SmartBannerLandscape": return AdSizeCons.SmartBannerLandscape;
         case "MediumRectangle": return AdSizeCons.MediumRectangle;
         case "Banner": return AdSizeCons.Banner;
         case "LargeBanner": return AdSizeCons.LargeBanner;
@@ -124,6 +143,34 @@ namespace scripting.iOS
       // Request an ad
       m_adView.LoadRequest(request);
       return m_adView;
+    }
+  }
+  public class InitAds : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      bool isList = false;
+      List<Variable> args = Utils.GetArgs(script,
+                            Constants.START_ARG, Constants.END_ARG, out isList);
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string appId = args[0].AsString();
+      string interstId = Utils.GetSafeString(args, 1);
+      string bannerId = Utils.GetSafeString(args, 1);
+
+      AdMob.Init(appId, interstId, bannerId);
+
+      return Variable.EmptyInstance;
+    }
+  }
+  public class ShowInterstitial : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      AdMob.ShowInterstitialAd(AppDelegate.GetCurrentController());
+      script.MoveForwardIf(Constants.END_ARG);
+
+      return Variable.EmptyInstance;
     }
   }
 }

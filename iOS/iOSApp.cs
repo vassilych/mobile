@@ -264,7 +264,7 @@ namespace scripting.iOS
 
       this.ViewControllerSelected += OnTabSelected;
 
-      CommonFunctions.RunScript();
+      CustomInit.InitAndRunScript();
 
       if (m_selectedTab >= 0) {
         SelectTab(m_selectedTab);
@@ -339,11 +339,12 @@ namespace scripting.iOS
         return;
       }
 
-      UIView uiview = view.ViewX;
+      /*UIView uiview = view.ViewX;
       if (uiview == null) {
         uiview = AppDelegate.GetCurrentView();
       }
-      uiview.Hidden = !showIt;
+      uiview.Hidden = !showIt;*/
+      view.ShowHide(showIt);
 
       if (tabChange) {
         return;
@@ -353,12 +354,6 @@ namespace scripting.iOS
       } else if (showIt && explicitlyHidden) {
         m_hiddenViews.Remove(view);
       }
-    }
-
-    public static string ProcessClick(string arg)
-    {
-      var now = DateTime.Now.ToString("T");
-      return "Clicks: " + arg + "\n" + now;
     }
 
     public override void DidReceiveMemoryWarning()

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AD_UNIT_ID_FOR_BANNER_TEST</key>
+	<string>ca-app-pub-3940256099942544/2934735716</string>
+	<key>AD_UNIT_ID_FOR_INTERSTITIAL_TEST</key>
+	<string>ca-app-pub-3940256099942544/4411468910</string>
+	<key>CLIENT_ID</key>
+	<string>647525384142-jfa5p070ncao56el3dt3qsr80hcblgod.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.647525384142-jfa5p070ncao56el3dt3qsr80hcblgod</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>647525384142-7uaampn38t2b8pvgour161ml398d8967.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAec-IkBKr1oa1ff_k9Esyog_Lm7_6q8Kg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>647525384142</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>ch.iLanguage.vk</string>
+	<key>PROJECT_ID</key>
+	<string>ilanguage-f9c82</string>
+	<key>STORAGE_BUCKET</key>
+	<string>ilanguage-f9c82.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<true/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:647525384142:ios:e6f16a5d2db0311e</string>
+	<key>DATABASE_URL</key>
+	<string>https://ilanguage-f9c82.firebaseio.com</string>
+</dict>
+</plist>

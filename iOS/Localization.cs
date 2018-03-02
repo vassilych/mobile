@@ -64,13 +64,13 @@ namespace scripting.iOS
         return deviceLangCode;
       }
 
-      var languages = NSBundle.MainBundle.PreferredLocalizations;
+      var languages = NSLocale.PreferredLanguages;
       if (languages == null || languages.Length == 0) {
-        languages = NSLocale.PreferredLanguages;
+        languages = NSBundle.MainBundle.PreferredLocalizations;
       }
 
       deviceLangCode = languages != null && languages.Length > 0 ?
-                       languages[0].Substring(0, 2) : "en";
+                       languages[0] : "en";
       return deviceLangCode;
     }
     public static bool SetProgramLanguageCode(string langCode)

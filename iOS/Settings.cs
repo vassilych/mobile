@@ -36,6 +36,11 @@ namespace scripting.iOS
       g_prefs.SetFloat(val, name);
       g_prefs.Synchronize();
     }
+    static public void SaveSetting(string name, double val)
+    {
+      g_prefs.SetDouble(val, name);
+      g_prefs.Synchronize();
+    }
 
     static public string GetSetting(string name, string defValue = null)
     {
@@ -65,6 +70,14 @@ namespace scripting.iOS
     static public float GetFloatSetting(string name, float defValue = 0)
     {
       float res = g_prefs.FloatForKey(name);
+      if (res == 0.0 && defValue != 0.0) {
+        res = defValue;
+      }
+      return res;
+    }
+    static public double GetDoubleSetting(string name, double defValue = 0)
+    {
+      double res = g_prefs.DoubleForKey(name);
       if (res == 0.0 && defValue != 0.0) {
         res = defValue;
       }

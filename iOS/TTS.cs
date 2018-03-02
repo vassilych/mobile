@@ -7,19 +7,11 @@ namespace scripting.iOS
   {
     static AVSpeechSynthesizer g_synthesizer = new AVSpeechSynthesizer();
 
-    static bool m_sound = true;
-    static public bool Sound {
-      set {
-        m_sound = value;
-      }
-      get {
-        return m_sound;
-      }
-    }
-    static public float  SpeechRate { set; get; }      = 0.5f;
-    static public float  Volume { set; get; }          = 0.7f;
-    static public float  PitchMultiplier { set; get; } = 1.0f;
-    static public string Voice { set; get; }           = "en-US";
+    public static bool   Sound { set; get; }           = true;
+    public static float  SpeechRate { set; get; }      = 1.0f;
+    public static float  Volume { set; get; }          = 0.7f;
+    public static float  PitchMultiplier { set; get; } = 1.0f;
+    public static string Voice { set; get; }           = "en-US";
 
     static bool m_initDone;
 
@@ -37,7 +29,7 @@ namespace scripting.iOS
 
     public static void Speak(string text, bool force = false)
     {
-      if (!force && !m_sound) {
+      if (!force && !Sound) {
         return;
       }
       if (g_synthesizer.Speaking) {
