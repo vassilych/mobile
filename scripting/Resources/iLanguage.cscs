@@ -1,0 +1,163 @@
+﻿WriteConsole(Now(), " Starting processing script");
+
+ImportFile("functions.cscs");
+ImportFile("utilFunctions.cscs");
+ImportFile("quizFunctions.cscs");
+
+SetBackground("us_bg");
+
+// ------- ALL GLOBAl VARIABLES -----
+init               = true;
+applyingLanguage   = false;
+voiceRow           = 0;
+languageRow        = 1;
+codeRow            = 2;
+countryRow         = 3;
+startWords         = 4;
+transcriptCol      = 14;
+category           = "";
+fallbackVoices     = {};
+soundOn            = 1;
+
+voice              = "";
+voiceNative        = "";
+categoryIndex      = 0;
+wordIndex          = 0;
+voiceWordIndex     = 0;
+currentWordsTotal  = 0;
+categoryWords      = {};
+categoryWordMap    = {};
+wordIdsFound       = {};
+wordsFound         = {};
+countryPics        = {};
+cache              = {};
+firstSearch        = 1;
+
+findMode           = 0;
+phrasesMode        = 0;
+voiceIndex         = 0;
+voiceNativeIndex   = 0;
+findMaxWords       = 7;
+currentWord        = "";
+currentWordPure    = "";
+
+adsPurchased       = 0;
+speechPurchased    = 0;
+speechFreeWords    = 0;
+maxSpeechFreeWords = 6;
+
+wordsCategory      = "animal world";
+phrasesCategory    = "phrases greetings";
+
+//------  LOAD DATA --------
+//WriteConsole(Now(), " Reading file");
+lines = ReadFile("dictionary.txt");
+//WriteConsole(Now(), " Processing file");
+
+lineNr = 0;
+for (line : lines) {
+  if (lineNr >= startWords) {
+    break;
+  }
+  //WriteConsole(Now(), " Processing lineNr ", lineNr);
+  tokens = tokenize(line, "\t");
+  tokenCount = 0;
+  for (token : tokens) {
+    if (tokenCount++ == 0) {
+      continue;
+    }
+    index = tokenCount - 2; // to start from 0.
+    if (lineNr == voiceRow) {
+      voices[index] = token;
+      voiceIndices[token] = index;
+    } elif (lineNr == languageRow) {
+      if (tokenCount <= transcriptCol) {
+        languages[index] = token;
+      }
+    } elif (lineNr == codeRow) {
+      codes[index] = token;
+      if (index > 0 && codes[index] == codes[index - 1]) {
+        fallbackVoices[voices[index]]     = voices[index - 1];
+        fallbackVoices[voices[index - 1]] = voices[index];
+      }
+    } elif (lineNr == countryRow) {
+      countries[index]          = token;
+      countryImages[index]      = token + "_bg";
+      countryWideImages[index]  = token + "_w_bg";
+    }
+  }
+  lineNr++;
+}
+TokenizeLines("all", lines, startWords);
+AddAllToHash("categories", lines, startWords, "all");
+
+totalWords = size(all) - startWords;
+
+CountTokens(all, "categoryWordMap", 0);
+
+for (voice : voices) {
+  words[voice] = getcolumn(all, voiceIndices[voice] + 1);
+}
+
+allCategories = getkeys(categories);
+
+WriteConsole(Now(), " Done processing file. Total words: ", totalWords);
+
+// ------ QUIZ VARIABLES --------
+quizRunning        = 0;
+quizCancelled      = 0;
+quizGuesses        = 0;
+quizCorrectGuesses = 0;
+quizTotalWords     = 10;
+quizAvailableWords = 0;
+quizWords          = {};
+randomList         = {};
+correctWord        = 0;
+correctWordIndex   = 0;
+waitingGuess       = 0;
+quizWordOptions    = 6;
+quizType           = 0;
+stopwatch          = 0;
+currentRecord      = "";
+quizCorrectWord    = "";
+quizRecordKey      = "";
+quizRecordPercent  = 0;
+quizRecordTime     = 0;
+
+// Different settings for iPhone and Android AdMob and IAP:
+if (_IOS_) {
+  appId           = "ca-app-pub-5365456490909700~2128563695";
+  interstitialId  = "ca-app-pub-5365456490909700/7192496494";
+  bannerId        = "ca-app-pub-5365456490909700/3326095292";
+  // In App Purchase:
+  productIdAds    = "ch.iLanguage.vk.adRemoval2";
+  productIdSpeech = "ch.iLanguage.vk.speech";
+} elif (_ANDROID_) {
+  appId           = "ca-app-pub-5365456490909700~8197798895";
+  interstitialId  = "ca-app-pub-5365456490909700/2151265291";
+  bannerId        = "ca-app-pub-5365456490909700/8058198097";
+  // In App Purchase:
+  productIdAds    = "ilanguage_ads_removal";
+  productIdSpeech = "ilanguage_speech_pack";
+}
+// Ids for testing. Comment them out when going Prod:
+//bannerId          = "ca-app-pub-3940256099942544/6300978111";
+//interstitialId    = "ca-app-pub-3940256099942544/1033173712";
+
+InitTTS();
+InitAds(appId, interstitialId, bannerId);
+InitIAP("FMuH3TliG87mZJmHjK6uo2xZjkXIIGqi4tIwjY79GYtSa2Z2TPQkYrn4TEiKnaUgSgFtV0CIhq8vJFH7tDN7wIDAQAB",
+        "4gjtc2ZpODWv0XvokqgculmS2/",
+        "ggSJ17lUvXY5PsnzaQdIeZ7AESGPC9+L1fetzvnQLqshQICMjSB38sUQqOI2sLAuvPS5fKRRz+hRemTVqDtDHMsps3uV5uV67P0VpuOsA3k69azu02YrQTFlobyFbnFyFtQ2Z1Gn/PBDbLK6tYX+",
+        "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAojKkcYzjBBF2aA+hopR7IeMBE0hoAyivEx+qSQ5eFEC5Jpm5OqJonfPwjecc6RFVzGVXG86zBfTQuSvd6w+"
+);
+
+//WriteConsole(Now(), " Creating GUI...");
+
+ImportFile("gui.cscs");
+
+OnTabSelected("tab_selected");
+OnEnterBackground("on_background");
+
+init = false;
+WriteConsole(Now(), " Completed running script.");

@@ -1,0 +1,149 @@
+﻿AutoScale(1.0);
+SetBackgroundColor("gainsboro");
+
+locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 50);
+/*
+//AddSfQRBarcode(locSFWidget,  "QRBarcode", "http://www.google.com", 450, 450);
+//AddSfCode39Barcode(locSFWidget, "Code39Barcode", "$9.99", 600, 400);
+AddSfPicker(locSFWidget,     "cbCurrency", "75", 200, 380);
+currencies = {"EUR",   "USD",   "GBP",   "CHF",   "BTC", "JPY",   "CNY",   "MXN",   "RUB",   "BRL",   "SAR"};
+flags      = {"eu_EU", "en_US", "en_GB", "de_CH", "BTC", "ja_JP", "zh_CN", "es_MX", "ru_RU", "pt_BR", "ar_SA"};
+AddWidgetData(cbCurrency, currencies);
+AddWidgetImages(cbCurrency, flags);
+SetSize(cbCurrency, 80, 40);
+SetText(cbCurrency, "BTC");*/
+
+/*
+AddSfCircularGauge(locSFWidget, "CircularGauge", "", 400, 400);
+SetValue(CircularGauge, "from",               0);
+SetValue(CircularGauge, "to",                 160);
+SetValue(CircularGauge, "step",               10);
+SetValue(CircularGauge, "value",              90);
+SetValue(CircularGauge, "start_angle",        30);
+SetValue(CircularGauge, "sweep_angle",        330);
+SetValue(CircularGauge, "start_range2",       120);
+SetValue(CircularGauge, "radius_knob",        12);
+SetValue(CircularGauge, "color_needle",       "blue");
+SetValue(CircularGauge, "color_knob",         "rose");
+SetValue(CircularGauge, "color_labels",       "black");
+SetValue(CircularGauge, "color_range1",       "green");
+SetValue(CircularGauge, "color_range2",       "red");
+SetValue(CircularGauge, "color_minorticks",   "gray");
+SetValue(CircularGauge, "color_majorticks",   "black");
+SetValue(CircularGauge, "scale2_from",        0);
+SetValue(CircularGauge, "scale2_to",          100);
+SetValue(CircularGauge, "scale2_interval",    5);
+SetValue(CircularGauge, "scale2_rimcolor",    "yellow");
+SetValue(CircularGauge, "scale2_labelcolor",  "black");
+
+SetText(CircularGauge,  "km, mi/h");
+*/
+
+
+h = 200;
+w = 200;
+delta = 3;
+locSFWidget1 = GetLocation("ROOT", "LEFT", "ROOT", "TOP", delta, 12);
+AddSfBusyIndicator(locSFWidget1, "BusyIndicator1", "ball", h, w);
+
+locSFWidget2 = GetLocation(BusyIndicator1, "RIGHT",
+                           BusyIndicator1, "CENTER", delta);
+AddSfBusyIndicator(locSFWidget2, "BusyIndicator2", "battery", h, w);
+
+locSFWidget3 = GetLocation(BusyIndicator2, "RIGHT",
+                           BusyIndicator2, "CENTER", delta);
+AddSfBusyIndicator(locSFWidget3, "BusyIndicator3", "box", h, w);
+
+locSFWidget4 = GetLocation(BusyIndicator1, "CENTER",
+                           BusyIndicator1, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget4, "BusyIndicator4", "doublecircle", h, w);
+
+locSFWidget5 = GetLocation(BusyIndicator2, "CENTER",
+                           BusyIndicator2, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget5, "BusyIndicator5", "ecg", h, w);
+
+locSFWidget6 = GetLocation(BusyIndicator3, "CENTER",
+                           BusyIndicator3, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget6, "BusyIndicator6", "gear", h, w);
+
+locSFWidget7 = GetLocation(BusyIndicator4, "CENTER",
+                           BusyIndicator4, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget7, "BusyIndicator7", "globe", h, w);
+
+locSFWidget8 = GetLocation(BusyIndicator5, "CENTER",
+                           BusyIndicator5, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget8, "BusyIndicator8", "pulsing", h, w);
+
+locSFWidget9 = GetLocation(BusyIndicator6, "CENTER",
+                           BusyIndicator6, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget9, "BusyIndicator9", "movie", h, w);
+
+locSFWidget10 = GetLocation(BusyIndicator7, "CENTER",
+                            BusyIndicator7, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget10, "BusyIndicator10", "print", h, w);
+
+locSFWidget11 = GetLocation(BusyIndicator8, "CENTER",
+                            BusyIndicator8, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget11, "BusyIndicator11", "rectangle", h, w);
+
+locSFWidget12 = GetLocation(BusyIndicator9, "CENTER",
+                            BusyIndicator9, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget12, "BusyIndicator12", "rollingball", h, w);
+
+locSFWidget13 = GetLocation(BusyIndicator10, "CENTER",
+                            BusyIndicator10, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget13, "BusyIndicator13", "singlecircle", h, w);
+
+locSFWidget14 = GetLocation(BusyIndicator11, "CENTER",
+                            BusyIndicator11, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget14, "BusyIndicator14", "slicedcircle", h, w);
+
+locSFWidget15 = GetLocation(BusyIndicator12, "CENTER",
+                            BusyIndicator12, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget15, "BusyIndicator15", "zooming", h, w);
+
+SetValue(BusyIndicator1,  "color", "green");
+SetValue(BusyIndicator2,  "color", "sky_blue");
+SetValue(BusyIndicator3,  "color", "brown");
+SetValue(BusyIndicator4,  "color", "black");
+SetValue(BusyIndicator5,  "color", "pink");
+SetValue(BusyIndicator6,  "color", "dark_gray");
+SetValue(BusyIndicator7,  "color", "light_blue");
+SetValue(BusyIndicator8,  "color", "deep_sky_blue");
+SetValue(BusyIndicator9,  "color", "blue");
+SetValue(BusyIndicator10, "color", "red");
+SetValue(BusyIndicator11, "color", "silver");
+SetValue(BusyIndicator12, "color", "blue");
+SetValue(BusyIndicator13, "color", "blue");
+SetValue(BusyIndicator14, "color", "yellow");
+SetValue(BusyIndicator15, "color", "gray");
+SetValue(BusyIndicator9,  "secondary_color", "red");
+SetValue(BusyIndicator12, "secondary_color", "red");
+
+//AddSfCalendar(locSFWidget, "Calendar", "", 450, 450);
+//AddSfAppointment(Calendar, "Private Appointment", "2018/01/08 13:00", "2018/01/08 14:00", "brown");
+//AddSfAppointment(Calendar, "Job Interview", "2018/01/25 15:00", "2018/01/25 16:00", "green");
+
+/*
+AddSfDigitalGauge(locSFWidget,  "DigitalGauge", "", 500, 200);
+SetValue(DigitalGauge, "value", Now("HH:mm:ss"));
+SetFontColor(DigitalGauge,  "green");
+
+Schedule(1000, "timer_timeout", "", "timerId", true);
+function timer_timeout(sender, arg) {
+  SetValue(DigitalGauge, "value", Now("HH:mm:ss"));
+}
+*/
+
+/*locStepper1 = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
+AddSfStepper(locStepper1, "stepper1", "70:10:120:5", 300, 60);
+SetValue(stepper1, "buttons", "both");
+
+locStepper2 = GetLocation("ROOT", "CENTER", stepper1, "BOTTOM", 0, 10);
+AddSfStepper(locStepper2, "stepper2", "70:10:120:5", 300, 60);
+SetValue(stepper2, "buttons", "left");
+
+locStepper3 = GetLocation("ROOT", "CENTER", stepper2, "BOTTOM", 0, 10);
+AddSfStepper(locStepper3, "stepper3", "70:10:120:5", 300, 60);
+SetValue(stepper3, "buttons", "right");
+*/

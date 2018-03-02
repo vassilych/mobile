@@ -1,0 +1,41 @@
+﻿AutoScale();
+SetBackgroundColor("gainsboro");
+
+if (_IOS_) {
+  appId           = "ca-app-pub-5365456490909700~2128563695";
+  interstitialId  = "ca-app-pub-5365456490909700/7192496494";
+  bannerId        = "ca-app-pub-5365456490909700/3326095292";
+} elif (_ANDROID_) {
+  appId           = "ca-app-pub-5365456490909700~8197798895";
+  interstitialId  = "ca-app-pub-5365456490909700/2151265291";
+  bannerId        = "ca-app-pub-5365456490909700/8058198097";
+}
+
+// Ids for testing. Comment them out when going Prod:
+bannerId          = "ca-app-pub-3940256099942544/6300978111";
+interstitialId    = "ca-app-pub-3940256099942544/1033173712";
+
+InitAds(appId, interstitialId, bannerId);
+
+
+locClickme = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 0);
+AddButton(locClickme, "buttonClickme", "Interstitial", 200, 80);
+AddAction(buttonClickme,  "clickme_click");
+
+function clickme_click(sender, arg) {
+  ShowInterstitial();
+}
+
+locAd1 = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 0, 0);
+AddAdMobBanner(locAd1, "adMob1", "MediumRectangle", DisplayWidth, 500);
+
+locAd2 = GetLocation("ROOT", "LEFT", buttonClickme, "BOTTOM", 0, 20);
+AddAdMobBanner(locAd2, "adMob2", "FullBanner", DisplayWidth, 160);
+
+locAd3 = GetLocation("ROOT", "LEFT", adMob2, "BOTTOM", 0, 10);
+AddAdMobBanner(locAd3, "adMob3", "LargeBanner", DisplayWidth, 200);
+
+locAd4 = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, 0);
+AddAdMobBanner(locAd4, "adMob4", "Banner", DisplayWidth, 100);
+
+

@@ -1,0 +1,48 @@
+﻿a = 2; // 0x0010
+b = 3; // 0x0011
+c = 4; // 0x0100
+d = 5; // 0x0101
+e = 6; // 0x0110
+x = b & c;
+y = b | c;
+z = a & b & c;
+t = a | b | c;
+WriteConsole("Script completed. " + x + "," + y + "," + z + "," + t);
+
+AutoScale();
+
+SetBackgroundColor("cyan");
+
+locClickme = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
+AddButton(locClickme, "buttonClickme", "Click me", 200, 80);
+AddAction(buttonClickme,  "clickme_click");
+SetFontSize(buttonClickme, 12);
+
+locVersionLabel = GetLocation(buttonClickme, "ALIGN_LEFT", buttonClickme, "TOP");
+AddLabel(locVersionLabel, "versionLabel", "", 360, 60);
+SetFontSize(versionLabel, 12);
+
+locSizeLabel = GetLocation(buttonClickme, "CENTER", buttonClickme, "BOTTOM");
+AddLabel(locSizeLabel, "sizeLabel", "", 360, 60);
+SetFontSize(sizeLabel, 10);
+
+locOrientationLabel = GetLocation(buttonClickme, "RIGHT", buttonClickme, "CENTER");
+AddLabel(locOrientationLabel, "orientationLabel", "", 160, 80);
+SetFontSize(orientationLabel, 10);
+
+clicks = 0;
+function clickme_click(sender, arg) {
+  clicks++;
+  if (clicks == 1) {
+    SetText(versionLabel, "Hello, " + _DEVICE_INFO_ + ", " +
+                          _VERSION_INFO_, "left");
+  } elif (clicks == 2) {
+    SetText(sizeLabel, "Size: " + DisplayWidth + "x" + DisplayHeight +
+                       ". Locale: " + GetDeviceLocale(), "center");
+  } elif (clicks == 3) {
+    SetText(orientationLabel, "Orientation: " + Orientation, "center");
+  } else {
+    SetText(buttonClickme, "Clicks: " + clicks, "center");
+  }
+}
+

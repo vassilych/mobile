@@ -1,0 +1,139 @@
+﻿function get_fontsize(text) {
+  length = size(text);
+  if (length < 30) {
+    return 15;
+  } elif (length < 40) {
+    return 14;
+  } elif (length < 50) {
+    return 13;
+  } elif (length < 60) {
+    return 12;
+  } elif (length < 70) {
+    return 11;
+  }
+  return 10;
+}
+
+function normalizeWord(origWord)
+{
+  word = StrLower(origWord);
+  word = StrReplace(word, ".", "");
+  word = StrReplace(word, ",", "");
+  word = StrReplace(word, "!", "");
+  word = StrReplace(word, "¡", "");
+  word = StrReplace(word, "?", "");
+  word = StrReplace(word, "¿", "");
+  word = StrReplace(word, "(", "");
+  word = StrReplace(word, ")", "");
+  word = StrReplace(word, "ó", "o");
+  word = StrReplace(word, "á", "a");
+  word = StrReplace(word, "é", "e");
+  word = StrReplace(word, "ё", "е"); // Russian
+  return word;
+}
+function number2String(word)
+{
+  if (category != "numbers & math") {
+    return word;
+  }
+  word = StrReplace(StrReplace(word, "1,2", "one point two"), "1.2", "one point two");
+  word = StrReplace(word, "1000000", "million");
+  word = StrReplace(word, "1000", "thousand");
+  word = StrReplace(word, "900", "nine hundred");
+  word = StrReplace(word, "800", "eight hundred");
+  word = StrReplace(word, "700", "seven hundred");
+  word = StrReplace(word, "600", "six hundred");
+  word = StrReplace(word, "500", "five hundred");
+  word = StrReplace(word, "400", "four hundred");
+  word = StrReplace(word, "300", "three hundred");
+  word = StrReplace(word, "200", "two hundred");
+  word = StrReplace(word, "100", "hundred");
+  word = StrReplace(word, "99", "ninety-nine");
+  word = StrReplace(word, "90", "ninety");
+  word = StrReplace(word, "80", "eighty");
+  word = StrReplace(word, "70", "seventy");
+  word = StrReplace(word, "60", "sixty");
+  word = StrReplace(word, "50", "fifty");
+  word = StrReplace(word, "40", "fourty");
+  word = StrReplace(word, "30", "thirty");
+  word = StrReplace(word, "29", "twenty-nine");
+  word = StrReplace(word, "28", "twenty-eight");
+  word = StrReplace(word, "27", "twenty-seven");
+  word = StrReplace(word, "26", "twenty-six");
+  word = StrReplace(word, "25", "twenty-five");
+  word = StrReplace(word, "24", "twenty-four");
+  word = StrReplace(word, "23", "twenty-three");
+  word = StrReplace(word, "22", "twenty-two");
+  word = StrReplace(word, "21", "twenty-one");
+  word = StrReplace(word, "20", "twenty");
+  word = StrReplace(word, "19", "nineteen");
+  word = StrReplace(word, "18", "eighteen");
+  word = StrReplace(word, "17", "seventeen");
+  word = StrReplace(word, "16", "sixteen");
+  word = StrReplace(word, "15", "fifteen");
+  word = StrReplace(word, "14", "fourteen");
+  word = StrReplace(word, "13", "thirteen");
+  word = StrReplace(word, "12", "twelve");
+  word = StrReplace(word, "11", "eleven");
+  word = StrReplace(word, "10", "ten");
+  word = StrReplace(word, "9", "nine");
+  word = StrReplace(word, "8", "eight");
+  word = StrReplace(word, "7", "seven");
+  word = StrReplace(word, "6", "six");
+  word = StrReplace(word, "5", "five");
+  word = StrReplace(word, "4", "four");
+  word = StrReplace(word, "3", "three");
+  word = StrReplace(word, "2", "two");
+  word = StrReplace(word, "1", "one");
+  word = StrReplace(word, "0", "zero");
+  return word;
+}
+function sameWords(word1, word2)
+{
+  return StrEqual(normalizeWord(word1), normalizeWord(word2));
+}
+function compare_words(expected, recognized)
+{
+  convertedNumber = number2String(recognized);
+  if (recognized != convertedNumber) {
+    // Succeeded in number conversion
+    expectedEn = get_word(1, voiceWordIndex);
+    same = sameWords(expectedEn, convertedNumber);
+    //WriteConsole("convertedNumber ", convertedNumber, "<--", recognized, ", expectedEn:", expectedEn,
+    //  ", voiceWordIndex=", voiceWordIndex, ", same:", same);
+  } else {
+    same = sameWords(expected, recognized);
+  }
+  
+  //WriteConsole("Expected ", expected, "<--", recognized, ", same:", same);
+  if (same) {
+    color = "green";
+  } else {
+    color = "red";
+  }
+  
+  //WriteConsole("You said: " + recognized, ", expected: ", expected);
+  ShowToast(Localize("You said:") + " " + recognized, 10, "white", color);
+  return color == "green";
+}
+
+function on_background(sender, arg)
+{
+  if (_ANDROID_) {
+    //KillMe();
+  }
+}
+
+function convertVoiceForSpeech(voice)
+{
+  if (_IOS_) {
+    return voice;
+  }
+  if (voice == "de-CH") {
+    return "de-DE";
+  }
+  if (voice == "zh-CN") {
+    return "cmn-Hans-CN";
+  }
+  return voice;
+}

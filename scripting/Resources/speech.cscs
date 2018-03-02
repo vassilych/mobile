@@ -1,0 +1,23 @@
+﻿AutoScale();
+//SetStyle("tabs")
+SetBackground("scream");
+voice = "en-US";
+
+locButtonTalk = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -10);
+AddButton(locButtonTalk, "buttonTalk", "", 200, 200);
+AddAction(buttonTalk, "talk_click");
+SetImage(buttonTalk, "microphone");
+
+function talk_click(sender, arg) {
+  //Speak("Say anything", voice);
+  ShowToast("Start talking...", 5, "white", "black");
+  VoiceRecognition("voice_recog", voice);
+}
+function voice_recog(errorStatus, recognized) {
+  if (errorStatus != "") {
+    AlertDialog("CSCS", "Error: " + errorStatus);
+  } else {
+    ShowToast("Recognized: " + recognized, 5, "blue", "green");
+    Speak("You said: " + recognized, voice);
+  }
+}

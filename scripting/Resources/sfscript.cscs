@@ -1,0 +1,521 @@
+﻿AutoScale();
+
+//SetBackgroundColor("cyan");
+SetBackground("us_bg");
+
+locComboWidgets = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 10, 0);
+AddCombobox(locComboWidgets, "comboWidgets", "center:white:clear", 360, 60);
+
+locComboOption1 = GetLocation("ROOT", "LEFT", comboWidgets, "BOTTOM", 10, 16);
+AddCombobox(locComboOption1, "option1", "", 300, 60);
+
+locComboValue1 = GetLocation(option1, "RIGHT", option1, "CENTER", 10, 0);
+AddCombobox(locComboValue1, "option2", "", 300, 60);
+
+locComboOption2 = GetLocation("ROOT", "LEFT", option1, "BOTTOM", 10, 10);
+AddCombobox(locComboOption2, "option3", "", 300, 60);
+
+locOptionValue2 = GetLocation(option3, "RIGHT", option3, "CENTER", 10, 0);
+AddSfStepper(locOptionValue2, "stepper", "70:10:120:10", 300, 60);
+
+locTextEdit = GetLocation("ROOT", "LEFT", stepper, "BOTTOM", 10, 6);
+AddTextEdit(locTextEdit, "textEdit", "http://www.google.com", 480, 60);
+SetText(textEdit, "www.vilaka.com");
+
+locButtonGo = GetLocation(textEdit, "RIGHT", stepper, "BOTTOM", 6, 6);
+AddButton(locButtonGo, "buttonGo", "Go!", 80, 60);
+
+locSFWidget = GetLocation("ROOT", "CENTER", textEdit, "BOTTOM", 0, 10);
+AddSfCircularGauge(locSFWidget, "CircularGauge", "0:10:60:100", 400, 400);
+AddSfDigitalGauge(locSFWidget,  "DigitalGauge", "", 500, 200);
+AddSfQRBarcode(locSFWidget,     "QRBarcode", "www.iLanguage.ch", 450, 450);
+AddSfCode39Barcode(locSFWidget, "Code39Barcode", "$9.99", 600, 400);
+AddSfBusyIndicator(locSFWidget, "BusyIndicator", "", 400, 400);
+AddSfSplineGraph(locSFWidget,   "SplineGraph", "", 600, 500);
+AddSfDoughnutGraph(locSFWidget, "DoughnutGraph", "", 600, 500);
+AddSfDoughnutGraph(locSFWidget, "SemiDoughnutGraph", "", 600, 500);
+AddSfDataGrid(locSFWidget,      "DataGrid", "", 600, 625);
+AddSfPicker(locSFWidget,        "Picker", "80:Select Currency", 250, 350);
+
+sfWidgets     = {"CircularGauge", "DigitalGauge", "QRBarcode", "Code39Barcode", "BusyIndicator",
+                 "SplineGraph", "DoughnutGraph", "SemiDoughnutGraph", "DataGrid", "Picker",
+                 "Excel", "Open Excel", "Pdf", "Open Pdf", "Word"};
+optionsGauge  = {"color_needle", "color_knob", "color_labels", "color_range1", "color_range2",
+                "color_minorticks", "color_majorticks"};
+optionsColor = {"black", "blue", "brown", "cyan", "dark_gray", "gray", "green",
+                "light_gray", "magenta", "orange", "purple", "red", "yellow", "transparent"};
+optionsScale  = {"from", "step", "to", "value", "start_range2"};
+optionValuesBusy = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe", "pulsing",
+                    "movie", "print", "rectangle", "rollingball", "singlecircle", "slicedcircle", "zooming"};
+
+chartData1 = {"Jan", -3, "Feb", -2, "Mar", 0, "Apr", 7, "May", 17, "Jun", 23,
+              "Jul", 26, "Aug", 28, "Sep", 21, "Oct", 14, "Nov", 7, "Dec", 1};
+chartData2 = {"Jan", -17, "Feb", -19, "Mar", -7, "Apr", 9, "May", 19, "Jun", 25,
+              "Jul", 31, "Aug", 33, "Sep", 23, "Oct", 11, "Nov", -2, "Dec", -11};
+chartData3 = {"Jan", 23, "Feb", 22, "Mar", 25, "Apr", 29, "May", 32, "Jun", 31,
+              "Jul", 31, "Aug", 36, "Sep", 33, "Oct", 25, "Nov", 23, "Dec", 21};
+chartDataF = {"USA", 368, "UK", 132, "Germany", 107, "France", 62, "Sweden", 30,
+              "Switzerland", 26, "Japan", 26, "Canada", 23, "Russia", 23, "Austria", 21};
+chartDataD = {"Italy", 50900, "France", 45200, "Spain", 39300, "USA", 23600,
+              "Australia", 13100};
+currencies = {"EUR",   "USD",   "GBP",   "CHF",   "JPY",   "CNY",   "MXN",   "RUB",   "BRL",   "SAR"};
+flags      = {"eu_EU", "en_US", "en_GB", "de_CH", "ja_JP", "zh_CN", "es_MX", "ru_RU", "pt_BR", "ar_SA"};
+
+AddWidgetData(comboWidgets, sfWidgets, "", "center");
+AddWidgetData(option1,  optionsGauge,  "", "center");
+AddWidgetData(option2,  optionsColor,  "", "center");
+AddWidgetData(option3,  optionsScale,  "", "center");
+
+
+AddWidgetData(SplineGraph,       chartData1,  "Zurich",   "green:black");
+AddWidgetData(SplineGraph,       chartData2,  "Moscow",   "red:black");
+AddWidgetData(SplineGraph,       chartData3,  "Acapulco", "yellow:black");
+AddWidgetData(DoughnutGraph,     chartDataF,  "values",   "0:360");
+AddWidgetData(SemiDoughnutGraph, chartDataD,  "percent",  "180:360");
+
+AddWidgetData(Picker, currencies);
+AddWidgetImages(Picker, flags);
+SetValue(Picker, "alignment", "center");
+
+listCols   = {"Name", "string", "Age", "number", "Profession", "string", "Salary", "currency"};
+person1    = {"Christiano", "30", "Soccer Player",     "60000000"};
+person2    = {"Roger",      "27", "Tennis Player",     "40000000"};
+person3    = {"Sharon",     "47", "Actress",           "30000000"};
+person4    = {"Justin",     "34", "Singer",            "20000000"};
+person5    = {"Sergio",     "52", "CEO TheBank",       "5000000"};
+person6    = {"Viktor",     "41", "VP Engineering",    "350000"};
+person7    = {"Beat",       "44", "Psychiatrist",      "280000"};
+person8    = {"Larissa",    "39", "Doctor",            "200000"};
+person9    = {"Elena",      "29", "Software Engineer", "120000"};
+person10   = {"Pedro",      "41", "Quality Engineer",  "115000"};
+person11   = {"John",       "48", "Nuclear Physicist", "95000"};
+person12   = {"Diana",      "21", "Office Manager",    "90000"};
+person13   = {"Freddy",     "51", "Unemployed",        "20000"};
+AddWidgetData(DataGrid, listCols,  "columns");
+AddWidgetData(DataGrid, person1,  "item");
+AddWidgetData(DataGrid, person2,  "item");
+AddWidgetData(DataGrid, person3,  "item");
+AddWidgetData(DataGrid, person4,  "item");
+AddWidgetData(DataGrid, person5,  "item");
+AddWidgetData(DataGrid, person6,  "item");
+AddWidgetData(DataGrid, person7,  "item");
+AddWidgetData(DataGrid, person8,  "item");
+AddWidgetData(DataGrid, person9,  "item");
+AddWidgetData(DataGrid, person10, "item");
+AddWidgetData(DataGrid, person11, "item");
+AddWidgetData(DataGrid, person12, "item");
+AddWidgetData(DataGrid, person13, "item");
+
+SetText(SplineGraph,       "World Temperatures 2015");
+SetText(DoughnutGraph,     "World Nobel Laureates 2017");
+SetText(SemiDoughnutGraph, "World Wine Production 2016");
+SetText(Picker,            "CHF");
+
+SetValue(SplineGraph, "primary_axis",   "Month");
+SetValue(SplineGraph, "secondary_axis", "Temperature");
+
+SetValue(stepper, "buttons", "both");
+
+SetValue(comboWidgets, "alignment", "center");
+SetValue(comboWidgets, "text2", "Done");
+//SetBackgroundColor(comboWidgets, "gray");
+//SetValue(comboWidgets, "backgroundcolorpicker", "red");
+//SetValue(comboWidgets, "backgroundcolorbutton2", "green");
+//SetValue(comboWidgets, "fontcolor2", "yellow");
+
+SetValue(DataGrid, "swipe_edit",   true);
+SetValue(DataGrid, "swipe_delete", true);
+SetValue(DataGrid, "allow_drag",   true);
+SetValue(DataGrid, "allow_swap",   true);
+SetValue(DataGrid, "allow_resize", true);
+SetValue(DataGrid, "allow_sort",   true);
+
+SetFontSize(comboWidgets, 13);
+SetFontSize(option1,      13);
+SetFontSize(option2,      13);
+SetFontSize(option3,      13);
+SetFontSize(stepper,      13);
+SetFontSize(textEdit,     13);
+SetFontSize(buttonGo,     15);
+
+
+AddAction(comboWidgets, "change_widget");
+AddAction(option1,      "adjust_option");
+AddAction(option2,      "adjust_option");
+AddAction(option3,      "adjust_option");
+AddAction(stepper,      "adjust_option");
+AddAction(buttonGo,     "set_text");
+AddAction(Picker,       "picker_selected");
+
+function set_text(sender, arg) {
+  if (widgetName == "DataGrid") {
+    text = GetText(textEdit);
+    values = tokenize(text, ",");
+    AddWidgetData(DataGrid, values, "item");
+    ShowToast("New entry added...")
+  } else {
+    text = GetText(textEdit);
+    SetText(widgetName, text);
+  }
+}
+
+function adjust_option(sender, arg) {
+  WriteConsole("    --> adjust_option widget: " + widgetName);
+  optionName1  = GetText(option1);
+  optionValue1 = GetText(option2);
+  optionName2  = GetText(option3);
+  stepperValue = GetValue(stepper);
+
+  if (widgetName == "BusyIndicator") {
+    SetValue(widgetName, "type",  optionName1);
+    SetValue(widgetName, "color", optionValue1);
+    SetValue(widgetName, "secondary_color", optionName2);
+    SetValue(widgetName, "duration", stepperValue);
+  } elif (widgetName == "CircularGauge") {
+    SetValue(widgetName, optionName1, optionValue1);
+    SetValue(widgetName, optionName2, stepperValue);
+  }
+}
+function picker_selected(sender, arg) {
+  WriteConsole("Selected Picker: " + arg);
+}
+function change_widget(sender, arg) {
+  widgetName = GetText(comboWidgets);
+  show_widget();
+  adjust_option(sender, arg);
+  WriteConsole("--> change_widget Called show_widget widget: " + widgetName);
+}
+
+function create_excel() {
+  excel = SfExcelNew();
+
+  SfRenameExcelWorksheet(excel, "Expenses");
+  SfAddExcelWorksheet(excel, "Extras");
+  SfActivateExcelWorksheet(excel, 1);
+  SfActivateExcelWorksheet(excel, "Expenses");
+
+  SfExcelSet(excel, "A2", "col_width", 18);
+  SfExcelSet(excel, "B2", "col_width", 12);
+  SfExcelSet(excel, "C2", "col_width", 12);
+  SfExcelSet(excel, "D2", "col_width", 12);
+
+  SfExcelSet(excel, "A2:D2", "merge",  true);
+  SfExcelSet(excel, "A2", "text",       "Expense Report");
+  SfExcelSet(excel, "A2", "font_name",  "Verdana");
+  SfExcelSet(excel, "A2", "font_color", "sky_blue");
+  SfExcelSet(excel, "A2", "font_size",  28);
+  SfExcelSet(excel, "A2", "bold", true);
+  SfExcelSet(excel, "A2", "horizontal_alignment", "center");
+  SfExcelSet(excel, "A2", "row_height",     34);
+
+  SfExcelSet(excel, "A4", "text",           "Employee");
+  SfExcelSet(excel, "B4", "text",           "Roger Federer");
+  SfExcelSet(excel, "A4:B7", "font_name",   "Verdana");
+  SfExcelSet(excel, "A4:B7", "font_size",   11);
+  SfExcelSet(excel, "A4:B7", "bold",        true);
+  SfExcelSet(excel, "A4:A7", "horizontal_alignment", "left");
+  SfExcelSet(excel, "B4:B7", "horizontal_alignment", "right");
+
+  SfExcelSet(excel, "B4:D4", "merge",       true);
+
+  SfExcelSet(excel, "A9:D20", "font_name",  "Verdana");
+  SfExcelSet(excel, "A9:D20", "font_size",  11);
+
+  SfExcelSet(excel, "A5", "text",           "Department");
+  SfExcelSet(excel, "B5", "text",           "Administration");
+  SfExcelSet(excel, "B5:D5", "merge",       true);
+
+  SfExcelSet(excel, "A6", "text",           "Week Ending");
+  SfExcelSet(excel, "B6", "number_format",  "m/d/yyyy");
+  SfExcelSet(excel, "B6", "date_time",      "12/12/2012");
+  SfExcelSet(excel, "B6:D6", "merge",       true);
+
+  SfExcelSet(excel, "A7", "text",           "Mileage Rate");
+  SfExcelSet(excel, "B6", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B7", "number",         0.7);
+  SfExcelSet(excel, "B7:D7", "merge",       true);
+
+  SfExcelSet(excel, "A10", "text",           "Miles Driven");
+  SfExcelSet(excel, "A11", "text",           "Reimbursement");
+  SfExcelSet(excel, "A12", "text",           "Parking/Tolls");
+  SfExcelSet(excel, "A13", "text",           "Auto Rental");
+  SfExcelSet(excel, "A14", "text",           "Lodging");
+  SfExcelSet(excel, "A15", "text",           "Breakfast");
+  SfExcelSet(excel, "A16", "text",           "Lunch");
+  SfExcelSet(excel, "A17", "text",           "Dinner");
+  SfExcelSet(excel, "A18", "text",           "Snacks");
+  SfExcelSet(excel, "A19", "text",           "Others");
+  SfExcelSet(excel, "A20", "text",           "Total");
+  SfExcelSet(excel, "A20:D20", "color",      "yellow");
+  SfExcelSet(excel, "A20:D20", "font_color", "black");
+  SfExcelSet(excel, "A20:D20", "bold",       true);
+
+  SfExcelSet(excel, "B9:D9", "horizontal_alignment",     "right");
+  SfExcelSet(excel, "B9:D9", "vertical_alignment",       "center");
+  SfExcelSet(excel, "B9:D9", "color",                    "light_green");
+  SfExcelSet(excel, "B9:D9", "bold",                     true);
+  SfExcelSet(excel, "B9:D9", "font_color",               "white");
+
+  SfExcelSet(excel, "A9", "text",           "Expenses");
+  SfExcelSet(excel, "A9", "color",          "pink");
+  SfExcelSet(excel, "A9", "font_color",     "white");
+  SfExcelSet(excel, "A9", "bold",           true);
+
+  SfExcelSet(excel, "B9", "text",           "Day 1");
+  SfExcelSet(excel, "B10", "number",         80);
+  SfExcelSet(excel, "B11", "number_format", "$#,##0.00");
+  SfExcelSet(excel, "B11", "formula",       "=(B7*B10)");
+  SfExcelSet(excel, "B12", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B12", "number",         "11");
+  SfExcelSet(excel, "B13", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B13", "number",         "9");
+  SfExcelSet(excel, "B14", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B14", "number",         "13");
+  SfExcelSet(excel, "B15", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B15", "number",         "7");
+  SfExcelSet(excel, "B16", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B16", "number",         "21");
+  SfExcelSet(excel, "B17", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B17", "number",         "22");
+  SfExcelSet(excel, "B18", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B18", "number",         "11");
+  SfExcelSet(excel, "B19", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B19", "number",         "5");
+  SfExcelSet(excel, "B20", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "B20", "formula",        "=SUM(B11:B19)");
+
+  SfExcelSet(excel, "C9", "text",           "Day 2");
+  SfExcelSet(excel, "C10", "number",         120);
+  SfExcelSet(excel, "C11", "number_format", "$#,##0.00");
+  SfExcelSet(excel, "C11", "formula",       "=(B7*B10)");
+  SfExcelSet(excel, "C12", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C12", "number",         "21");
+  SfExcelSet(excel, "C13", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C13", "number",         "17");
+  SfExcelSet(excel, "C14", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C14", "number",         "13");
+  SfExcelSet(excel, "C15", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C15", "number",         "7");
+  SfExcelSet(excel, "C16", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C16", "number",         "24");
+  SfExcelSet(excel, "C17", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C17", "number",         "22");
+  SfExcelSet(excel, "C18", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C18", "number",         "18");
+  SfExcelSet(excel, "C19", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C19", "number",         "15");
+  SfExcelSet(excel, "C20", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "C20", "formula",        "=SUM(C11:C19)");
+
+  SfExcelSet(excel, "D9", "text",            "Day 3");
+  SfExcelSet(excel, "D10", "number",         80);
+  SfExcelSet(excel, "D11", "number_format", "$#,##0.00");
+  SfExcelSet(excel, "D11", "formula",       "=(B7*B10)");
+  SfExcelSet(excel, "D12", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D12", "number",         "13");
+  SfExcelSet(excel, "D13", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D13", "number",         "9");
+  SfExcelSet(excel, "D14", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D14", "number",         "13");
+  SfExcelSet(excel, "D15", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D15", "number",         "17");
+  SfExcelSet(excel, "D16", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D16", "number",         "21");
+  SfExcelSet(excel, "D17", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D17", "number",         "22");
+  SfExcelSet(excel, "D18", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D18", "number",         "14");
+  SfExcelSet(excel, "D19", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D19", "number",         "15");
+  SfExcelSet(excel, "D20", "number_format",  "$#,##0.00");
+  SfExcelSet(excel, "D20", "formula",        "=SUM(D11:D19)");
+
+  SfExcelSet(excel, "A10:D10", "font_color", "dark_blue");
+
+  SfAddExcelChart(excel, "A9:D20", "", 23, 40, 1, 8);
+
+  SfSaveExcel(excel, "hello.xlsx");
+}
+
+function open_excel() {
+  excel = SfExcelOpen("hello.xlsx");
+  //excel = SfExcelOpen("excel.xlsx");
+  SfSaveExcel(excel, "excel2.xlsx");
+}
+
+function create_word() {
+  word = SfWordNew();
+
+  SfAddWordParagraph(word, "header");
+  SfApplyWordStyle(word, "Normal2", "left");
+  SfAddWordTextRange(word, "Adventure Cycles", "Calibri", 12, "red");
+
+  SfAddWordImage(word, "AdventureCycle", 243.5, -24, "InFrontOfText",
+                 "Column", "Milesargin", 20, 15);
+
+  SfAddWordParagraph(word);
+  SfAddWordParagraph(word);
+  SfApplyWordStyle(word, "Heading 1", "center");
+  SfAddWordTextRange(word, "Adventure Works Cycles", "Calibri", 18);
+
+  //SfAddWordParagraph(word, "normal", 36);
+  //SfAddWordTextRange(word, "Adventure Works Cycles, the fictitious company on which the AdventureWorks sample databases are based, is a large, multinational manufacturing company. The company manufactures and sells metal and composite bicycles to North American, European and Asian commercial markets. While its base operation is located in Bothell, Washington with 290 employees, several regional sales teams are located throughout their market base.", "Calibri", 12);
+
+  SfAddWordParagraph(word, "normal", 36);
+  SfAddWordTextRange(word, "In 2000, Adventure Works Cycles bought a small manufacturing plant, Importadores Neptuno, located in Mexico. Importadores Neptuno manufactures several critical subcomponents for the Adventure Works Cycles product line. These subcomponents are shipped to the Bothell location for final product assembly. In 2001, Importadores Neptuno, became the sole manufacturer and distributor of the touring bicycle product group.", "Calibri", 12);
+
+  SfAddWordParagraph(word);
+  SfAddWordParagraph(word);
+  SfApplyWordStyle(word, "Heading 1", "left");
+  SfAddWordTextRange(word, "Product Overview", "Calibri", 16);
+  SfAddWordParagraph(word);
+
+  SfAddWordTable(word, 3, 2, "None");
+
+  SfAddWordParagraph(word, "table", 0, 0, 0);
+  SfAddWordImage(word, "Mountain200", -5, 0, "TopAndBottom",
+                 "Column", "Paragraph", 75, 75);
+
+  SfAddWordParagraph(word);
+  SfAddWordParagraph(word, "table", 0, 0, 1);
+  SfApplyWordStyle(word, "Heading 1");
+  SfAddWordText(word, "Mountain-200");
+
+  SfAddWordParagraph(word, "table", 0, 0, 1);
+  SfAddWordTextRange(word, "Product No: BK-M68B-38\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Size: 38\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Weight: 25\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Price: $2,294.99\n", "Times New Roman", 12);
+  SfAddWordParagraph(word, "table", 0, 0, 1);
+
+  SfAddWordParagraph(word, "table", 0, 1, 0);
+  SfAddWordParagraph(word, "table", 0, 1, 0);
+  SfApplyWordStyle(word, "Heading 1");
+  SfAddWordText(word, "Mountain-300");
+
+  SfAddWordParagraph(word, "table", 0, 1, 0);
+  SfAddWordTextRange(word, "Product No: BK-M47B-38\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Size: 35\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Weight: 22\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Price: $1,089.99\n", "Times New Roman", 12);
+  SfAddWordParagraph(word, "table", 0, 1, 0);
+
+  SfAddWordParagraph(word, "table", 0, 1, 1);
+  SfAddWordParagraph(word, "table", 0, 1, 1);
+  SfAddWordImage(word, "Mountain300", -15, 8, "TopAndBottom",
+                 "Column", "Paragraph", 75, 75);
+
+  SfAddWordParagraph(word, "table", 0, 2, 0);
+  SfAddWordParagraph(word, "table", 0, 2, 0);
+  SfApplyWordStyle(word, "Heading 1");
+  SfAddWordImage(word, "Road550W", -5, 0, "TopAndBottom",
+                 "Column", "Paragraph", 75, 75);
+
+  SfAddWordParagraph(word, "table", 0, 2, 1);
+  SfApplyWordStyle(word, "Heading 1");
+  SfAddWordText(word, "Road-150");
+
+  SfAddWordParagraph(word, "table", 0, 2, 1);
+  SfAddWordTextRange(word, "Product No: BK-R93R-44\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Size: 44\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Weight: 14\n", "Times New Roman", 12);
+  SfAddWordTextRange(word, "Price: $3,599.99\n", "Times New Roman", 12);
+
+  SfAddWordParagraph(word, "table", 0, 2, 1);
+  SfApplyWordStyle(word, "Heading 1");
+
+  SfSaveWord(word, "hello.docx");
+}
+
+function create_pdf() {
+  pdf = SfPdfNew();
+
+  SfSetPdfFont(pdf, "Helvetica", 24, true);
+  SfSetPdfText(pdf, "Take a look at this dog:", 0, 10, "blue");
+
+  SfSetPdfLine(pdf, 0, 50, 640, 50, "green", 4);
+  SfSetPdfImage(pdf, "funnyDog", 0, 70, 640, 420);
+  SfSetPdfLine(pdf, 0, 520, 640, 520, "green", 4);
+
+  SfSavePdf(pdf, "hello.pdf");
+}
+function open_pdf() {
+  pdf = SfPdfOpen("hello.pdf");
+  //pdf = SfPdfOpen("CustomLanguage.pdf");
+  SfSavePdf(pdf, "CustomLanguage2.pdf");
+}
+
+function show_widget() {
+  WriteConsole("Show widget: " + widgetName);
+  hide_all();
+  SetText(textEdit, "");
+
+  CancelSchedule("timerId");
+
+  if (widgetName == "Excel") {
+    create_excel();
+    return;
+  } elif (widgetName == "Word") {
+    create_word();
+    return;
+  } elif (widgetName == "Pdf") {
+    create_pdf();
+    return;
+  } elif (widgetName == "Open Excel") {
+    open_excel();
+    return;
+  } elif (widgetName == "Open Pdf") {
+    open_pdf();
+    return;
+  }
+
+  SetVisible(widgetName, true);
+
+  if (widgetName == "BusyIndicator") {
+    AddWidgetData(option1,  optionValuesBusy,  "", "left");
+    WriteConsole("   added data: " + option1);
+    AddWidgetData(option3,  optionsColor,      "", "left");
+    WriteConsole("   added data: " + option1);
+    SetValue(stepper, "min",    0.1);
+    SetValue(stepper, "value",  1.00);
+    SetValue(stepper, "step",   0.1);
+  } elif (widgetName == "CircularGauge") {
+    SetValue(stepper, "min",    1.00);
+    SetValue(stepper, "value",  50.00);
+    SetValue(stepper, "step",   5.00);
+    SetText(textEdit, "Gauge");
+  } elif (widgetName == "DigitalGauge") {
+    SetValue(DigitalGauge, "value", Now("HH:mm:ss"));
+    Schedule(1000, "timer_timeout", "", "timerId", 1);
+  } elif (widgetName == "DataGrid") {
+    SetText(textEdit, "Person,33,Worker,500000");
+  } elif (widgetName == "QRBarcode") {
+    SetText(textEdit, "http://www.syncfusion.com");
+  } elif (widgetName == "Code39Barcode") {
+    SetText(textEdit, "Ascii");
+  } elif (widgetName == "SplineGraph" || widgetName == "DoughnutGraph" || widgetName == "SemiDoughnutGraph") {
+    SetText(textEdit, "Graph");
+  }
+}
+function timer_timeout(sender, arg) {
+  SetValue(DigitalGauge, "value", Now("HH:mm:ss"));
+}
+
+function hide_all() {
+  SetVisible(CircularGauge,     false);
+  SetVisible(DigitalGauge,      false);
+  SetVisible(QRBarcode,         false);
+  SetVisible(Code39Barcode,     false);
+  SetVisible(BusyIndicator,     false);
+  SetVisible(SplineGraph,       false);
+  SetVisible(DoughnutGraph,     false);
+  SetVisible(SemiDoughnutGraph, false);
+  SetVisible(DataGrid,          false);
+  SetVisible(Picker,            false);
+}
+
+hide_all();
+widgetName = "Picker";
+//widgetName = "SplineGraph";
+SetText(comboWidgets, widgetName);
+WriteConsole("--> Script init done. Show widget: " + widgetName);

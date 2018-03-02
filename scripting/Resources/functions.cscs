@@ -1,0 +1,735 @@
+﻿// ----------- LEARN ---------------------
+
+function category_selected(sender, row) {
+  //WriteConsole(Now(), " INIT category_selected: ", sender, " ", row, ": ", size(allCategories), " ", init);
+  category          = allCategories[row];
+  categoryWords     = categories[category];
+
+  currentWordsTotal = size(categoryWords);
+  if (!init && contains(cache, category)) {
+    categoryIndex = cache[category];
+  } elif (!init) {
+    categoryIndex     = 0;
+  }
+
+  if (categoryIndex >= currentWordsTotal || categoryIndex < 0) {
+    categoryIndex = 0;
+  }
+
+  if (sender == pickerCategoryQuiz) {
+    otherRow = GetValue(pickerCategory);
+    //WriteConsole("otherRow=", otherRow, " row=", row);
+    if (otherRow != row) {
+      SetValue(pickerCategory, row);
+    }
+    get_quiz_records();
+  } else {
+    otherRow = GetValue(pickerCategoryQuiz);
+    //WriteConsole("otherRow2=", otherRow, " row=", row);
+    if (otherRow != row) {
+      SetValue(pickerCategoryQuiz, row);
+    }
+  }
+
+  if (!findMode && !applyingLanguage && sender == pickerCategory) {
+    set_word(false);
+  }
+  if (!init) {
+    SetSetting("pickerCategory", row, "int");
+  }
+}
+
+function img_next(sender, arg) {
+  categoryIndex++;
+  if (categoryIndex >= currentWordsTotal) {
+    categoryIndex = 0;
+  }
+  set_word(true);
+}
+function img_prev(sender, arg) {
+  categoryIndex--;
+  if (categoryIndex < 0) {
+    categoryIndex = currentWordsTotal - 1;
+  }
+  set_word(true);
+}
+
+function set_word(speakIt) {
+  wordIndex = categoryWords[categoryIndex];
+  //word = get_word(0, wordIndex);
+  //img = SetImage(buttonCenter, word);
+
+  currentWord     = get_word_transcript(voiceIndex, wordIndex);
+  currentWordPure = get_word(voiceIndex, wordIndex);
+  font_size       = get_fontsize(currentWord);
+
+  //WriteConsole(Now(), " set_word ", voiceIndex, " ", wordIndex, ", categoryIndex:", categoryIndex,
+  //  ", currentWordPure: ", currentWordPure);
+
+  SetText(labelWordText, currentWord);
+  SetFontSize(labelWordText, font_size);
+  set_button_data(buttonCenter, wordIndex);
+
+  SetText(labelWordId, Localize("Word:") + " " + (categoryIndex + 1) + "/" + currentWordsTotal);
+  if (!init && GetSelectedTab() == 0) {
+    //WriteConsole("Speaking ", currentWordPure);
+    Speak(currentWordPure, voice);
+  }
+  set_translations();
+  if (!init && speakIt) {
+    SetSetting("categoryIndex", categoryIndex, "int");
+  }
+  cache[category] = categoryIndex;
+}
+
+function set_translations() {
+  translationWords = {};
+  translationPics  = {};
+  for (i : voiceIndices) {
+    pic   = voices[i];
+    if (StrStartsWith(pic, "Transcript")) {
+      continue;
+    }
+    word  = get_word_transcript(i, wordIndex);
+    //WriteConsole("Collected [", word, "] [", pic, "]");
+    add(translationWords, word);
+    add(translationPics,  pic);
+  }
+  AddWidgetData(cbTranslations,   translationWords);
+  AddWidgetImages(cbTranslations, translationPics);
+
+  //WriteConsole("set_translations voiceNativeIndex=", voiceNativeIndex);
+  SetValue(cbTranslations, voiceNativeIndex);
+}
+
+function get_word(voiceInd, index) {
+  word  = words[voiceInd][index];
+  if (word == "" && voiceInd > 0) {
+      word  = words[voiceInd - 1][index];
+  }
+
+  return word;
+}
+function get_word_transcript(voiceInd, index) {
+  word  = get_word(voiceInd, index);
+  if (voices[voiceInd] == "zh-CN") {
+    strIndex = "Transcript-" + voices[voiceInd];
+    ind = voiceIndices[strIndex];
+    //WriteConsole("Transcript from ", ind, ", ", voiceInd);
+    word += " " + get_word(ind, wordIndex);
+  }
+
+  return word;
+}
+
+function search_voice(total, text, searchVoice) {
+  searchTrie = GetTrie(searchVoice, words[searchVoice]);
+  results    = SearchTrie(searchTrie, text, findMaxWords - total);
+  for (id : results) {
+    //wordsFound[total]   = get_word_transcript(searchVoice, id);
+    wordsFound[total]   = get_word(searchVoice, id);
+    countryPics[total]  = searchVoice;
+    wordIdsFound[total] = id;
+    //WriteConsole(searchVoice + " found [", wordsFound[total], "], id=", id);
+    total++;
+  }
+  return total;
+}
+
+function find_text(sender, arg) {
+  HideView(listView);
+  text = GetText(textEdit);
+  if (size(text) == 0) {
+    return;
+  }
+  wordsFound   = {};
+  countryPics  = {};
+  // 1. Search words in the language learned:
+  total = search_voice(0, text, voice);
+  if (total < findMaxWords && voice != voiceNative) {
+    // 2. Search words in the native language:
+    total = search_voice(total, text, voiceNative);
+  }
+  if (total < findMaxWords && contains(fallbackVoices, voice)) {
+    fallbackVoice = fallbackVoices[voice];
+    if (fallbackVoice != voiceNative) {
+     // 3. Search words in a "brother" language (en-US/en-GB):
+      total = search_voice(total, text, fallbackVoice);
+    }
+  }
+  if (total < findMaxWords && voice != voiceNative && contains(fallbackVoices, voiceNative)) {
+    fallbackVoice = fallbackVoices[voiceNative];
+    if (fallbackVoice != voice) {
+      // 4. Search words in a "brother" native language (es-MX/es-ES):
+      total = search_voice(total, text, fallbackVoice);
+    }
+  }
+
+  SetVisible(listView, true);
+  AddWidgetData(listView, wordsFound);
+  AddWidgetImages(listView, countryPics);
+  if (firstSearch && total > 0) {
+    AddAction(listView, "list_chosen");
+    firstSearch = 0;
+  }
+}
+
+function list_chosen(sender, arg) {
+  wordId = wordIdsFound[arg];
+  categoryLocalized = Localize(all[wordId][0]);
+  SetText(pickerCategory, categoryLocalized);
+  categoryIndex = categoryWordMap[wordId];
+  //WriteConsole("LIST_CHOSEN categoryIndex=", categoryIndex, ", arg=", arg, ", wordId=", wordId,
+  //             ", categoryIndex=", categoryIndex, ", categoryLocalized=", categoryLocalized);
+  set_word(true);
+  show_learn(sender, arg);
+}
+
+function show_hide_learn(showLearn) {
+  SetVisible(textEdit,       !showLearn);
+  SetVisible(listView,       !showLearn);
+  SetVisible(buttonFindTop,  !showLearn);
+  SetVisible(pickerCategory,  showLearn);
+  SetVisible(buttonCenter,    showLearn);
+  SetVisible(buttonPrev,      showLearn);
+  SetVisible(buttonNext,      showLearn);
+  SetVisible(labelWordText,   showLearn);
+  SetVisible(buttonSpeaker,   showLearn);
+  SetVisible(buttonSpeaker2,  showLearn);
+  SetVisible(cbTranslations,  showLearn);
+  SetVisible(buttonFind,      showLearn);
+  SetVisible(labelWordId,     showLearn);
+  SetVisible(buttonLearnType, showLearn);
+  SetVisible(buttonVoice,     showLearn);
+}
+
+function show_find(sender, arg) {
+  findMode = !findMode;
+  show_hide_learn(!findMode);
+}
+
+function show_learn(sender, arg) {
+  findMode = 0;
+  show_hide_learn(!findMode);
+}
+
+function speak_it(sender, arg) {
+  Speak(currentWord, voice, true);
+}
+function speak_it2(sender, arg) {
+  row    = GetValue(cbTranslations);
+  word   = get_word(row, wordIndex);
+  voice2 = voices[row];
+
+  Speak(word, voice2, true);
+}
+
+function voice_recog(errorStatus, recognized) {
+  if (errorStatus != "") {
+    ShowToast(Localize("Error:") + " " + errorStatus, 10, "white", "red");
+    return false;
+  }
+  voiceWordIndex = wordIndex;
+  return compare_words(currentWordPure, recognized);
+}
+function start_voice(sender, arg) {
+  if (findMode) {
+    findMode = 0;
+    show_hide_learn(true);
+    return;
+  }
+
+  if (!check_speech()) {
+    return;
+  }
+
+  VoiceRecognition("voice_recog", convertVoiceForSpeech(voice), "Talk");
+  ShowToast(Localize("Speak:") + " " + currentWordPure);
+}
+
+function pictures_phrases(sender, arg) {
+  if (findMode) {
+    findMode = 0;
+    show_hide_learn(true);
+    return;
+  }
+  phrasesMode = !phrasesMode;
+  //WriteConsole("Pictures_phrases: ", phrasesMode);
+  set_pictures_phrases(buttonLearnType, true);
+  SetSetting("phrasesMode", phrasesMode, "int");
+}
+function set_pictures_phrases(button, changeCategory) {
+  if (phrasesMode) {
+    SetImage(button, "phrases");
+    SetFontColor(button, "black");
+    SetText(button,  Localize("Phrases"));
+    if (changeCategory) {
+      SetText(pickerCategory,   Localize(phrasesCategory));
+    }
+  } else {
+    SetImage(button, "pictures");
+    SetFontColor(button, "white");
+    SetText(button,  Localize("Words"));
+    if (changeCategory) {
+      SetText(pickerCategory,   Localize(wordsCategory));
+    }
+  }
+}
+
+function is_pic_available() {
+  return !StrStartsWith(category, "phrase");
+}
+
+function set_button_data(button, wordIndex) {
+  SetBackgroundColor(button, "transparent");
+  pic = "";
+  if (is_pic_available() && (button == buttonCenter || quizType == 0)) {
+    pic = get_word(0, wordIndex);
+  }
+
+  img = SetImage(button, pic);
+  //WriteConsole("img=", img, ", pic=", pic, ", category=", category, ", quizType=", quizType, ", wordIndex=", wordIndex);
+  if (img == "") {
+    AddBorder(button, 1, 0);
+    text = get_word_transcript(voiceNativeIndex, wordIndex);
+    font_size = get_fontsize(text);
+    SetFontSize(button, font_size);
+    SetText(button, text);
+    AlignText(button, "center");
+  } else {
+    SetText(button, "");
+  }
+}
+
+function stop_rec(sender, arg) {
+  StopVoiceRecognition();
+}
+
+// ----------- SETTINGS ---------------------
+function get_voice(code) {
+  if (code == "en") { return "en-US"; }
+  if (code == "de") { return "de-DE"; }
+  if (code == "ru") { return "ru-RU"; }
+  if (code == "es") { return "en-MX"; }
+  if (code == "it") { return "it-IT"; }
+  if (code == "fr") { return "fr-FR"; }
+  if (code == "pt") { return "pt-BR"; }
+  if (code == "ar") { return "ar-SA"; }
+  if (code == "ja") { return "ja-JP"; }
+  if (code == "zh" || code == "zh-Hans") { return "zh-CN"; }
+  return "en-US";
+}
+
+function set_defaults() {
+  virgin           = GetSetting("virgin", "bool", true);
+  if (!virgin) {
+    voiceNative    = GetSetting("voiceNative", "string", "en-US");
+    tabToSelect = 0;
+  } else {
+    deviceLanguage = GetDeviceLocale();
+    voiceNative    = get_voice(deviceLanguage);
+    WriteConsole("First time usage. Device Language: ", deviceLanguage, ": ", voiceNative);
+    SetSetting("voiceNative", voiceNative);
+    SetSetting("virgin", false, "bool");
+    tabToSelect = 2;
+  }
+  voice            = GetSetting("voice", "string", "es-MX");
+  pickerRow        = GetSetting("pickerCategory", "int", 2);
+  speechRate       = GetSetting("speechRate", "float", 0.5);
+  soundOn          = GetSetting("sound", "bool", true);
+  quizTotalWords   = GetSetting("quizTotalWords", "int", 5);
+  quizWordOptions  = GetSetting("quizWordOptions", "int", 6);
+  quizType         = GetSetting("quizType", "int", 0);
+  phrasesMode      = GetSetting("phrasesMode", "int", 0);
+
+  adsPurchased     = GetSetting("adsPurchased",    "bool", false);
+  speechPurchased  = GetSetting("speechPurchased", "bool", false);
+  speechFreeWords  = GetSetting("speechFreeWords", "int", 0);
+
+  reset_purchaseButtons();
+
+  WriteConsole("DEFAULTS pickerRow=", pickerRow, ", voice=", voice,
+                      ", voiceNative=", voiceNative, ", speechRate=", speechRate,
+                      ", phrasesMode=", phrasesMode, ", quizTotalWords=", quizTotalWords);
+  voiceIndex       = voiceIndices[voice];
+  voiceNativeIndex = voiceIndices[voiceNative];
+
+  orientation = Orientation();
+  if (orientation == "Landscape") {
+    pic = countryWideImages[voiceIndex];
+  } else {
+    pic = countryImages[voiceIndex];
+  }
+  SetBackground(pic);
+
+  langCode         = codes[voiceNativeIndex];
+  language         = languages[voiceIndex];
+  languageNative   = languages[voiceNativeIndex];
+  apply_language(langCode);
+
+  if (!virgin && pickerRow != 0) {
+    categoryIndex  = GetSetting("categoryIndex", "int", 0);
+  }
+
+  if (pickerRow < 0 || pickerRow > size(categories)) {
+    pickerRow = 0;
+  }
+  SetText(cbLangFrom, language);
+  SetText(cbLangTo, languageNative);
+  SetValue(slider, 100 * speechRate);
+  SetValue(soundSw, soundOn);
+  setup_sound();
+  SetValue(pickerCategory, pickerRow);
+  SetValue(stepQuizMode, quizTotalWords);
+
+  SetValue(segQuizMode, quizWordOptions == 6 ? 0 : 1);
+
+  set_quiz_type();
+  set_pictures_phrases(buttonLearnType, false);
+
+  SelectTab(tabToSelect);
+  //WriteConsole(" DEFAULTS SelectTab ", tabToSelect);
+}
+
+function language_set(sender, arg) {
+  if (init) {
+    return;
+  }
+  voice      = voices[arg];
+  voiceIndex = voiceIndices[voice];
+  language   = languages[arg];
+  orientation = Orientation();
+  if (orientation == "Landscape") {
+    pic = countryWideImages[arg];
+  } else {
+    pic = countryImages[arg];
+  }
+  SetBackground(pic);
+  WriteConsole("Orientation=", orientation, ", language_set voice=", voice, ", voiceIndex=", voiceIndex, ", bg: ", countryImages[arg], ", arg=", arg);
+  get_quiz_records();
+  SetSetting("voice", voice);
+  SetSetting("language", language);
+  Speak(Localize("hello", codes[voiceIndex]), voice);
+  set_word(false);
+}
+function language_to_set(sender, arg) {
+  if (init) {
+    return;
+  }
+  TranslateTabBar();
+  voiceNative      = voices[arg];
+  voiceNativeIndex = voiceIndices[voiceNative];
+  languageNative   = languages[arg];
+  //WriteConsole("language_to_set voiceNative: ", voiceNative, ", voiceNativeIndex=", voiceNativeIndex);
+  SetSetting("voiceNative", voiceNative);
+  SetSetting("languageNative", languageNative);
+  langCode = codes[arg];
+  get_quiz_records();
+  apply_language(langCode);
+  set_word(false);
+}
+function speechrate_set(sender, arg) {
+  sliderValue = GetValue(slider) / 100;
+  SetupSpeech("speechRate", sliderValue);
+  //WriteConsole("Set speechRate: ", sliderValue, " from ", GetValue(slider));
+  SetSetting("speechRate", sliderValue, "float");
+}
+function sound_set(sender, arg) {
+  soundOn = !soundOn;
+  SetSetting("sound", soundOn, "bool");
+
+  if (soundOn) {
+    setup_sound();
+    Speak(Localize("hello", codes[voiceIndex]), voice);
+  } else {
+    Speak(Localize("bye", codes[voiceIndex]), voice);
+    setup_sound();
+  }
+}
+function setup_sound() {
+  SetupSpeech("sound", soundOn);
+  if (soundOn) {
+    SetImage(soundIm, "sound_on");
+  } else {
+    SetImage(soundIm, "sound_off");
+  }
+}
+function restore(sender, arg) {
+  ShowToast(Localize("Please wait..."), 10, "blue");
+  Restore("on_restore", productIdAds, productIdSpeech);
+}
+function purchase_ads(sender, arg) {
+  ShowToast(Localize("Please wait..."), 10, "blue");
+  Purchase("on_purchase", productIdAds);
+}
+function purchase_speech(sender, arg) {
+  ShowToast(Localize("Please wait..."), 10, "blue");
+  Purchase("on_purchase", productIdSpeech);
+}
+
+function on_restore(error, productIds) {
+  if (error != "") {
+    ShowToast(Localize("Error Restoring:") + " " + error, 8, "red");
+    return;
+  }
+  if (productIds == "") {
+    ShowToast(Localize("Nothing to restore"), 8, "red");
+    return;
+  }
+
+  restoredIds = tokenize(productIds, ",");
+  restoredStr = " ";
+  for (productId : restoredIds) {
+    description = ProductIdDescription(productId);
+    if (restoredStr != " ") {
+      restoredStr += ", ";
+    }
+    restoredStr += description;
+    complete_purchase_restore(productId);
+    WriteConsole("Restored: ", productId, ": ", description);
+  }
+    
+  ShowToast(Localize("Restored:") + restoredStr, 6, "blue");
+}
+
+function on_purchase(error, productId) {
+  if (error != "") {
+    ShowToast(Localize("Error Purchasing:") + " " + error, 6, "red");
+    return;
+  }
+
+  description = ProductIdDescription(productId);
+  ShowToast(Localize("Purchased:") + " " + description, 6, "blue");
+  complete_purchase_restore(productId);
+
+  WriteConsole("Purchased: ", productId, ": ", description);
+}
+
+function complete_purchase_restore(productId) {
+  if (productId == productIdAds) {
+    SetSetting("adsPurchased", true, "bool");
+    adsPurchased = true;
+  } elif (productId == productIdSpeech) {
+    SetSetting("speechPurchased", true, "bool");
+    speechPurchased = true;
+  }
+  reset_purchaseButtons();
+}
+
+function reset_purchaseButtons() {
+  //WriteConsole("reset_purchaseButtons ", adsPurchased, ", ", speechPurchased);
+  if (adsPurchased) {
+    SetVisible(buttonIAP, false);
+    //WriteConsole("adsPurchased, hiding ", buttonIAP);
+    if (speechPurchased) {
+      SetVisible(buttonRestore, false);
+      //WriteConsole("speechPurchased, hiding ", buttonRestore);
+    }
+  }
+}
+
+function check_speech() {
+  //return true;
+  if (_IOS_ && CompareVersions(_VERSION_NUMBER_, "10.0") < 0) {
+    AlertDialog("CSCS", Localize("Speech recognition requires iOS 10.0 or higher. You have iOS ") +
+                        _VERSION_NUMBER_);
+    return false;
+  }
+  if (speechPurchased) {
+    return true;
+  }
+
+  if (++speechFreeWords <= maxSpeechFreeWords) {
+    SetSetting("speechFreeWords", speechFreeWords, "int");
+    return true;
+  }
+  AlertDialog("CSCS", Localize("Do you want to buy the Unlimited Speech Recognition Package?"),
+                      Localize("OK"), "purchase_speech", Localize("Cancel"));
+  return false;
+}
+
+
+function about_us(sender, arg) {
+  OpenUrl("http://www.iLanguage.ch");
+}
+
+function rate_us(sender, arg) {
+  if (_IOS_) {
+    appStoreURL = "itms-apps://itunes.apple.com/app/id968947584?action=write-review";
+  } elif (_ANDROID_) {
+    appStoreURL = "https://play.google.com/store/apps/details?id=ch.ilanguage.android";
+  }
+  OpenUrl(appStoreURL);
+}
+
+function apply_language(langCode) {
+  applyingLanguage   = true;
+  SetAppLocale(langCode);
+  newCategories = {};
+  for (cat : allCategories) {
+    translated = Localize(cat);
+    //WriteConsole("Translation ", cat, " --> ", translated);
+    add(newCategories, translated);
+  }
+  AddWidgetData(pickerCategory,     newCategories);
+  AddWidgetData(pickerCategoryQuiz, newCategories);
+
+  categoryLocalized = Localize(category);
+  //WriteConsole(Now(), " apply_language [", langCode, "], categoryLocalized=", categoryLocalized);
+  if (categoryLocalized != "") {
+    SetText(pickerCategory, categoryLocalized);
+  }
+
+  TranslateTabBar();
+  // Tab 1:
+  currentWord              = get_word_transcript(voiceIndex, wordIndex);
+  SetText(labelWordText,     currentWord);
+  SetText(labelWordId,       Localize("Word:") + " " + (categoryIndex + 1) + "/" + currentWordsTotal);
+  SetValue(cbTranslations,   voiceNativeIndex);
+
+  set_pictures_phrases(buttonLearnType, false);
+  SetText(buttonVoice,       Localize("Speech"));
+
+  // Tab 2:
+  if (quizType == 0) {
+    SetText(btnQuizType,     Localize("Images"));
+  } elif (quizType == 1) {
+    SetText(btnQuizType,     Localize("Text"));
+  } else {
+    SetText(btnQuizType,     Localize("Speech"));
+  }
+  SetText(labelQuizType,     Localize("Quiz Type:"));
+  SetText(labelQuizMode,     Localize("Quiz Mode:"));
+  SetText(labelQuizWords,    Localize("Quiz Words:"));
+
+  // Tab 3:
+  SetText(labelLangLearn,    Localize("Language to learn:"));
+  SetText(labelLangTo,       Localize("Translate to:"));
+  SetText(labelSpeechRate,   Localize("Speech Rate:"));
+  SetText(labelSound,        Localize("Sound:"));
+  applyingLanguage   = false;
+}
+
+function set_widget_data() {
+  AddWidgetData(pickerCategory,     allCategories, "category_selected");
+  AddWidgetData(pickerCategoryQuiz, allCategories, "category_selected");
+
+  AddWidgetData(cbLangFrom,   languages);
+  AddWidgetImages(cbLangFrom, voices);
+  AddWidgetData(cbLangTo,     languages);
+  AddWidgetImages(cbLangTo,   voices);
+}
+
+function set_widget_properties() {
+  AddBorder(buttonPrev, 0, 0);
+  AddBorder(buttonNext, 0, 0);
+  AddBorder(buttonSpeaker, 0, 0);
+  AddBorder(buttonSpeaker2, 0, 0);
+  AddBorder(buttonLearnType, 0, 0);
+  AddBorder(buttonFind, 0, 0);
+  AddBorder(buttonFindTop, 0, 0);
+  AddBorder(buttonVoice, 0, 0);
+  AddBorder(btnQuizType, 0, 0);
+  AddBorder(buttonQuizRec, 0, 0);
+  AddBorder(buttonStartStop, 1, 1);
+  AddBorder(buttonRestore, 0, 0);
+  AddBorder(buttonIAP, 0, 0);
+  AddBorder(buttonAboutUs, 0, 0);
+  AddBorder(buttonRateUs, 0, 0);
+
+  AlignText(labelWordText, "center");
+  AlignText(labelWordId, "center");
+  AlignText(labelWordQuiz, "center");
+  AlignText(labelQuizTimer, "left");
+  AlignText(labelRecord, "center");
+  AlignText(cbLangFrom, "left");
+  AlignText(cbLangTo, "left");
+
+  SetFontColor(buttonLearnType, "white");
+  SetFontColor(buttonVoice, "green");
+  SetFontColor(btnQuizType, "white");
+  SetFontColor(buttonQuizRec, "white");
+
+  SetFontSize(buttonLearnType, 15);
+  SetFontSize(labelWordId, 12);
+  SetFontSize(buttonVoice, 15);
+  SetFontSize(labelWordQuiz, 16);
+  SetFontSize(labelQuizType, 14);
+  SetFontSize(btnQuizType, 16);
+  SetFontSize(labelQuizMode, 14);
+  SetFontSize(labelQuizWords, 14);
+  SetFontSize(stepQuizMode, 14);
+  SetFontSize(labelQuizWordId, 12);
+  SetFontSize(labelQuizTimer, 12);
+  SetFontSize(labelRecord, 11);
+  SetFontSize(labelLangLearn, 14);
+  SetFontSize(labelLangTo, 14);
+  SetFontSize(labelSpeechRate, 14);
+  SetFontSize(labelSound, 14);
+}
+
+function set_actions() {
+  AddAction(textEdit,        "find_text");
+  AddAction(textEdit,        "show_learn", "FINISHED");
+
+  AddAction(buttonCenter,    "img_next");
+  AddSwipe(buttonCenter,     "Left",  "img_next");
+  AddSwipe(buttonCenter,     "Right", "img_prev");
+
+  AddAction(buttonPrev,      "img_prev");
+  AddAction(buttonNext,      "img_next");
+  AddAction(buttonSpeaker,   "speak_it");
+  AddAction(buttonSpeaker2,  "speak_it2");
+  AddAction(buttonLearnType, "pictures_phrases");
+  AddAction(buttonFind,      "show_find");
+  AddAction(buttonFindTop,   "show_find");
+  AddAction(buttonVoice,     "start_voice");
+
+  AddAction(buttonQuiz1,     "quiz_guess", 0);
+  AddAction(buttonQuiz2,     "quiz_guess", 1);
+  AddAction(buttonQuiz3,     "quiz_guess", 2);
+  AddAction(buttonQuiz4,     "quiz_guess", 3);
+  AddAction(buttonQuiz5,     "quiz_guess", 4);
+  AddAction(buttonQuiz6,     "quiz_guess", 5);
+  AddAction(btnQuizType,     "quiz_type");
+  AddAction(segQuizMode,     "quiz_options");
+  AddAction(stepQuizMode,    "quiz_mode_changed");
+  AddAction(buttonQuizRec,   "stop_rec");
+  AddAction(buttonStartStop, "start_stop_quiz");
+
+  AddAction(cbLangFrom,      "language_set");
+  AddAction(cbLangTo,        "language_to_set");
+  AddAction(slider,          "speechrate_set");
+  AddAction(soundSw,         "sound_set");
+  AddAction(buttonRestore,   "restore");
+  AddAction(buttonIAP,       "purchase_ads");
+  AddAction(buttonAboutUs,   "about_us");
+  AddAction(buttonRateUs,    "rate_us");
+}
+
+function set_images() {
+  SetImage(buttonPrev,      "prev");
+  SetImage(buttonNext,      "next");
+  SetImage(buttonSpeaker,   "speaker");
+  SetImage(buttonSpeaker2,  "speaker2");
+  SetImage(buttonVoice,     "speechSym");
+  SetImage(buttonFind,      "find");
+  SetImage(buttonFindTop,   "find");
+  set_pictures_phrases(buttonLearnType, false);
+
+  SetImage(buttonQuizRec,   "speakNow");
+  SetImage(buttonStartStop, "start");
+
+  SetImage(buttonRestore,   "restoreiap");
+  SetImage(buttonIAP,       "noads");
+  SetImage(buttonAboutUs,   "info");
+  SetImage(buttonRateUs,    "rate");
+}
+
+adCounter = 0;
+function tab_selected(sender, arg) {
+  if (!adsPurchased && arg == 1 && ++adCounter % 3 == 0) {
+    //WriteConsole("ShowInterstitial adCounter=", adCounter, ", %3=", adCounter % 3);
+    ShowInterstitial();
+  }
+}

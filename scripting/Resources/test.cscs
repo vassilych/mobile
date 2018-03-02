@@ -1,0 +1,119 @@
+﻿x = string(exp(0)) + " - " + string(exp(1)) + " - " + string(exp(2));
+
+AutoScale(1.0);
+SetBackgroundColor("snow");
+findMaxWords = 10;
+
+language1 = "en-US";
+language2 = "es-MX";
+
+WriteConsole(Now(), " Starting...");
+lines = ReadFile("dictionary.txt");
+
+//words[language1] = {"bat", "bicycle", "big", "bill", "bone" };
+//words[language2] = {"barba", "barco", "bicicleta", "billete", "bonito"};
+words[language1] = {};
+words[language2] = {};
+lineNr = 0;
+
+for (line : lines) {
+  lineNr++;
+  if (lineNr < 5) {
+    continue;
+  }
+  tokens = tokenize(line, "\t");
+  if (size(tokens) < 7) {
+    continue;
+  }
+  add(words[language1], tokens[1]);
+  add(words[language2], tokens[6]);
+}
+
+WriteConsole(Now(), " Added ", size(words[language1]), " words");
+
+wordsFound   = {};
+countryPics  = {};
+
+locTextEdit = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10);
+AddTextEdit(locTextEdit, "textEdit", "Type word dog", 480, 60);
+AddAction(textEdit,        "find_text");
+
+function find_text(sender, arg) {
+  SetVisible(listView, false);
+  text = GetText(textEdit);
+  if (size(text) == 0) {
+    return;
+  }
+
+  wordsFound   = {};
+  countryPics  = {};
+  total = search_voice(0, text, language1);
+  if (total < findMaxWords) {
+    total = search_voice(total, text, language2);
+  }
+  if (total == 0) {
+    return;
+  }
+
+  SetVisible(listView, true);
+  AddWidgetData(listView, wordsFound);
+  AddWidgetImages(listView, countryPics);
+  if (firstSearch && total > 0) {
+    AddAction(listView, "list_chosen");
+    firstSearch = 0;
+  }
+}
+
+function search_voice(total, text, language) {
+  searchTrie = GetTrie(language, words[language]);
+  results    = SearchTrie(searchTrie, text, findMaxWords - total);
+  for (id : results) {
+    wordsFound[total]   = words[language][id];
+    countryPics[total]  = language;
+    total++;
+  }
+  return total;
+}
+
+
+// Font Test
+locListView = GetLocation("ROOT", "CENTER", textEdit, "BOTTOM", 0, 4);
+AddListView(locListView, "listView", "", 480, 720);
+SetVisible(listView, false);
+
+if (_IOS_) {
+  fontname = "Courier";
+} else {
+  fontname = "serif";
+}
+locWidget = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 50);
+
+AddButton(locWidget, "buttonDragDrop", "Drag me", 200, 80);
+AddDragAndDrop(buttonDragDrop, "drag_drop");
+
+counter = 0;
+function drag_drop(sender, arg) {
+  WriteConsole("DD: " + sender + ": " + arg);
+  if (counter % 4 == 0) {
+    SetBold(buttonDragDrop, 30);
+  } elif (counter % 3 == 0) {
+    SetItalic(buttonDragDrop, 20);
+  } else {
+    SetNormalFont(buttonDragDrop, 10);
+  }
+  counter++;
+}
+
+locTemp = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 250);
+AddButton(locTemp, "buttonTemp", "Temp", 200, 80);
+AddDragAndDrop(buttonTemp, "drag_drop");
+
+SetFont(buttonDragDrop, fontname);
+SetItalic(buttonTemp, 20);
+
+x = pow(2,3);
+y = sin(30);
+z = exp(1);
+t = exp(0);
+SetText(buttonDragDrop, string(pow(2,3)) + " - " + string(sin(30)));
+SetText(buttonTemp, string(exp(0)) + " - " + string(exp(1)) + " - " + string(exp(2)));

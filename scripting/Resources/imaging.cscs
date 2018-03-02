@@ -1,0 +1,49 @@
+﻿AutoScale(1.0);
+//SetStyle("navi");
+SetBackgroundColor("cyan");
+
+locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 30);
+AddSfImageEditor(locSFWidget, "ImageEditor", "library", DisplayWidth, DisplayHeight - 280);
+SetVisible(ImageEditor, false);
+
+AddAction(ImageEditor, "image_started", "start");
+AddAction(ImageEditor, "image_done", "done");
+
+function image_started(sender, arg) {
+  WriteConsole(arg);
+  ShowToast("Image saved at: " + arg);
+  SetVisible(ImageEditor,   true);
+  SetVisible(buttonCamera,  false);
+  SetVisible(buttonLibrary, false);
+}
+function image_done(sender, arg) {
+  WriteConsole(arg);
+  if (arg != "") {
+    ShowToast("Image saved.");
+  }
+  SetVisible(ImageEditor,   false);
+  SetVisible(buttonCamera,  true);
+  SetVisible(buttonLibrary, true);
+}
+
+locLibrary = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 50);
+AddButton(locLibrary, "buttonLibrary", "", 225, 180);
+SetImage(buttonLibrary, "library");
+
+locCamera = GetLocation("ROOT", "RIGHT", "ROOT", "CENTER", -50);
+AddButton(locCamera, "buttonCamera", "", 225, 180);
+SetImage(buttonCamera, "camera");
+
+AddAction(buttonLibrary, "from_library");
+function from_library(sender, arg) {
+  StartSfImageEditor(ImageEditor, "library");
+  SetVisible(buttonCamera,  false);
+  SetVisible(buttonLibrary, false);
+}
+
+AddAction(buttonCamera, "from_camera");
+function from_camera(sender, arg) {
+  StartSfImageEditor(ImageEditor, "camera");
+  SetVisible(buttonCamera,  false);
+  SetVisible(buttonLibrary, false);
+}

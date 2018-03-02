@@ -1,0 +1,200 @@
+﻿function on_about(sender, arg) {
+  OpenUrl("http://www.currencylayer.com");
+}
+
+function on_refresh(sender, arg) {
+  currency1 = GetText(cbCurrency);
+  currency2 = GetText(cbCurrency2);
+  WriteConsole("Got currencies: " + currency1 + ", " + currency2);
+  currency_request(currency1, currency2);
+}
+
+function currency_request(currency1, currency2) {
+  if (currency1 == currency2) {
+    // A shortcut for the same currency:
+    time = Now("HH:mm:ss");
+    date = Now("yyyy/MM/dd");
+    rate = 1;
+  } else {
+    url = apiUrl + currency1 + "," + currency2;
+    try {
+      data = WebRequest(url);
+    } catch(exception) {
+      WriteConsole(exception.Stack);
+      ShowToast("Couldn't get rates. " + exception);
+      SetText(labelRateValue, "Error");
+      return;
+    }
+
+    // To parse: {"success":true,"timestamp":1515937446,"source":"USD","quotes":{"USDEUR":0.819304,"USDCHF":0.967604}}
+    WriteConsole(data);
+
+    rate        = -1;
+    try {
+      timestamp = StrBetween(data, "\"timestamp\":", ",");
+      time      = Timestamp(timestamp, "HH:mm:ss");
+      date      = Timestamp(timestamp, "yyyy/MM/dd");
+      rate1     = double(StrBetweenAny(data, "USD" + currency1 + "\":", ",}"));
+      rate2     = double(StrBetweenAny(data, "USD" + currency2 + "\":", ",}"));
+      WriteConsole("Extracted " + rate1 + "," + rate2);
+      if (rate1 > 0) {
+        rate    = Substring(decimal(rate2 / rate1), 0, 10);
+      }
+    } catch(exception) {
+      WriteConsole(exception.Stack);
+      ShowToast("Couldn't get rates. " + exception);
+      SetText(labelRateValue, "Error");
+      return;
+    }
+  }
+
+  WriteConsole("Completing with rate: " + rate + " for " + currency1 + " " + currency2);
+
+  SetText(labelRateValue, rate);
+  SetText(labelDateValue, date);
+  SetText(labelTimeValue, time);
+}
+
+function init() {
+  currencies = {"EUR",   "USD",   "GBP",   "CHF",   "BTC", "JPY",   "CNY",   "MXN",   "RUB",   "BRL",   "SAR"};
+  flags      = {"eu_EU", "en_US", "en_GB", "de_CH", "BTC", "ja_JP", "zh_CN", "es_MX", "ru_RU", "pt_BR", "ar_SA"};
+
+  AddWidgetData(cbCurrency, currencies);
+  AddWidgetImages(cbCurrency, flags);
+  SetSize(cbCurrency, 80, 40);
+  SetText(cbCurrency, "BTC");
+
+  AddWidgetData(cbCurrency2, currencies);
+  AddWidgetImages(cbCurrency2, flags);
+  SetSize(cbCurrency2, 80, 40);
+  SetText(cbCurrency2, "CHF");
+
+  SetImage(buttonRefresh,      "coins");
+  AddAction(buttonRefresh,     "on_refresh");
+  SetFontColor(buttonRefresh,  "white");
+  SetFontSize(buttonRefresh,   20);
+
+  AddAction(aboutButton,       "on_about");
+  SetText(aboutButton,         "Powered by currencylayer.com");
+
+  labelsFontSize = 17;
+  SetFontSize(aboutButton,     labelsFontSize);
+  SetFontSize(labelRate,       labelsFontSize);
+  SetFontSize(labelDate,       labelsFontSize);
+  SetFontSize(labelTime,       labelsFontSize);
+  SetFontSize(labelRateValue,  labelsFontSize);
+  SetFontSize(labelDateValue,  labelsFontSize);
+  SetFontSize(labelTimeValue,  labelsFontSize);
+}
+
+function on_portrait(sender, arg) {
+  AddOrSelectTab("Rates", "rates_active.png", "rates_inactive.png");
+  SetBackground("bitcoin_portrait.png");
+
+  locCurrency = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 80);
+  AddSfPicker(locCurrency,     "cbCurrency", "75", 200, 380);
+  //SetBackgroundColor(cbCurrency, "white", 0);
+  SetFontColor(cbCurrency, "black");
+
+  locCurrency2 = GetLocation("ROOT", "RIGHT", cbCurrency, "CENTER", -20);
+  AddSfPicker(locCurrency2,     "cbCurrency2", "75", 200, 380);
+  SetBackgroundColor(cbCurrency2, "white", 0);
+  SetFontColor(cbCurrency2, "black");
+
+  locRateLabel = GetLocation("ROOT", "CENTER", cbCurrency, "BOTTOM", -80, 20);
+  AddLabel(locRateLabel, "labelRate", "Rate:", 200, 80);
+  SetFontColor(labelRate, "black");
+
+  locRateValue = GetLocation("ROOT", "CENTER", labelRate, "CENTER", 100);
+  AddLabel(locRateValue, "labelRateValue", "", 240, 80);
+  SetFontColor(labelRateValue, "black");
+
+  locDateLabel = GetLocation("ROOT", "CENTER", labelRate, "BOTTOM", -80);
+  AddLabel(locDateLabel, "labelDate", "Date:", 200, 80);
+  SetFontColor(labelDate, "black");
+
+  locDateValue = GetLocation("ROOT", "CENTER", labelDate, "CENTER", 100);
+  AddLabel(locDateValue, "labelDateValue", "", 240, 80);
+  SetFontColor(labelDateValue, "black");
+
+  locTimeLabel = GetLocation("ROOT", "CENTER", labelDate, "BOTTOM", -80);
+  AddLabel(locTimeLabel, "labelTime", "Time:", 200, 80);
+  SetFontColor(labelTime, "black");
+
+  locTimeValue = GetLocation("ROOT", "CENTER", labelTime, "CENTER", 100);
+  AddLabel(locTimeValue, "labelTimeValue", "", 240, 80);
+  SetFontColor(labelTimeValue, "black");
+
+  locRefresh = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -4);
+  AddButton(locRefresh, "buttonRefresh", "Convert", 200, 100);
+
+  AddOrSelectTab("Settings", "settings_active.png", "settings_inactive.png");
+  locAbout = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -4);
+  AddButton(locAbout, "aboutButton", "", 360, 100);
+  AddBorder(aboutButton, 1, 5, "black");
+  SetFontColor(aboutButton, "black");
+}
+
+function on_landscape(sender, arg) {
+  AddOrSelectTab("Rates", "rates_active.png", "rates_inactive.png");
+  SetBackground("bitcoin_landscape.png");
+
+  locCurrency = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 20);
+  AddSfPicker(locCurrency, "cbCurrency", "75", 200, 380);
+  SetBackgroundColor(cbCurrency, "black", 0);
+  SetFontColor(cbCurrency, "white");
+
+  locCurrency2 = GetLocation(cbCurrency, "RIGHT", cbCurrency, "CENTER", 20);
+  AddSfPicker(locCurrency2,     "cbCurrency2", "75", 200, 380);
+  SetBackgroundColor(cbCurrency2, "black", 0);
+  SetFontColor(cbCurrency2, "white");
+
+  locDateLabel = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 200);
+  AddLabel(locDateLabel, "labelDate", "Date:", 100, 80);
+  SetFontColor(labelDate, "white");
+
+  locDateValue = GetLocation(labelDate, "RIGHT", labelDate, "CENTER", 10);
+  AddLabel(locDateValue, "labelDateValue", "", 220, 80);
+  SetFontColor(labelDateValue, "white");
+
+  locRateLabel = GetLocation("ROOT", "CENTER", labelDate, "TOP", 200);
+  AddLabel(locRateLabel, "labelRate", "Rate:", 100, 80);
+  SetFontColor(labelRate, "white");
+
+  locRateValue = GetLocation(labelRate, "RIGHT", labelRate, "CENTER", 10);
+  AddLabel(locRateValue, "labelRateValue", "", 220, 80);
+  SetFontColor(labelRateValue, "white");
+
+  locTimeLabel = GetLocation("ROOT", "CENTER", labelDate, "BOTTOM", 200);
+  AddLabel(locTimeLabel, "labelTime", "Time:", 100, 80);
+  SetFontColor(labelTime, "white");
+
+  locTimeValue = GetLocation(labelTime, "RIGHT", labelTime, "CENTER", 10);
+  AddLabel(locTimeValue, "labelTimeValue", "", 220, 80);
+  SetFontColor(labelTimeValue, "white");
+
+  locRefresh = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -4);
+  AddButton(locRefresh, "buttonRefresh", "Convert", 180, 90);
+
+  AddOrSelectTab("Settings", "settings_active.png", "settings_inactive.png");
+  locAbout = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -8);
+  AddButton(locAbout, "aboutButton", "", 360, 100);
+  AddBorder(aboutButton, 1, 5, "white");
+  SetFontColor(aboutButton, "white");
+}
+
+AutoScale();
+
+key = "22c6f409d97ef1559df6ef2e3c65f2f6";
+apiUrl = "http://apilayer.net/api/live?access_key=" + key + "&currencies=";
+
+RegisterOrientationChange("on_portrait", "on_landscape");
+init();
+
+if (Orientation == "Portrait") {
+  on_portrait("", "");
+} else {
+  on_landscape("", "");
+}
+
+SelectTab(0);

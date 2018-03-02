@@ -1,0 +1,404 @@
+﻿AutoScale(1.0);
+lastOrientation = "Unknown";
+
+if (_ANDROID_) {
+  xOffset = 30;
+  yOffset = 20;
+} else {
+  xOffset = 0;
+  yOffset = 0;
+}
+
+function on_portrait(sender, arg) {
+  if (init && arg != "init") {
+    WriteConsole("Orientation on_portrait skipping");
+    return; // do it only once during init phase.
+  }
+
+  //WriteConsole("Orientation Portrait, Setting bg ", countryImages[voiceIndex], ", init=", init, ", arg=", arg);
+  SetBackground(countryImages[voiceIndex]);
+  if (!init) {
+    TranslateTabBar();
+  }
+
+  //--------------------------------------------------
+  AddOrSelectTab("Learn", "learn.png", "learn2.png");
+  //--------------------------------------------------
+
+  // --- SEARCH WORDS ---
+  locTextEdit = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10);
+  AddTextEdit(locTextEdit, "textEdit", "", 480, 60);
+
+  locFindTop = GetLocation("ROOT", "RIGHT", "ROOT", "TOP", -4, -4);
+  AddButton(locFindTop, "buttonFindTop", "", 80, 80);
+
+  locListView = GetLocation("ROOT", "CENTER", textEdit, "BOTTOM", 0, 4);
+  AddListView(locListView, "listView", "", 480, 720);
+  // --- END SEARCH WORDS ---
+
+  locPicker = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20);
+  AddTypePickerView(locPicker, "pickerCategory", "Picker", 400, 280);
+  //AddWidgetData(pickerCategory, allCategories, "category_selected");
+
+  locCenter = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
+  AddButton(locCenter, "buttonCenter", "", 250, 250);
+
+  locWordText = GetLocation("ROOT", "CENTER", buttonCenter, "TOP", xOffset, yOffset);
+  AddLabel(locWordText, "labelWordText", "", 400, 80);
+
+  locLeftCenter = GetLocation(buttonCenter, "LEFT", "ROOT", "CENTER", -20);
+  AddButton(locLeftCenter, "buttonPrev", "", 124, 60);
+
+  locRightCenter = GetLocation(buttonCenter, "RIGHT", "ROOT", "CENTER", 20);
+  AddButton(locRightCenter, "buttonNext", "", 124, 60);
+
+  locSpeaker = GetLocation("ROOT", "RIGHT", labelWordText, "CENTER", -6);
+  AddButton(locSpeaker, "buttonSpeaker", "", 80, 80);
+
+  locTranslation = GetLocation("ROOT", "CENTER", buttonCenter, "BOTTOM", 40, 0);
+  //AddCombobox(locTranslation, "cbTranslations", "", 460, 80);
+  if (_IOS_) {
+    AddPickerView(locTranslation, "cbTranslations", "", 460, 80);
+  } else {
+    AddSfPicker(locTranslation, "cbTranslations", "75", 460, 280);
+    //AddCombobox(locTranslation, "cbTranslations", "", 460, 80);
+  }
+  //SetBackgroundColor(cbTranslations, "clear", 0);
+
+  locSpeaker2 = GetLocation("ROOT", "LEFT", cbTranslations, "CENTER", 6);
+  AddButton(locSpeaker2, "buttonSpeaker2", "", 60, 60);
+
+  locLearnType = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -70, -4);
+  AddButton(locLearnType, "buttonLearnType", "", 160, 70);
+
+  locDownLeft = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 2, 0);
+  AddLabel(locDownLeft, "labelWordId", "", 150, 80);
+
+  locDownRight = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -4, -4);
+  AddButton(locDownRight, "buttonFind", "", 100, 100);
+
+  locVoice = GetLocation(buttonLearnType, "RIGHT", "ROOT", "BOTTOM", 4, -4);
+  AddButton(locVoice, "buttonVoice", "", 160, 70);
+
+  //--------------------------------------------------
+  AddOrSelectTab("Quiz", "test.png", "test2.png");
+  //--------------------------------------------------
+
+  locQuiz1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -120);
+  AddButton(locQuiz1, "buttonQuiz1", "", 200, 200);
+
+  locQuiz2 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 120);
+  AddButton(locQuiz2, "buttonQuiz2", "", 200, 200);
+
+  locQuiz3 = GetLocation(buttonQuiz1, "CENTER", buttonQuiz1, "BOTTOM", 0, 6);
+  AddButton(locQuiz3, "buttonQuiz3", "", 200, 200);
+
+  locQuiz4 = GetLocation(buttonQuiz2, "CENTER", buttonQuiz2, "BOTTOM", 0, 6);
+  AddButton(locQuiz4, "buttonQuiz4", "", 200, 200);
+
+  locQuiz5 = GetLocation(buttonQuiz3, "CENTER", buttonQuiz3, "BOTTOM", 0, 6);
+  AddButton(locQuiz5, "buttonQuiz5", "", 200, 200);
+
+  locQuiz6 = GetLocation(buttonQuiz4, "CENTER", buttonQuiz4, "BOTTOM", 0, 6);
+  AddButton(locQuiz6, "buttonQuiz6", "", 200, 200);
+
+  locBelowQuiz = GetLocation("ROOT", "CENTER", buttonQuiz6, "BOTTOM", , xOffset, -8);
+  AddLabel(locBelowQuiz, "labelWordQuiz", "", 420, 120);
+
+  locPickerQuiz = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -20);
+  AddTypePickerView(locPickerQuiz, "pickerCategoryQuiz", "Picker", 400, 280);
+
+  locQuizTypeLabel = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 8);
+  AddLabel(locQuizTypeLabel, "labelQuizType", "Quiz Type:", 240, 80);
+
+  locQuizType = GetLocation("ROOT", "CENTER", labelQuizType, "CENTER", 70, 0);
+  AddButton(locQuizType, "btnQuizType", "", 220, 80);
+
+  locQuizModeLabel = GetLocation("ROOT", "LEFT", labelQuizType, "BOTTOM", 8);
+  AddLabel(locQuizModeLabel, "labelQuizMode", "Quiz Mode:", 240, 80);
+
+  locQuizMode = GetLocation("ROOT", "CENTER", labelQuizMode, "CENTER", 70, 0);
+  AddSegmentedControl(locQuizMode, "segQuizMode", "6:4", 200, 60);
+
+  locQuizWordsLabel = GetLocation(labelQuizMode, "ALIGN_LEFT", labelQuizMode, "BOTTOM");
+  AddLabel(locQuizWordsLabel, "labelQuizWords", "Quiz Words:", 240, 80);
+
+  locQuizWords = GetLocation("ROOT", "CENTER", labelQuizWords, "CENTER", 70, 0);
+  AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+
+  locQuzRec = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -120);
+  AddButton(locQuzRec, "buttonQuizRec", "", 300, 300);
+  //SetText(buttonQuizRec, "Stop Recording");
+
+  locAirLeft = GetLocation(buttonQuizRec, "LEFT", "ROOT", "CENTER", -20, -120);
+  AddImageView(locAirLeft, "ontheairLeft", "ontheair", 120, 300);
+
+  locAirRight = GetLocation(buttonQuizRec, "RIGHT", "ROOT", "CENTER", 20, -120);
+  AddImageView(locAirRight, "ontheairRight", "ontheair", 120, 300);
+
+  locDownLeftQuiz = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 6);
+  AddLabel(locDownLeftQuiz, "labelQuizWordId", "", 200, 40);
+
+  locDownRightQuiz = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -6);
+  AddLabel(locDownRightQuiz, "labelQuizTimer", "00:00.000", 140, 40);
+
+  locStartStop = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -4);
+  AddButton(locStartStop, "buttonStartStop", "", 200, 96);
+
+  locAboveStartStop = GetLocation("ROOT", "CENTER", buttonStartStop, "TOP", -6);
+  AddLabel(locAboveStartStop, "labelRecord", "", 560, 40);
+
+  //--------------------------------------------------
+  AddOrSelectTab("Settings", "settings.png", "settings2.png");
+  //--------------------------------------------------
+
+  locLangFromCB = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 90, 0);
+  //AddCombobox(locLangFromCB, "cbLangFrom", "", 320, 80);
+  if (_IOS_) {
+    AddPickerView(locLangFromCB, "cbLangFrom", "", 320, 80);
+  } else {
+    AddSfPicker(locLangFromCB, "cbLangFrom", "75", 200, 260);
+  }
+
+  locLangFrom = GetLocation("ROOT", "LEFT", cbLangFrom, "CENTER", 8, 0);
+  AddLabel(locLangFrom, "labelLangLearn", "Language to learn:", 220, 80);
+
+  locLangToCB = GetLocation("ROOT", "CENTER", cbLangFrom, "BOTTOM", 90, 0);
+  //AddCombobox(locLangToCB, "cbLangTo", "", 320, 80);
+  if (_IOS_) {
+    AddPickerView(locLangToCB, "cbLangTo", "", 320, 80);
+  } else {
+    AddSfPicker(locLangToCB, "cbLangTo", "75", 200, 260);
+  }
+
+  locLangTo = GetLocation("ROOT", "LEFT", cbLangTo, "CENTER", 8, 0);
+  AddLabel(locLangTo, "labelLangTo", "Translate to:", 220, 80);
+
+  locSlider = GetLocation("ROOT", "CENTER", cbLangTo, "BOTTOM", 80, 0);
+  AddSlider(locSlider, "slider", "50:0:100", 260, 80);
+
+  locSpeechRate = GetLocation("ROOT", "LEFT", slider, "CENTER", 8, 0);
+  AddLabel(locSpeechRate, "labelSpeechRate", "Speech Rate:", 220, 80);
+
+  locSoundSw = GetLocation("ROOT", "CENTER", slider, "BOTTOM", 80, 6);
+  AddSwitch(locSoundSw, "soundSw", "1", 210, 80);
+
+  locSound = GetLocation("ROOT", "LEFT", soundSw, "CENTER", 8, 0);
+  AddLabel(locSound, "labelSound", "Sound:", 220, 80);
+
+  locSoundIm = GetLocation(soundSw, "RIGHT", labelSound, "CENTER", 20);
+  AddImageView(locSoundIm, "soundIm", "sound_on", 100, 100);
+
+  locRestore = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -2);
+  AddButton(locRestore, "buttonRestore", "", 130, 100);
+
+  locIAP = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 80, -2);
+  AddButton(locIAP, "buttonIAP", "", 130, 100);
+
+  locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -6, -6);
+  AddButton(locAboutUs, "buttonAboutUs", "", 84, 84);
+
+  locRateUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 0, -6);
+  AddButton(locRateUs, "buttonRateUs", "", 84, 84);
+}
+
+function on_landscape(sender, arg) {
+  if (init && arg != "init") {
+    WriteConsole("Orientation on_landscape skipping");
+    return; // do it only once during init phase.
+  }
+
+  //WriteConsole("Orientation Landscape, Setting bg ", countryWideImages[voiceIndex], ", init=", init, ", arg=", arg);
+  SetBackground(countryWideImages[voiceIndex]);
+  if (!init) {
+    TranslateTabBar();
+  }
+  //--------------------------------------------------
+  AddOrSelectTab("Learn", "learn.png", "learn2.png");
+  //--------------------------------------------------
+
+  // --- SEARCH WORDS ---
+  locTextEdit = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 100, 0);
+  AddTextEdit(locTextEdit, "textEdit", "", 460, 60);
+
+  locFindTop = GetLocation("ROOT", "RIGHT", "ROOT", "TOP", -4, -4);
+  AddButton(locFindTop, "buttonFindTop", "", 80, 80);
+
+  locListView = GetLocation("ROOT", "CENTER", textEdit, "BOTTOM", 100, 2);
+  AddListView(locListView, "listView", "", 520, 520);
+  // --- END SEARCH WORDS ---
+
+  locPicker = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 60);
+  AddTypePickerView(locPicker, "pickerCategory", "Picker", 400, 280);
+
+  locMainButton = GetLocation(pickerCategory, "RIGHT", "ROOT", "TOP", 168, 70);
+  AddButton(locMainButton, "buttonCenter", "", 250, 250);
+
+  locWordText = GetLocation(buttonCenter, "CENTER", "ROOT", "TOP", 0, -20);
+  AddLabel(locWordText, "labelWordText", "", 460, 80);
+
+  locLeftCenter = GetLocation(buttonCenter, "LEFT", buttonCenter, "CENTER", -10);
+  AddButton(locLeftCenter, "buttonPrev", "", 124, 60);
+
+  locRightCenter = GetLocation(buttonCenter, "RIGHT", buttonCenter, "CENTER", 10);
+  AddButton(locRightCenter, "buttonNext", "", 124, 60);
+
+  locSpeaker = GetLocation("ROOT", "RIGHT", labelWordText, "CENTER", -6, 60);
+  AddButton(locSpeaker, "buttonSpeaker", "", 80, 80);
+
+  locTranslation = GetLocation(buttonCenter, "CENTER", buttonCenter, "BOTTOM", -10, -20);
+  //AddCombobox(locTranslation, "cbTranslations", "", 500, 80);
+  AddSfPicker(locTranslation,     "cbTranslations", "75", 400, 280);
+
+  locSpeaker2 = GetLocation(cbTranslations, "LEFT", cbTranslations, "CENTER", -10);
+  AddButton(locSpeaker2, "buttonSpeaker2", "", 60, 60);
+
+  locWordId = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 2, 0);
+  AddLabel(locWordId, "labelWordId", "", 150, 80);
+
+  locLearnType = GetLocation(labelWordId, "RIGHT", "ROOT", "BOTTOM", 10, -4);
+  AddButton(locLearnType, "buttonLearnType", "", 160, 70);
+
+  locVoice = GetLocation(buttonLearnType, "CENTER", buttonLearnType, "TOP", 0, -4);
+  AddButton(locVoice, "buttonVoice", "", 160, 70);
+
+  locFind = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -4, -4);
+  AddButton(locFind, "buttonFind", "", 80, 80);
+
+  //--------------------------------------------------
+  AddOrSelectTab("Quiz", "test.png", "test2.png");
+  //--------------------------------------------------
+  locQuiz2 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, -14);
+  AddButton(locQuiz2, "buttonQuiz2", "", 200, 200);
+
+  locQuiz1 = GetLocation(buttonQuiz2, "LEFT", "ROOT", "TOP", -20, -14);
+  AddButton(locQuiz1, "buttonQuiz1", "", 200, 200);
+
+  locQuiz5 = GetLocation(buttonQuiz2, "RIGHT", "ROOT", "TOP", 20, -14);
+  AddButton(locQuiz5, "buttonQuiz5", "", 200, 200);
+
+  locQuiz4 = GetLocation(buttonQuiz1, "CENTER", buttonQuiz1, "BOTTOM", 0, 2);
+  AddButton(locQuiz4, "buttonQuiz4", "", 200, 200);
+
+  locQuiz3 = GetLocation(buttonQuiz2, "CENTER", buttonQuiz2, "BOTTOM", 0, 2);
+  AddButton(locQuiz3, "buttonQuiz3", "", 200, 200);
+
+  locQuiz6 = GetLocation(buttonQuiz5, "CENTER", buttonQuiz5, "BOTTOM", 0, 2);
+  AddButton(locQuiz6, "buttonQuiz6", "", 200, 200);
+
+  locWordQuiz = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 0, 0);
+  AddLabel(locWordQuiz, "labelWordQuiz", "", 400, 120);
+
+  locPickerQuiz = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 20, 0);
+  AddTypePickerView(locPickerQuiz, "pickerCategoryQuiz", "Picker", 400, 280);
+
+  locQuizTypeLabel = GetLocation(pickerCategoryQuiz, "RIGHT", "ROOT", "TOP", 36, 12);
+  AddLabel(locQuizTypeLabel, "labelQuizType", "Quiz Type:", 240, 80);
+
+  locQuizType = GetLocation(labelQuizType, "RIGHT", labelQuizType, "CENTER", 16, 0);
+  AddButton(locQuizType, "btnQuizType", "", 220, 80);
+
+  locQuizModeLabel = GetLocation(labelQuizType, "ALIGN_LEFT", labelQuizType, "BOTTOM");
+  AddLabel(locQuizModeLabel, "labelQuizMode", "Quiz Mode:", 240, 80);
+
+  locQuizMode = GetLocation(btnQuizType, "CENTER", labelQuizMode, "CENTER", 0, 0);
+  AddSegmentedControl(locQuizMode, "segQuizMode", "6:4", 200, 60);
+
+  locQuizWordsLabel = GetLocation(labelQuizMode, "ALIGN_LEFT", labelQuizMode, "BOTTOM");
+  AddLabel(locQuizWordsLabel, "labelQuizWords", "Quiz Words:", 240, 80);
+
+  locQuizWords = GetLocation(btnQuizType, "CENTER", labelQuizWords, "CENTER", 0, 0);
+  AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+
+  locQuzRec = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -40);
+  AddButton(locQuzRec, "buttonQuizRec", "", 100, 100);
+
+  locAirLeft = GetLocation(buttonQuizRec, "LEFT", "ROOT", "CENTER", -20, -40);
+  AddImageView(locAirLeft, "ontheairLeft", "ontheair", 40, 100);
+
+  locAirRight = GetLocation(buttonQuizRec, "RIGHT", "ROOT", "CENTER", 20, -40);
+  AddImageView(locAirRight, "ontheairRight", "ontheair", 40, 100);
+
+  locQuizTimer = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -6);
+  AddLabel(locQuizTimer, "labelQuizTimer", "00:00.000", 140, 40);
+
+  locQuizWordId = GetLocation(labelQuizTimer, "LEFT", "ROOT", "BOTTOM", -20, 0);
+  AddLabel(locQuizWordId, "labelQuizWordId", "", 200, 40);
+
+  locStartStop = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 10, -4);
+  AddButton(locStartStop, "buttonStartStop", "", 180, 86);
+
+  locRecord = GetLocation(buttonStartStop, "RIGHT", buttonStartStop, "CENTER", 10, -30);
+  AddLabel(locRecord, "labelRecord", "", 380, 80);
+
+  //--------------------------------------------------
+  AddOrSelectTab("Settings", "settings.png", "settings2.png");
+  //--------------------------------------------------
+
+  locLangFromCB = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -130, 0);
+  //AddCombobox(locLangFromCB, "cbLangFrom", "", 320, 80);
+  if (_IOS_) {
+    AddPickerView(locLangFromCB, "cbLangFrom", "", 320, 80);
+  } else {
+    AddSfPicker(locLangFromCB, "cbLangFrom", "75", 200, 260);
+  }
+
+  locLangFrom = GetLocation("ROOT", "LEFT", cbLangFrom, "CENTER", 8, 0);
+  AddLabel(locLangFrom, "labelLangLearn", "Language to learn:", 180, 80);
+
+  locLangToCB = GetLocation("ROOT", "CENTER", cbLangFrom, "BOTTOM", -130, 0);
+  //AddCombobox(locLangToCB, "cbLangTo", "", 320, 80);
+  if (_IOS_) {
+    AddPickerView(locLangToCB, "cbLangTo", "", 320, 80);
+  } else {
+    AddSfPicker(locLangToCB, "cbLangTo", "75", 200, 260);
+  }
+
+  locLangTo = GetLocation("ROOT", "LEFT", cbLangTo, "CENTER", 8, 0);
+  AddLabel(locLangTo, "labelLangTo", "Translate to:", 180, 80);
+
+  locSpeechRate = GetLocation(cbLangFrom, "RIGHT", labelLangLearn, "CENTER", 12, 0);
+  AddLabel(locSpeechRate, "labelSpeechRate", "Speech Rate:", 180, 80);
+
+  locSlider = GetLocation(labelSpeechRate, "RIGHT", labelSpeechRate, "CENTER", 0, 0);
+  AddSlider(locSlider, "slider", "50:0:100", 260, 80);
+
+  locSound = GetLocation(cbLangTo, "RIGHT", labelSpeechRate, "BOTTOM", 12, 20);
+  AddLabel(locSound, "labelSound", "Sound:", 180, 80);
+
+  locSoundSw = GetLocation(slider, "ALIGN_LEFT", labelSound, "CENTER", 0, 0);
+  AddSwitch(locSoundSw, "soundSw", "1", 220, 80);
+
+  locSoundIm = GetLocation(soundSw, "RIGHT", labelSound, "CENTER", 10);
+  AddImageView(locSoundIm, "soundIm", "sound_on", 60, 60);
+
+  locRateUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 0, -6);
+  AddButton(locRateUs, "buttonRateUs", "", 84, 84);
+
+  locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -6, -6);
+  AddButton(locAboutUs, "buttonAboutUs", "", 84, 84);
+
+  locRestore = GetLocation(buttonAboutUs, "LEFT", "ROOT", "BOTTOM", -20, -2);
+  AddButton(locRestore, "buttonRestore", "", 130, 100);
+
+  locIAP = GetLocation(buttonRestore, "LEFT", "ROOT", "BOTTOM", -20, -2);
+  AddButton(locIAP, "buttonIAP", "", 130, 100);
+}
+
+if (_IOS_ && CompareVersions(_VERSION_NUMBER_, "9.0") < 0) {
+  // In iOS 8.0 there is more work to do the Orientation Change, skip it for now.
+  AllowedOrientation("portrait");
+  on_portrait("", "");
+} else {
+  RegisterOrientationChange("on_portrait", "on_landscape");
+}
+
+set_widget_data();
+set_widget_properties();
+
+show_quiz(false);
+show_hide_learn(true);
+
+set_defaults();
+set_actions();
+set_images();

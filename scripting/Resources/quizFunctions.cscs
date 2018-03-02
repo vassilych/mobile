@@ -1,0 +1,269 @@
+﻿// ----------- QUIZ ---------------------
+
+function show_quiz(visible) {
+  showRecording = visible && quizType == 2;
+  SetVisible(buttonQuizRec, showRecording);
+  SetVisible(ontheairLeft,  showRecording);
+  SetVisible(ontheairRight, showRecording);
+
+  SetVisible(pickerCategoryQuiz, !visible);
+  SetVisible(labelQuizMode,      !visible);
+  SetVisible(segQuizMode,        !visible);
+  SetVisible(labelQuizWords,     !visible);
+  SetVisible(stepQuizMode,       !visible);
+  SetVisible(labelQuizType,      !visible);
+  SetVisible(btnQuizType,        !visible);
+
+  showWordsQuiz = visible && quizType != 2;
+  SetVisible(buttonQuiz1, showWordsQuiz);
+  SetVisible(buttonQuiz2, showWordsQuiz);
+  SetVisible(buttonQuiz3, showWordsQuiz);
+  SetVisible(buttonQuiz4, showWordsQuiz);
+  if (quizWordOptions > 4) {
+    SetVisible(buttonQuiz5, showWordsQuiz);
+    SetVisible(buttonQuiz6, showWordsQuiz);
+  }
+  SetVisible(labelWordQuiz, visible);
+}
+
+function start_stop_quiz(sender, arg) {
+  if (GetSelectedTab() != 1) {
+    //WriteConsole("Forcing quiz tab back");
+    SelectTab(1);
+  }
+
+  if (!quizRunning) {
+    //WriteConsole("Starting quiz, quizTotalWords=", quizTotalWords);
+    SetImage(buttonStartStop,  "stop");
+    quizRunning = 1;
+    quizCancelled = 0;
+    prepare_quiz();
+  } else {
+    CancelSchedule("quiz_timeoutId");
+    SetImage(buttonStartStop,  "start");
+    quizRunning = 0;
+  }
+  show_quiz(quizRunning);
+}
+function click_timeout(sender, arg) {
+  set_button_data(sender, arg);
+}
+function timer_timeout(sender, arg) {
+  if (quizType == 2) {
+    RemoveAt(quizWords, randomList);
+  } else {
+    RemoveAt(quizWords, randomList[0]);
+  }
+  quizAvailableWords = size(quizWords);
+  show_new_words();
+}
+
+function quiz_guess(sender, arg) {
+  if (!waitingGuess) {
+    return;
+  }
+  waitingGuess       = 0;
+  quizGuesses++;
+  if (arg == correctWord) {
+    quizCorrectGuesses++;
+    ShowToast(Localize("yes"), 4, "white", "green");
+    SetBackgroundColor(sender, "green");
+    Speak(Localize("yes", codes[voiceIndex]));
+    timeout = 1000;
+  } else {
+    ShowToast(Localize("no"), 5, "white", "red");
+    SetBackgroundColor(sender, "red");
+    Speak(Localize("no", codes[voiceIndex]));
+    timeout = 1500;
+  }
+  SetText(labelQuizWordId, Localize("Correct:") + " " + quizCorrectGuesses + "/" + quizGuesses);
+  Schedule(timeout, "timer_timeout");
+  Schedule(500, "click_timeout", sender, quizWords[randomList[arg]]);
+}
+
+function voice_recog_quiz(errorStatus, recognized) {
+  if (!waitingGuess) {
+    return;
+  }
+  waitingGuess       = 0;
+  quizGuesses++;
+  if (errorStatus != "") {
+    ShowToast(Localize("Error:") + " " + errorStatus, 10, "white", "red");
+    quizCancelled = 1;
+    start_stop_quiz("", "");
+    quiz_finished();
+    return;
+  }
+  voiceWordIndex = quizWords[correctWordIndex];
+  isCorrect = compare_words(quizCorrectWord, recognized);
+
+  if (isCorrect) {
+    quizCorrectGuesses++;
+    timeout = 1000;
+  } else {
+    timeout = 2000;
+  }
+  SetText(labelQuizWordId, Localize("Correct:") + " " + quizCorrectGuesses + "/" + quizGuesses);
+  Schedule(timeout, "timer_timeout");
+}
+
+function quiz_timer(sender, arg) {
+  elapsed = StopWatchElapsed("mm:ss.fff");
+  SetText(labelQuizTimer, elapsed);
+}
+
+function prepare_quiz() {
+  get_quiz_records();
+  quizWords          = DeepCopy(categoryWords);
+  quizAvailableWords = size(quizWords);
+  quizGuesses        = 0;
+  quizCorrectGuesses = 0;
+  stopwatch          = StartStopWatch();
+
+  if (quizType == 2) {
+    quizWordOptions = 1;
+  } elif (GetValue(segQuizMode) == 0) {
+    quizWordOptions = 6;
+  } else {
+    quizWordOptions = 4;
+  }
+  quizTotalWords = GetValue(stepQuizMode);
+
+  showExtra = quizWordOptions > 4;
+  SetVisible(buttonQuiz5, showExtra);
+  SetVisible(buttonQuiz6, showExtra);
+  show_new_words();
+  Schedule(250, "quiz_timer", "", "quiz_timeoutId", 1);
+}
+
+function quiz_finished() {
+  if (quizGuesses == 0) {
+    percent = 0;
+  } else {
+    percent = round(100 * quizCorrectGuesses / quizGuesses);
+  }
+  if (percent >= 50 ) {
+    color = "green";
+  } else {
+    color = "red";
+  }
+
+  stopwatch = StopStopWatch();
+
+  if (!quizCancelled) {
+    AlertDialog("iLanguage Quiz", "Finished. Correct: " + quizCorrectGuesses + " (" + percent + "%)");
+    //ShowToast("Finished. Correct: " + quizCorrectGuesses + " (" + percent + "%)", 10, "white", color);
+  }
+  set_record(percent, stopwatch);
+}
+
+function get_quiz_records() {
+  quizRecordKey = voice + "_" + voiceNative + "_" + category + "_" + quizTotalWords + "_" + quizType;
+  quizRecordPercent = GetSetting(quizRecordKey, "float", 0);
+  quizRecordTime    = GetSetting(quizRecordKey + "time", "float", 0);
+  when              = GetSetting(quizRecordKey + "when");
+  //WriteConsole("get_quiz_records ", quizRecordPercent, " - ", quizRecordTime, " ", when, ", key:", quizRecordKey);
+  set_quiz_records(when);
+}
+
+function set_quiz_records(when) {
+  //WriteConsole("set_quiz_records [", when, "] ", quizRecordPercent, " - ", quizRecordTime, ", key:", quizRecordKey);
+  if (StrTrim(when) == "" || quizRecordPercent == 0) {
+    SetText(labelRecord, "");
+  } else {
+    SetText(labelRecord, Localize("Best score:") + " " + quizRecordPercent + "% - " + quizRecordTime + " sec. " + when);
+  }
+}
+
+function set_record(percent, elapsedTime) {
+  when = Now("yyyy-MM-dd  HH:mm");
+  if (percent > 0 &&
+       (percent > quizRecordPercent ||
+        percent == quizRecordPercent && elapsedTime < quizRecordTime)) {
+    //WriteConsole("set_record ", percent, " ", quizRecordPercent, " - ", elapsedTime, " ", quizRecordTime, ", key:", quizRecordKey);
+    quizRecordPercent = percent;
+    quizRecordTime    = elapsedTime;
+    SetSetting(quizRecordKey, percent, "float");
+    SetSetting(quizRecordKey + "time", elapsedTime, "float");
+    SetSetting(quizRecordKey + "when", when);
+    set_quiz_records(when);
+  }
+  //quizRecordTime     = 0;
+}
+
+function show_new_words() {
+  if (!quizRunning) {
+    return;
+  }
+  if (quizGuesses >= quizTotalWords || (quizType == 2 && !check_speech())) {
+    start_stop_quiz("", "");
+    quizCancelled = (quizType == 2 && quizGuesses < quizTotalWords);
+    quiz_finished();
+    return;
+  }
+  randomList       = GetRandom(quizAvailableWords, quizWordOptions);
+  correctWord      = GetRandom(quizWordOptions);
+  if (quizWordOptions == 1) {
+    correctWordIndex = randomList;
+  } else {
+    correctWordIndex = randomList[correctWord];
+  }
+
+  quizCorrectWord = get_word(voiceIndex, quizWords[correctWordIndex]);
+  SetText(labelWordQuiz, quizCorrectWord);
+  font_size = get_fontsize(quizCorrectWord);
+  SetFontSize(labelWordQuiz, font_size);
+  Speak(quizCorrectWord, voice);
+
+  if (quizType == 2) {
+    ShowToast(Localize("Speak:") + " " + quizCorrectWord);
+    VoiceRecognition("voice_recog_quiz", convertVoiceForSpeech(voice), "Speak");
+  } else {
+    set_button_data(buttonQuiz1, quizWords[randomList[0]]);
+    set_button_data(buttonQuiz2, quizWords[randomList[1]]);
+    set_button_data(buttonQuiz3, quizWords[randomList[2]]);
+    set_button_data(buttonQuiz4, quizWords[randomList[3]]);
+    if (quizWordOptions > 4) {
+      set_button_data(buttonQuiz5, quizWords[randomList[4]]);
+      set_button_data(buttonQuiz6, quizWords[randomList[5]]);
+    }
+  }
+
+  waitingGuess = 1;
+}
+
+function set_quiz_type() {
+  if (quizType == 0) {
+    SetImage(btnQuizType,  "pictures");
+    SetFontColor(btnQuizType, "white");
+    SetText(btnQuizType,   Localize("Images"));
+  } elif (quizType == 1) {
+    SetImage(btnQuizType,  "phrases");
+    SetFontColor(btnQuizType, "black");
+    SetText(btnQuizType,   Localize("Text"));
+  } else {
+    SetImage(btnQuizType,  "speechSym");
+    SetFontColor(btnQuizType, "green");
+    SetText(btnQuizType,   Localize("Speech"));
+  }
+}
+
+function quiz_type(sender, arg) {
+  quizType = (quizType + 1) % 3;
+  set_quiz_type();
+  SetSetting("quizType", quizType, "int");
+  get_quiz_records();
+}
+function quiz_mode_changed(sender, arg) {
+  quizTotalWords = GetValue(stepQuizMode);
+  get_quiz_records();
+  SetSetting("quizTotalWords", quizTotalWords, "int");
+}
+function quiz_options(sender, arg) {
+  if (GetValue(segQuizMode) == 0) {
+    quizWordOptions = 6;
+  } else {
+    quizWordOptions = 4;
+  }
+  SetSetting("quizWordOptions", quizWordOptions, "int");
+}
