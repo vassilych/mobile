@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iLanguage</string>
+    <string name="Learn">Lernen</string>
+    <string name="Quiz">Quiz</string>
+    <string name="Settings">Einst.</string>
+    <string name="Learn_wide">Lernen</string>
+    <string name="Quiz_wide">Quiz</string>
+    <string name="Settings_wide">Einstellungen</string>
+
+    <!-- InApp Billing -->
+    <string name="Please_wait___"       >Bitte warten Sie...</string>
+    <string name="Access_error__Check_your_internet_connection">Überprüfen Sie Ihre Internetverbindung und dass Sie die neueste Version von Google Play haben</string>
+
+	<!-- Learn Tab -->
+    <string name="Word">Wort</string>
+    <string name="Words">Wörter</string>
+    <string name="Translate">Übersetzen</string>
+    <string name="Phrases">Phrasen</string>
+    <string name="Part_of_word_or_word_numeric_ID">Teil des Wortes oder ID</string>
+
+    <!-- Speech -->
+    <string name="Speech">Sagen</string>
+    <string name="You_said">Sie haben gesagt:</string>
+    <string name="Excellent">Ausgezeichnet!</string>
+    <string name="False">Falsch</string>
+    <string name="Try_again">Versuchen Sie es noch einmal</string>
+    <string name="Continue">Fortfahren</string>
+    <string name="No_speech_was_recognized">Es wurde keine Rede erkannt</string>
+    <string name="No_voice">Sie scheinen kein Mikrofon zu haben</string>
+
+	<!-- Quiz Tab -->
+    <string name="Quiz_Words">Quiz Wörter:</string>
+    <string name="Quiz_Type">Quiz Typ:</string>
+    <string name="Quiz_Mode">Quiz Modus:</string>
+    <string name="Images">Bilder</string>
+    <string name="Text">Text</string>
+    <string name="Correct">Richtig:</string>
+    <string name="Finished">Fertig</string>
+    <string name="Best_score">Beste Ergebnis:</string>
+
+    <!-- Settings Tab -->
+    <string name="Language_to_learn">Sprache zu lernen:</string>
+    <string name="Translate_to">Übersetzen in:</string>
+    <string name="Sound">Ton:</string>
+    <string name="Speech_Rate">Sprache Tempo:</string>
+
+    <!-- TTS words -->
+    <string name="yes">richtig</string>
+    <string name="no">falsch</string>
+    <string name="hello">Hallo</string>
+    <string name="bye">Auf Wiedersehen!</string>
+
+    <!-- Types (categories) -->
+    <string name="all">Alle Wörter</string>
+    <string name="animal_world">Tierwelt</string>
+    <string name="body_parts">Körperteile</string>
+    <string name="clothing">Kleidung</string>
+    <string name="colors__figures">Farben, Figuren</string>
+    <string name="food_and_beverage">Essen und Getränke</string>
+    <string name="fruits_and_vegetables">Früchte und Gemüse</string>
+    <string name="numbers_and_math">Zahlen und Mathe</string>
+    <string name="sport">Sport</string>
+    <string name="hobby__music__chess">Hobby, Musik, Schach</string>
+    <string name="transport">Verkehr</string>
+    <string name="household">Haushalt</string>
+    <string name="kitchen">Küche</string>
+    <string name="school_and_office">Schule und Büro</string>
+    <string name="accesories">Zubehör und Accessoires</string>
+    <string name="tools_and_appliances">Werkzeuge und Geräte</string>
+    <string name="bed_and_bath">Schlaf- und Badezimmer</string>
+    <string name="verbs">Verben</string>
+    <string name="adjectives">Adjektive</string>
+    <string name="family_and_kids">Familie und Kinder</string>
+    <string name="profession">Berufe</string>
+    <string name="countries">Ländern</string>
+    <string name="environment">Umwelt</string>
+    <string name="calendar__time">Kalender, Zeit</string>
+    <string name="basic_phrases">Grundlegende Phrasen</string>
+    <string name="phrases_greetings">Gruß Phrasen</string>
+    <string name="phrases_traveling">Phrasen in Reisen</string>
+    <string name="phrases_in_hotel">Phrasen im Hotel</string>
+    <string name="phrases_in_restaurant">Phrasen im Restaurant</string>
+    <string name="flirting_phrases">Phrasen zum Flirten</string>
+
+</resources>

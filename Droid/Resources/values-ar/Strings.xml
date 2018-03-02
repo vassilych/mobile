@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iLanguage</string>
+    <string name="Learn">تعلم</string>
+    <string name="Quiz">اختبر نفسك</string>
+    <string name="Settings">اعدادات</string>
+    <string name="Learn_wide">تعلم</string>
+    <string name="Quiz_wide">اختبر نفسك</string>
+    <string name="Settings_wide">اعدادات</string>
+
+    <!-- InApp Billing -->
+    <string name="Please_wait___"       >أرجو الإنتظار</string>
+    <string name="Access_error__Check_your_internet_connection">تحقق من اتصالك بالإنترنت وأن لديك أحدث إصدار من غوغل بلاي</string>
+
+    <!-- Learn Tab -->
+    <string name="Word">كلمة</string>
+    <string name="Words">كلمات</string>
+    <string name="Translate">ترجم</string>
+    <string name="Phrases">عبارات</string>
+    <string name="Part_of_word_or_word_numeric_ID">جزء من كلمة أو كلمة عددية معرفة</string>
+
+    <!-- Speech -->
+    <string name="Speech">خطاب</string>
+    <string name="You_said">أنت قلت</string>
+    <string name="Excellent">ممتاز</string>
+    <string name="False">خاطئة</string>
+    <string name="Try_again">حاول ثانية!</string>
+    <string name="Continue">استمر</string>
+    <string name="No_speech_was_recognized">ولم يعترف بأي خطاب</string>
+    <string name="No_voice">لا يبدو أن لديك ميكروفون</string>
+
+    <!-- Quiz Tab -->
+    <string name="Quiz_Words">:كلمات الاختبار</string>
+    <string name="Quiz_Type">:نوع مسابقة</string>
+    <string name="Quiz_Mode">:وضع مسابقة</string>
+    <string name="Images">صورة</string>
+    <string name="Text">نص</string>
+    <string name="Correct">:صحيح</string>
+    <string name="Finished">انتهى</string>
+    <string name="Best_score">:أفضل نتيجة</string>
+
+    <!-- Settings Tab -->
+    <string name="Language_to_learn">:اللغة المستهدفة</string>
+    <string name="Translate_to">:ترجم الى</string>
+    <string name="Sound">:صوت</string>
+    <string name="Speech_Rate">سرعة الكلام</string>
+
+    <!-- TTS words -->
+    <string name="yes">انتهى</string>
+    <string name="no" >لا</string>
+    <string name="hello">مرحبا</string>
+    <string name="bye">الى اللقاء</string>
+
+    <!-- Types (categories) -->
+    <string name="all">كل</string>
+    <string name="animal_world">عالم الحيوان</string>
+    <string name="body_parts">اجزاء الجسم</string>
+    <string name="clothing">الملابس</string>
+    <string name="colors__figures">الالوان, الاشكال</string>
+    <string name="food_and_beverage">الطعام و الشراب</string>
+    <string name="fruits_and_vegetables">الخضر والفواكه</string>
+    <string name="numbers_and_math">الاعداد والحساب</string>
+    <string name="sport" >الرياضة</string>
+    <string name="hobby__music__chess">هواية, موسيقى, شطرنج</string>
+    <string name="transport">النقل</string>
+    <string name="household">المنزل والعائلة</string>
+    <string name="kitchen" >المطبخ</string>
+    <string name="school_and_office">المدرسة والمكتب</string>
+    <string name="accesories">الملحقات</string>
+    <string name="tools_and_appliances" >لوازم وتجهيزات</string>
+    <string name="bed_and_bath">السرير والدش</string>
+    <string name="verbs">الافعال</string>
+    <string name="adjectives">الصفات</string>
+    <string name="family_and_kids" >العائلة والاطفال</string>
+    <string name="profession">المهن</string>
+    <string name="countries">المدن</string>
+    <string name="environment">البيئة</string>
+    <string name="calendar__time">الرزنامة, الوقت</string>
+    <string name="basic_phrases">عبارات أساسية</string>
+    <string name="phrases_greetings">عبارات التحية</string>
+    <string name="phrases_traveling">عبارات السفر</string>
+    <string name="phrases_in_hotel">عبارات الفندق</string>
+    <string name="phrases_in_restaurant">عبارات المطعم</string>
+    <string name="flirting_phrases">عبارات الغزل والغرام</string>
+
+
+</resources>

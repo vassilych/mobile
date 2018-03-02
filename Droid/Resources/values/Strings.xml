@@ -1,5 +1,93 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, Click Me!</string>
-    <string name="app_name">scripting.Droid</string>
+    <string name="app_name">iLanguage</string>
+    <string name="Learn">Learn</string>
+    <string name="Quiz">Quiz</string>
+    <string name="Settings">Set</string>
+    <string name="Learn_wide">Learn</string>
+    <string name="Quiz_wide">Quiz</string>
+    <string name="Settings_wide">Settings</string>
+
+    <!-- AdMob -->
+    <string name="test_banner_ad_unit_id"      >ca-app-pub-3940256099942544/6300978111</string>
+    <string name="test_interstitial_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_appid"       >ca-app-pub-5365456490909700~8197798895</string>
+    <string name="admob_banner"      >ca-app-pub-5365456490909700/8058198097</string>
+    <string name="admob_interstitial">ca-app-pub-5365456490909700/2151265291</string>
+
+    <!-- InApp Billing -->
+    <string name="Please_wait___"    >Please wait...</string>
+    <string name="Access_error__Check_your_internet_connection">Access error. Check your internet connection and that you have the latest version of Google Play</string>
+
+    <!-- Learn Tab -->
+    <string name="Word">Word</string>
+    <string name="Words">Words</string>
+    <string name="Translate">Translate</string>
+    <string name="Phrases">Phrases</string>
+    <string name="Part_of_word_or_word_numeric_ID">Part of word or word numeric ID</string>
+
+    <!-- Speech -->
+    <string name="Speech">Speech</string>
+    <string name="You_said">You said:</string>
+    <string name="Excellent">Excellent!</string>
+    <string name="False">False</string>
+    <string name="Try_again">Try again!</string>
+    <string name="Continue">Continue</string>
+    <string name="No_speech_was_recognized">No speech was recognized</string>
+    <string name="No_voice">You don\'t seem to have a microphone</string>
+
+    <!-- Quiz Tab -->
+    <string name="Quiz_Words">Quiz Words:</string>
+    <string name="Quiz_Type">Quiz Type:</string>
+    <string name="Quiz_Mode">Quiz Mode:</string>
+    <string name="Images">Images</string>
+    <string name="Text">Text</string>
+    <string name="Correct">Correct:</string>
+    <string name="Finished">Finished</string>
+    <string name="Best_score">Best score:</string>
+
+    <!-- Settings Tab -->
+    <string name="Language_to_learn">Language to learn:</string>
+    <string name="Translate_to">Translate to:</string>
+    <string name="Sound">Sound:</string>
+    <string name="Speech_Rate">Speech Rate:</string>
+
+    <!-- TTS words -->
+    <string name="yes">correct</string>
+    <string name="no">no</string>
+    <string name="hello">Hello</string>
+    <string name="bye">Good bye!</string>
+
+    <!-- Types (categories) -->
+    <string name="all">all</string>
+    <string name="animal_world">animal world</string>
+    <string name="body_parts">body parts</string>
+    <string name="clothing">clothing</string>
+    <string name="colors__figures">colors, figures</string>
+    <string name="food_and_beverage">food and beverages</string>
+    <string name="fruits_and_vegetables">fruits and vegetables</string>
+    <string name="numbers_and_math">numbers and math</string>
+    <string name="sport">sport</string>
+    <string name="hobby__music__chess">hobby, music, chess</string>
+    <string name="transport">transport</string>
+    <string name="household">household</string>
+    <string name="kitchen">kitchen</string>
+    <string name="school_and_office">school and office</string>
+    <string name="accesories">accesories</string>
+    <string name="tools_and_appliances">tools and appliances</string>
+    <string name="bed_and_bath">bed and bath</string>
+    <string name="verbs">verbs</string>
+    <string name="adjectives">adjectives</string>
+    <string name="family_and_kids">family and kids</string>
+    <string name="profession">professions</string>
+    <string name="countries">countries</string>
+    <string name="environment">environment</string>
+    <string name="calendar__time">calendar, time</string>
+    <string name="basic_phrases">basic phrases</string>
+    <string name="phrases_greetings">phrases greetings</string>
+    <string name="phrases_traveling">phrases traveling</string>
+    <string name="phrases_in_hotel">phrases in hotel</string>
+    <string name="phrases_in_restaurant">phrases in restaurant</string>
+    <string name="flirting_phrases">phrases for flirting</string>
+
 </resources>

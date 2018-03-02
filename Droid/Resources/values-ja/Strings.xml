@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iLanguage</string>
+    <string name="Learn">学ぶ</string>
+    <string name="Quiz">クイズ</string>
+    <string name="Settings">設定</string>
+    <string name="Learn_wide">学ぶ</string>
+    <string name="Quiz_wide">クイズ</string>
+    <string name="Settings_wide">設定</string>
+
+    <!-- InApp Billing -->
+    <string name="Please_wait___"       >お待ちください</string>
+    <string name="Access_error__Check_your_internet_connection">インターネットに接続していること、Google Playの最新バージョンを使用していることを確認する</string>
+
+    <!-- Learn Tab -->
+    <string name="Word">ワード</string>
+    <string name="Words">单词</string>
+    <string name="Translate">翻訳</string>
+    <string name="Phrases">短语</string>
+    <string name="Part_of_word_or_word_numeric_ID">単語または単語IDの一部です</string>
+
+    <!-- Speech -->
+    <string name="Speech">スピーチ</string>
+    <string name="You_said">あなたが言った：</string>
+    <string name="Excellent">優れた!</string>
+    <string name="False">違う</string>
+    <string name="Try_again">再試行する!</string>
+    <string name="Continue">持続する</string>
+    <string name="No_speech_was_recognized">No speech was recognized</string>
+    <string name="No_voice">You don\'t seem to have a microphone</string>
+
+    <!-- Quiz Tab -->
+    <string name="Quiz_Words">クイズの単語数：</string>
+    <string name="Quiz_Type">クイズの種類:</string>
+    <string name="Quiz_Mode">クイズモード:</string>
+    <string name="Images">图片</string>
+    <string name="Text">文本</string>
+    <string name="Correct">正确:</string>
+    <string name="Finished">完成</string>
+    <string name="Best_score">最高スコア:</string>
+
+    <!-- Settings Tab -->
+    <string name="Language_to_learn">语言学习:</string>
+    <string name="Translate_to">翻译:</string>
+    <string name="Sound">声音:</string>
+    <string name="Speech_Rate">语速:</string>
+
+    <!-- TTS words -->
+    <string name="yes">正确</string>
+    <string name="no">错误</string>
+    <string name="hello">你好</string>
+    <string name="bye">再见</string>
+
+    <!-- Types (categories) -->
+    <string name="all">所有</string>
+    <string name="animal_world">动物世界</string>
+    <string name="body_parts">身体部位</string>
+    <string name="clothing">衣物</string>
+    <string name="colors__figures">颜色，数字</string>
+    <string name="food_and_beverage">食物和饮料</string>
+    <string name="fruits_and_vegetables">水果和蔬菜</string>
+    <string name="numbers_and_math">数字和数学</string>
+    <string name="sport">体育</string>
+    <string name="hobby__music__chess">爱好，音乐，棋</string>
+    <string name="transport">运输</string>
+    <string name="household">家庭日常的</string>
+    <string name="kitchen">厨房</string>
+    <string name="school_and_office">学校与办公室</string>
+    <string name="accesories">配件、装饰</string>
+    <string name="tools_and_appliances">工具和装置</string>
+    <string name="bed_and_bath">卧室和浴室</string>
+    <string name="verbs">动词</string>
+    <string name="adjectives">形容词</string>
+    <string name="family_and_kids">家庭和儿童</string>
+    <string name="profession">行业</string>
+    <string name="countries">国家</string>
+    <string name="environment">环境</string>
+    <string name="calendar__time">日历，时间</string>
+    <string name="basic_phrases">基本短语</string>
+    <string name="phrases_greetings">问候短语</string>
+    <string name="phrases_traveling">旅游短语</string>
+    <string name="phrases_in_hotel">酒店短语</string>
+    <string name="phrases_in_restaurant">餐厅短语</string>
+    <string name="flirting_phrases">调情短语</string>
+
+</resources>

@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iLanguage</string>
+    <string name="Learn">Учить</string>
+    <string name="Quiz">Тест</string>
+    <string name="Settings">Наст.</string>
+    <string name="Learn_wide">Учить</string>
+    <string name="Quiz_wide">Тест</string>
+    <string name="Settings_wide">Настройки</string>
+
+    <!-- InApp Billing -->
+    <string name="Please_wait___"       >Пожалуйста, подождите...</string>
+    <string name="Access_error__Check_your_internet_connection">Проверьте подключение к Интернету и наличие последней версии Google Play</string>
+
+    <!-- Learn Tab -->
+    <string name="Word">Слово</string>
+    <string name="Words">Слова</string>
+    <string name="Translate">Перевести</string>
+    <string name="Phrases">Фразы</string>
+    <string name="Part_of_word_or_word_numeric_ID">Часть слова или номер слова</string>
+
+    <!-- Speech -->
+    <string name="Speech">Речь</string>
+    <string name="You_said">Вы сказали:</string>
+    <string name="Excellent">Отлично!</string>
+    <string name="False">Неправильно</string>
+    <string name="Try_again">Попробуйте ещё!</string>
+    <string name="Continue">Продолжить</string>
+    <string name="No_speech_was_recognized">Речь не распознана</string>
+    <string name="No_voice">Похоже, у Вас нет микрофона</string>
+
+    <!-- Quiz Tab -->
+    <string name="Quiz_Words">Слов в тесте:</string>
+    <string name="Quiz_Type">Тип теста:</string>
+    <string name="Quiz_Mode">Режим теста:</string>
+    <string name="Images">Картинки</string>
+    <string name="Text">Текст</string>
+    <string name="Correct">Правильно:</string>
+    <string name="Finished">Тест закончен.</string>
+    <string name="Best_score">Рекорд:</string>
+
+    <!-- Settings Tab -->
+    <string name="Language_to_learn">Изучаемый язык:</string>
+    <string name="Translate_to">Язык перевода:</string>
+    <string name="Sound">Звук:</string>
+    <string name="Speech_Rate">Скорость голоса:</string>
+
+    <!-- TTS words -->
+    <string name="yes">правильно</string>
+    <string name="no">нет</string>
+    <string name="hello">Привет!</string>
+    <string name="bye">Пока!</string>
+
+    <!-- Types (categories) -->
+    <string name="all">все слова</string>
+    <string name="animal_world">животный мир</string>
+    <string name="body_parts">части тела</string>
+    <string name="clothing">одежда</string>
+    <string name="colors__figures">цвет, фигуры</string>
+    <string name="food_and_beverage">еда и напитки</string>
+    <string name="fruits_and_vegetables">фрукты и овощи</string>
+    <string name="numbers_and_math">числа и математика</string>
+    <string name="sport">спорт</string>
+    <string name="hobby__music__chess">хобби, музыка, шахматы</string>
+    <string name="transport">транспорт</string>
+    <string name="household">дом</string>
+    <string name="kitchen">кухня</string>
+    <string name="school_and_office">школа и офис</string>
+    <string name="accesories">личные вещи</string>
+    <string name="tools_and_appliances">приборы и инструменты</string>
+    <string name="bed_and_bath">спальня и ванна</string>
+    <string name="verbs">глаголы</string>
+    <string name="adjectives">прилагательные</string>
+    <string name="family_and_kids">семья и дети</string>
+    <string name="profession">профессии</string>
+    <string name="countries">страны</string>
+    <string name="environment">окружающая среда</string>
+    <string name="calendar__time">календарь, время</string>
+    <string name="basic_phrases">базовые фразы</string>
+    <string name="phrases_greetings">фразы приветствия</string>
+    <string name="phrases_traveling">фразы путешествуя</string>
+    <string name="phrases_in_hotel">фразы в гостинице</string>
+    <string name="phrases_in_restaurant">фразы в ресторане</string>
+    <string name="flirting_phrases">фразы для флирта</string>
+
+</resources>
