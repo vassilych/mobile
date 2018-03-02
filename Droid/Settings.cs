@@ -22,6 +22,12 @@ namespace scripting.Droid
       prefEditor.PutInt(name, value);
       prefEditor.Commit();
     }
+    static public void SaveSetting(string name, long value)
+    {
+      var prefEditor = g_prefs.Edit();
+      prefEditor.PutLong(name, value);
+      prefEditor.Commit();
+    }
     static public void SaveSetting(string name, bool value)
     {
       var prefEditor = g_prefs.Edit();
@@ -45,8 +51,11 @@ namespace scripting.Droid
     static public int GetIntSetting(string name, int defValue = -1)
     {
       int res = g_prefs.GetInt(name, defValue);
-      Console.WriteLine("GetIntSetting {0}: {1} --> {2}",
-                Application.Context.ApplicationInfo.PackageName, name, res);
+      return res;
+    }
+    static public long GetLongSetting(string name, long defValue = -1)
+    {
+      long res = g_prefs.GetLong(name, defValue);
       return res;
     }
     static public bool GetBoolSetting(string name, bool defValue = false)

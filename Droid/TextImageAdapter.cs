@@ -7,6 +7,7 @@ using Android.Views;
 using Android.Widget;
 using Java.Lang;
 using System.Collections.Generic;
+using Android.Graphics;
 
 namespace scripting.Droid
 {
@@ -17,6 +18,10 @@ namespace scripting.Droid
     List<string> m_names;
     List<int> m_pics;
     string m_first;
+
+    public float TextSize { get; set; }
+    public Typeface Typeface { get; set; }
+    public TypefaceStyle TypefaceStyle { get; set; }
 
     public TextImageAdapter(Context context)
     {
@@ -69,7 +74,6 @@ namespace scripting.Droid
     {
       return null;
     }
-
     public override long GetItemId(int position)
     {
       return position;
@@ -121,7 +125,14 @@ namespace scripting.Droid
         view = MainActivity.TheView.LayoutInflater.Inflate(Android.Resource.Layout.ActivityListItem, null);
       }
       if (m_names != null && position < m_names.Count) {
-        view.FindViewById<TextView>(Android.Resource.Id.Text1).Text = m_names[position];
+        TextView textView = view.FindViewById<TextView>(Android.Resource.Id.Text1);
+        textView.Text = m_names[position];
+        if (TextSize > 0) {
+          textView.TextSize = TextSize;
+        }
+        if (Typeface != null) {
+          textView.SetTypeface(Typeface, TypefaceStyle);
+        }
       }
       if (m_pics != null && position < m_pics.Count && m_pics[position] > 0) {
         view.FindViewById<ImageView>(Android.Resource.Id.Icon).SetImageResource(m_pics[position]);

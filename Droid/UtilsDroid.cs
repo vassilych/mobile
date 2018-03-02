@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.Runtime;
@@ -8,7 +9,6 @@ using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using SplitAndMerge;
-
 namespace scripting.Droid
 {
   public class ScreenSize
@@ -61,20 +61,36 @@ namespace scripting.Droid
       //drawable.SetColor(borderColor);
       view.Background = drawable;
     }
+
+    /*public static View ConvertFormsToNative(Xamarin.Forms.View view,
+                                            Xamarin.Forms.Rectangle size)
+    {
+      var vRenderer = Platform.CreateRendererWithContext(view, MainActivity.TheView);
+      var androidView = vRenderer.View;
+      vRenderer.Tracker.UpdateLayout();
+      var layoutParams = new ViewGroup.LayoutParams((int)size.Width, (int)size.Height);
+      androidView.LayoutParameters = layoutParams;
+      view.Layout(size);
+      androidView.Layout(0, 0, (int)view.WidthRequest, (int)view.HeightRequest);
+      return androidView;
+    }*/
+
     public static LayoutRules String2LayoutParam(DroidVariable location, bool isX)
     {
       View referenceView = isX ? location.ViewX : location.ViewY;
-      string param = isX ? location.RuleX : location.RuleY;
+      string param       = isX ? location.RuleX : location.RuleY;
 
       bool useRoot = referenceView == null;
 
-      UIVariable refLocation = isX ? location.RefViewX?.Location :
-                                     location.RefViewY?.Location;
+      DroidVariable refLocation = isX ? location.RefViewX?.Location as DroidVariable :
+                                        location.RefViewY?.Location as DroidVariable;
 
       // If the reference view has a margin, add it to the current view.
       // This is the iOS functionality.
-      if (isX && refLocation != null) {
+      if (isX && refLocation != null && !location.IsAdjustedX) {
         location.TranslationX += refLocation.TranslationX;
+        //} else if (!isX && refLocation != null && !location.IsAdjustedY) {
+        //  location.TranslationY += refLocation.TranslationY - refLocation.ExtraY;
       } else if (!isX && refLocation != null) {
         location.TranslationY += refLocation.TranslationY;
       }
@@ -102,9 +118,6 @@ namespace scripting.Droid
               return LayoutRules.AlignLeft;
             } else {
               int delta = (refLocation.Height - location.Height) / 2;
-              /*if (referenceView is TextView) {
-                delta -= 28;
-              }*/
               location.TranslationY += delta;
               return LayoutRules.AlignTop;// .AlignBaseline;
             }
@@ -230,6 +243,105 @@ namespace scripting.Droid
       } else {
         return new Java.Util.Locale(language, country);
       }
+    }
+    public static Tuple<GravityFlags, TextAlignment> GetAlignment(string alignment)
+    {
+      GravityFlags al1 = GravityFlags.Left;
+      TextAlignment al2 = TextAlignment.TextStart;
+
+      switch (alignment) {
+        case "left":
+          al1 = GravityFlags.Left;
+          al2 = TextAlignment.TextStart;
+          break;
+        case "right":
+          al1 = GravityFlags.Right;
+          al2 = TextAlignment.TextEnd;
+          break;
+        case "fill":
+        case "natural":
+          al1 = GravityFlags.Fill;
+          al2 = TextAlignment.Gravity;
+          break;
+        case "top":
+          al1 = GravityFlags.Top;
+          al2 = TextAlignment.Gravity;
+          break;
+        case "bottom":
+          al1 = GravityFlags.Bottom;
+          al2 = TextAlignment.Gravity;
+          break;
+        case "center":
+          al1 = GravityFlags.Center;
+          al2 = TextAlignment.Center;
+          break;
+        case "justified":
+          al1 = GravityFlags.ClipHorizontal;
+          al2 = TextAlignment.Gravity;
+          break;
+      }
+      return new Tuple<GravityFlags, TextAlignment>(al1, al2);
+    }
+    public static Color NeutralColor {
+      get => Color.Rgb(0, 191, 255);
+    }
+    public static Color String2Color(string colorStr)
+    {
+      switch (colorStr) {
+        case "black": return Color.Black;
+        case "blue": return Color.Blue;
+        case "brown": return Color.Brown;
+        case "clear": return Color.Transparent;
+        case "cyan": return Color.Cyan;
+        case "dark_gray": return Color.DarkGray;
+        case "dark_green": return Color.DarkGreen;
+        case "dark_red": return Color.DarkRed;
+        case "deep_pink": return Color.DeepPink;
+        case "deep_sky_blue": return Color.DeepSkyBlue;
+        case "gainsboro": return Color.Gainsboro;
+        case "gray": return Color.Gray;
+        case "green": return Color.Green;
+        case "light_blue": return Color.LightBlue;
+        case "light_cyan": return Color.LightCyan;
+        case "light_gray": return Color.LightGray;
+        case "light_green": return Color.LightGreen;
+        case "light_yellow": return Color.LightYellow;
+        case "magenta": return Color.Magenta;
+        case "neutral": return NeutralColor;
+        case "orange": return Color.Orange;
+        case "pink": return Color.Pink;
+        case "purple": return Color.Purple;
+        case "rose": return Color.RosyBrown;
+        case "red": return Color.Red;
+        case "sky_blue": return Color.SkyBlue;
+        case "silver": return Color.Silver;
+        case "snow": return Color.Snow;
+        case "transparent": return Color.Transparent;
+        case "white": return Color.White;
+        case "white_smoke": return Color.WhiteSmoke;
+        case "yellow": return Color.Yellow;
+
+        default: return Color.ParseColor(colorStr);
+      }
+    }
+    public static Stream ImageToStream(string imagePath)
+    {
+      int resourceID = MainActivity.String2Pic(imagePath);
+
+      Stream pngImageStream = new MemoryStream();
+      var data = BitmapFactory.DecodeResource(MainActivity.TheView.Resources, resourceID);
+      data.Compress(Bitmap.CompressFormat.Png, 0, pngImageStream);
+
+      return pngImageStream;
+    }
+    public static string FileToString(string filename)
+    {
+      string contents = "";
+      Android.Content.Res.AssetManager assets = MainActivity.TheView.Assets;
+      using (StreamReader sr = new StreamReader(assets.Open(filename))) {
+        contents = sr.ReadToEnd();
+      }
+      return contents;
     }
   }
 }

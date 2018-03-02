@@ -16,11 +16,11 @@ namespace scripting.Droid
     public static readonly int TTS_REQUEST_DATA   = 103;
     static Context m_context;
 
-    static public bool   Sound { set; get; }           = true;
-    static public float  SpeechRate { set; get; }      = 1.0f;
-    static public float  Volume { set; get; }          = 0.7f;
-    static public float  PitchMultiplier { set; get; } = 1.0f;
-    static public string Voice { set; get; }           = "en-US";
+    public static bool   Sound { set; get; }           = true;
+    public static float  SpeechRate { set; get; }      = 1.0f;
+    public static float  Volume { set; get; }          = 0.7f;
+    public static float  PitchMultiplier { set; get; } = 1.0f;
+    public static string Voice { set; get; }           = "en-US";
 
     static bool m_initDone;
 
@@ -76,13 +76,6 @@ namespace scripting.Droid
     {
       return m_textToSpeech.AvailableLanguages;
     }
-
-    /*public static void Speak(string text, bool force = false)
-    {
-      if (!force && !Sound) {
-        return;
-      }
-    }*/
 
     public void Speak(string text, bool force = false)
     {

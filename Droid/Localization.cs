@@ -51,19 +51,24 @@ namespace scripting.Droid
       }
     }
 
-    public static string VoiceFromLocale(Java.Util.Locale locale)
+    public static string Locale2String(Java.Util.Locale locale)
     {
       string voice = "";
-      if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Lollipop) { // 5.0
+      if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Lollipop) {
         voice = locale.ToLanguageTag();
       } else { // Older Android version (< 5.0)
         voice = locale.ToString();
       }
 
+      return voice.Replace('-', '_').Replace("__", "_");
+    }
+    public static string VoiceFromLocale(Java.Util.Locale locale)
+    {
+      string voice = Locale2String(locale);
       voice = AdjustVoiceString(voice);
 
       Console.WriteLine("--> VoiceFromLocale: {0} --> {1}", locale, voice);
-      return voice.Replace('-', '_');
+      return voice;
     }
 
     public static string CodeFromLocale(Java.Util.Locale locale)
@@ -74,7 +79,6 @@ namespace scripting.Droid
 
     public static string AdjustVoiceString(string voice)
     {
-      voice = voice.Replace('-', '_').Replace("__", "_");
       if (voice.Length == 2) {
         if (voice == "en") {
           voice = "en_US";
@@ -112,7 +116,8 @@ namespace scripting.Droid
     public static string GetAppLanguageCode()
     {
       Configuration conf = MainActivity.TheView.Resources.Configuration;
-      string code =  CodeFromLocale(conf.Locale);
+      //string code = CodeFromLocale(conf.Locale);
+      string code = Locale2String(conf.Locale);
       return code;
     }
 

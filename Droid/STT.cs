@@ -83,7 +83,8 @@ namespace scripting.Droid
       m_speechRecognizer = SpeechRecognizer.CreateSpeechRecognizer(MainActivity.TheView);
       m_speechRecognizerIntent = InitSpeechIntent(Voice, prompt);
 
-      string serviceComponent = Android.Provider.Settings.Secure.GetString(MainActivity.TheView.ContentResolver,
+      string serviceComponent = Android.Provider.Settings.Secure.GetString(
+        MainActivity.TheView.ContentResolver,
                                       "voice_recognition_service");
       Console.WriteLine("--> serviceComponent: [{0}]", serviceComponent);
       //"com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService";

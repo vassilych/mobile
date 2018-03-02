@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Android.Graphics;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -22,20 +24,15 @@ namespace scripting.Droid
         m_viewX.Id = m_currentTag;
       }
     }
-    public DroidVariable(UIType type, string name = "",
-                         UIVariable refViewX = null, UIVariable refViewY = null) :
+    public DroidVariable(UIType type, string name,
+                         UIVariable refViewX, UIVariable refViewY = null) :
                          base(type, name, refViewX, refViewY)
     {
     }
 
     public override Variable Clone()
     {
-      DroidVariable newVar = new DroidVariable();
-      newVar.Copy(this);
-      newVar.m_viewX = m_viewX;
-      newVar.m_viewY = m_viewY;
-      newVar.m_layoutRuleX = m_layoutRuleX;
-      newVar.m_layoutRuleY = m_layoutRuleY;
+      DroidVariable newVar = (DroidVariable)this.MemberwiseClone();
       return newVar;
     }
 
@@ -58,39 +55,485 @@ namespace scripting.Droid
     public ViewGroup ViewLayout {
       get { return m_viewX as ViewGroup; }
     }
+    public int  ExtraX      { get; set; }
+    public int  ExtraY      { get; set; }
+    public bool IsAdjustedX { get; set; }
+    public bool IsAdjustedY { get; set; }
+
+    public string FontName  { get; set; }
+    bool m_bold;
+    bool m_italic;
 
     public void SetViewLayout(int width, int height)
     {
-      //DroidVariable refView = RefViewX as DroidVariable;
       DroidVariable refView = Location?.RefViewX as DroidVariable;
       m_viewX = MainActivity.CreateViewLayout(width, height, refView?.ViewLayout);
     }
 
-    public bool SetFontSize(float size)
+    public virtual DroidVariable GetWidget(string widgetType, string widgetName, string initArg,
+                                           int width, int height)
     {
+      UIVariable.UIType type = UIVariable.UIType.NONE;
+      View widget = null;
+      switch (widgetType) {
+        case "View":
+          type = UIVariable.UIType.VIEW;
+          widget = new View(MainActivity.TheView);
+          break;
+        case "Button":
+          type = UIVariable.UIType.BUTTON;
+          widget = new Button(MainActivity.TheView);
+          ((Button)widget).SetTextColor(Color.Black);
+          ((Button)widget).Text = initArg;
+          UtilsDroid.AddViewBorder(widget, Color.Black);
+          break;
+        case "Label":
+          type = UIVariable.UIType.LABEL;
+          widget = new TextView(MainActivity.TheView);
+          ((TextView)widget).SetTextColor(Color.Black);
+          ((TextView)widget).Text = initArg;
+          ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
+          break;
+        case "TextView":
+        case "TextEdit":
+          type = UIVariable.UIType.TEXT_FIELD;
+          widget = new EditText(MainActivity.TheView);
+          ((EditText)widget).SetTextColor(Color.Black);
+          ((EditText)widget).Hint = initArg;
+          break;
+        case "ImageView":
+          type = UIVariable.UIType.IMAGE_VIEW;
+          widget = new ImageView(MainActivity.TheView);
+          if (!string.IsNullOrWhiteSpace(initArg)) {
+            int resourceID = MainActivity.String2Pic(initArg);
+            widget.SetBackgroundResource(resourceID);
+          }
+          break;
+        case "Combobox":
+          type = UIVariable.UIType.COMBOBOX;
+          widget = new Spinner(MainActivity.TheView);
+          ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+          break;
+        case "TypePicker":
+          type = UIVariable.UIType.PICKER_VIEW;
+          widget = new NumberPicker(MainActivity.TheView);
+          // Don't show the cursor on the picker:
+          ((NumberPicker)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+          break;
+        case "Picker":
+          type = UIVariable.UIType.PICKER_IMAGES;
+          widget = new Spinner(MainActivity.TheView);
+          // Don't show the cursor on the picker:
+          ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+          break;
+        case "ListView":
+          type = UIVariable.UIType.LIST_VIEW;
+          widget = new ListView(MainActivity.TheView);
+          // Don't show the cursor on the list view:
+          ((ListView)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+          break;
+        case "Switch":
+          type = UIVariable.UIType.SWITCH;
+          widget = new Switch(MainActivity.TheView);
+          break;
+        case "SegmentedControl":
+          type = UIVariable.UIType.SEGMENTED;
+          widget = new Switch(MainActivity.TheView);
+          break;
+        case "Slider":
+          type = UIVariable.UIType.SLIDER;
+          widget = new SeekBar(MainActivity.TheView);
+          break;
+        case "Stepper":
+          type = UIVariable.UIType.STEPPER;
+          widget = new View(MainActivity.TheView);
+          break;
+      }
+
+      DroidVariable widgetFunc = new DroidVariable(type, widgetName, widget);
+      SetValues(widgetFunc, initArg);
+      return widgetFunc;
+    }
+
+    public virtual void AdjustTranslation(DroidVariable location, bool isX, bool sameWidget = true)
+    {
+      int offset = 0;
+      ScreenSize screenSize = UtilsDroid.GetScreenSize();
+      if (isX && sameWidget && ViewX is Switch) {
+        offset = AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
+        if (screenSize.Width <= AutoScaleFunction.BASE_WIDTH) {
+          offset = UtilsDroid.SWITCH_MARGIN; // from -45, 480
+        }
+        //offset = -112; // (before -168) // from 1200
+        //offset = -135; // from 1440
+      }
+      location.TranslationX += offset;
+    }
+
+    public static void SetValues(DroidVariable widgetFunc, string valueStr)
+    {
+      if (string.IsNullOrWhiteSpace(valueStr)) {
+        return;
+      }
+      widgetFunc.InitValue = new Variable(valueStr);
+
+      // currValue:minValue:maxValue:step
+
+      double minValue = 0, maxValue = 1, currValue = 0, step = 1.0;
+      string[] vals = valueStr.Split(new char[] { ',', ':' });
+      Double.TryParse(vals[0].Trim(), out currValue);
+
+      if (vals.Length > 1) {
+        Double.TryParse(vals[1].Trim(), out minValue);
+        if (vals.Length > 2) {
+          Double.TryParse(vals[2].Trim(), out maxValue);
+        }
+        if (vals.Length > 3) {
+          Double.TryParse(vals[3].Trim(), out step);
+        }
+      } else {
+        minValue = maxValue = currValue;
+      }
+
+      if (widgetFunc.WidgetType == UIVariable.UIType.SEGMENTED) {
+        Switch seg = widgetFunc.ViewX as Switch;
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Lollipop) {
+          seg.ShowText = true;
+        }
+        seg.TextOn = vals[vals.Length - 1];
+        seg.TextOff = vals[0];
+        seg.Checked = false;
+      } else if (widgetFunc.ViewX is Switch) {
+        Switch sw = widgetFunc.ViewX as Switch;
+        sw.Checked = (int)currValue == 1;
+      } else if (widgetFunc.ViewX is SeekBar) {
+        SeekBar slider = widgetFunc.ViewX as SeekBar;
+        slider.Max = (int)maxValue - (int)minValue;
+        slider.Progress = (int)currValue;
+        widgetFunc.MinVal = minValue;
+        widgetFunc.MaxVal = maxValue;
+        widgetFunc.CurrVal = currValue;
+      } else {
+        widgetFunc.MinVal = minValue;
+        widgetFunc.MaxVal = maxValue;
+        widgetFunc.CurrVal = currValue;
+        widgetFunc.Step = step;
+      }
+    }
+
+    public virtual bool AlignText(string alignment)
+    {
+      if (string.IsNullOrEmpty(alignment)) {
+        return false;
+      }
+      alignment = alignment.ToLower();
+
+      //m_viewX.TextAlignment = TextAlignment.Gravity;
+      var al = UtilsDroid.GetAlignment(alignment);
+
+      if (ViewX is Button) {
+        ((Button)ViewX).Gravity = al.Item1;
+        ((Button)ViewX).TextAlignment = al.Item2;
+      } else if (ViewX is TextView) {
+        ((TextView)ViewX).Gravity = al.Item1;
+        ((TextView)ViewX).TextAlignment = al.Item2;
+      } else if (ViewX is EditText) {
+        ((TextView)ViewX).Gravity = al.Item1;
+        ((TextView)ViewX).TextAlignment = al.Item2;
+      } else {
+        return false;
+      }
+
+      /*var layoutParams = ViewX.LayoutParameters as RelativeLayout.LayoutParams;
+      if (alignment == "center") {
+        layoutParams.AddRule(LayoutRules.CenterHorizontal);
+      }
+      ViewX.LayoutParameters = layoutParams;*/
+
+      return true;
+    }
+    public virtual bool SetText(string text, string alignment = null)
+    {
+      AlignText(alignment);
+
+      if (ViewX is Button) {
+        ((Button)ViewX).Text = text;
+      } else if (ViewX is TextView) {
+        ((TextView)ViewX).Text = text;
+      } else if (ViewX is EditText) {
+        ((EditText)ViewX).Text = text;
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ViewX as Spinner;
+        TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter != null) {
+          int pos = adapter.Text2Position(text);
+          spinner.SetSelection(pos);
+        }
+      } else if (ViewX is NumberPicker) {
+        NumberPicker picker = ViewX as NumberPicker;
+        string[] all = picker.GetDisplayedValues();
+        List<string> names = new List<string>(all);
+        int row = names.FindIndex((obj) => obj.Equals(text));
+        picker.Value = (int)row;
+        ExecuteAction(row.ToString());
+      } else  {
+        return false;
+      }
+
+      return true;
+    }
+    public virtual string GetText()
+    {
+      string text = "";
+      if (ViewX is Button) {
+        text = ((Button)ViewX).Text;
+      } else if (ViewX is TextView) {
+        text = ((TextView)ViewX).Text;
+      } else if (ViewX is EditText) {
+        text = ((EditText)ViewX).Text;
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ViewX as Spinner;
+        TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter != null) {
+          int pos = spinner.SelectedItemPosition;
+          text = adapter.Position2Text(pos);
+        }
+      } else if (ViewX is NumberPicker) {
+        NumberPicker picker = ViewX as NumberPicker;
+        string[] all = picker.GetDisplayedValues();
+        int row = picker.Value;
+        if (all.Length > row && row >= 0) {
+          text = all[row];
+        }
+      }
+      return text;
+    }
+
+    public virtual bool SetValue(string arg1, string arg2 = "")
+    {
+      double val = Utils.ConvertToDouble(arg1);
+      if (ViewX is Switch) {
+        ((Switch)ViewX).Checked = (int)val == 1;
+      } else if (ViewX is SeekBar) {
+        ((SeekBar)ViewX).Progress = (int)val;
+      } else if (WidgetType == UIVariable.UIType.STEPPER) {
+        CurrVal = val;
+      } else if (ViewX is NumberPicker) {
+        NumberPicker picker = ViewX as NumberPicker;
+        picker.Value = (int)val;
+        ExecuteAction(val.ToString());
+      } else if (WidgetType == UIVariable.UIType.SEGMENTED) {
+        Switch sw = ((Switch)ViewX);
+        sw.Checked = val == 0;
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ((Spinner)ViewX);
+        spinner.SetSelection((int)val);
+      } else {
+        return false;
+      }
+      return true;
+    }
+    public virtual double GetValue()
+    {
+      double result = 0;
+      if (ViewX is Switch) {
+        result = ((Switch)ViewX).Checked ? 1 : 0;
+      } else if (ViewX is SeekBar) {
+        result = ((SeekBar)ViewX).Progress;
+      } else if (WidgetType == UIVariable.UIType.STEPPER) {
+        result = CurrVal;
+      } else if (ViewX is NumberPicker) {
+        result = ((NumberPicker)ViewX).Value;
+      } else if (WidgetType == UIVariable.UIType.SEGMENTED) {
+        Switch sw = ((Switch)ViewX);
+        result = sw.Checked ? 0 : 1;
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ((Spinner)ViewX);
+        result = spinner.SelectedItemPosition;
+      }
+      return result;
+    }
+
+    static Dictionary<string, Tuple<string, string>> m_actions =
+       new Dictionary<string, Tuple<string, string>>();
+    
+    public virtual void AddAction(string varName,
+                                 string strAction, string argument = "")
+    {
+      if (!string.IsNullOrWhiteSpace(argument)) {
+        if (argument.Equals("FINISHED")) {
+          if (ViewX is ListView) {
+            ListView listView = ViewX as ListView;
+            listView.NothingSelected += (sender, e) => {
+              UIVariable.GetAction(strAction, varName, "");
+            };
+          }
+          return;
+        }
+      }
+      if (string.IsNullOrWhiteSpace(strAction)) {
+        return;
+      }
+      if (ViewX is Button) {
+        Button button = ViewX as Button;
+        button.Click += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, "\"" + argument + "\"");
+        };
+      } else if (ViewX is EditText) {
+        if (argument.Equals("FINISHED")) {
+        } else {
+          EditText editText = ViewX as EditText;
+          editText.TextChanged += (sender, e) => {
+            UIVariable.GetAction(strAction, varName, "\"" + e.Text.ToString() + "\"");
+          };
+        }
+      } else if (ViewX is Switch) {
+        Switch sw = ViewX as Switch;
+        sw.CheckedChange += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, "\"" + e + "\"");
+        };
+      } else if (ViewX is SeekBar) {
+        SeekBar slider = ViewX as SeekBar;
+        slider.ProgressChanged += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, "\"" + e + "\"");
+        };
+      } else if (ViewX is NumberPicker) {
+        NumberPicker pickerView = ViewX as NumberPicker;
+        pickerView.ValueChanged += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, e.NewVal.ToString());
+        };
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ViewX as Spinner;
+        spinner.ItemSelected += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, e.Position.ToString());
+        };
+      } else if (ViewX is ListView) {
+        ListView listView = ViewX as ListView;
+        listView.ItemClick += (sender, e) => {
+          UIVariable.GetAction(strAction, varName, e.Position.ToString());
+        };
+      } else {
+        ActionDelegate += (arg1, arg2) => {
+          UIVariable.GetAction(strAction, varName, "\"" + arg2 + "\"");
+        };
+      }
+
+      m_actions[Name] = new Tuple<string, string>(strAction, varName);
+    }
+
+    public void ExecuteAction(string arg)
+    {
+      Tuple<string, string> action;
+      if (m_actions.TryGetValue(Name, out action)) {
+        UIVariable.GetAction(action.Item1, action.Item2, "\"" + arg + "\"");
+      }
+    }
+    public bool SetFontSize(View view, float fontSize)
+    {
+      if (view is Button) {
+        ((Button)view).TextSize = fontSize;
+      } else if (view is TextView) {
+        ((TextView)view).TextSize = fontSize;
+      } else if (view is EditText) {
+        ((EditText)view).TextSize = fontSize;
+      } else if (view is Switch) {
+        ((Switch)ViewX).TextSize = fontSize;
+      } else if (view is Spinner) {
+        Spinner spinner = (Spinner)view;
+        TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter != null) {
+          adapter.TextSize = fontSize;
+        }
+      } else {
+        return false;
+      }
+      return true;
+    }
+    public virtual bool SetFontSize(double fontSize)
+    {
+      if (SetFontSize(ViewX, (float)fontSize)) {
+        return true;
+      }
       ViewGroup layout = m_viewX as ViewGroup;
       if (layout == null || layout.ChildCount == 0) {
         return false;
       }
       for (int i = 0; i < layout.ChildCount; i++) {
         View view = layout.GetChildAt(i);
-        if (view is Button) {
-          ((Button)view).TextSize = size;
-        } else if (view is TextView) {
-          ((TextView)view).TextSize = size;
-        } else if (view is EditText) {
-          ((EditText)view).TextSize = size;
-        } else if (view is Switch) {
-          ((Switch)view).TextSize = size;
-        }
+        SetFontSize(view, (float)fontSize);
       }
       return true;
     }
-
-    public void ProcessTranslationY()
+    public bool SetTypeface(Typeface typeface, TypefaceStyle style = TypefaceStyle.Normal)
     {
-      if (TranslationY < 0 && m_layoutRuleY == LayoutRules.AlignParentTop) {
-        TranslationY = 0;
+      if (m_viewX is Button) {
+        ((Button)m_viewX).SetTypeface(typeface, style);
+      } else if (m_viewX is TextView) {
+        ((TextView)m_viewX).SetTypeface(typeface, style);
+      } else if (m_viewX is EditText) {
+        ((EditText)m_viewX).SetTypeface(typeface, style);
+      } else if (m_viewX is Switch) {
+        ((Switch)m_viewX).SetTypeface(typeface, style);
+      } else if (m_viewX is Spinner) {
+        Spinner spinner = (Spinner)m_viewX;
+        TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter != null) {
+          adapter.Typeface = typeface;
+          adapter.TypefaceStyle = style;
+        }
+      } else {
+        return false;
+      }
+      return true;
+    }
+    public virtual bool SetFont(string name, double size = 0)
+    {
+      var typeface = Typeface.Create(name, TypefaceStyle.Normal);
+      FontName = name;
+      return SetTypeface(typeface);
+    }
+
+    bool SetBoldItalicNormal(double size = 0)
+    {
+      var style =  !m_bold && !m_italic ? TypefaceStyle.Normal :
+                    m_bold &&  m_italic ? TypefaceStyle.BoldItalic :
+                    m_bold ? TypefaceStyle.Bold : TypefaceStyle.Italic;
+      SetTypeface(null, style);
+      if (size != 0) {
+        SetFontSize(size);
+      }
+      return true;
+    }
+    public virtual bool SetNormalFont(double size = 0)
+    {
+      m_bold = m_italic = false;
+      return SetBoldItalicNormal(size);
+    }
+    public virtual bool SetBold(double size = 0)
+    {
+      m_bold = true;
+      return SetBoldItalicNormal(size);
+    }
+    public virtual bool SetItalic(double size = 0)
+    {
+      m_italic = true;
+      return SetBoldItalicNormal(size);
+    }
+    public void ProcessTranslationY(DroidVariable location)
+    {
+      if (location.RuleY == "CENTER" && WidgetType == UIType.LABEL) {
+        int deltaY = AutoScaleFunction.TransformSize(20, UtilsDroid.GetScreenSize().Width); ;
+        location.TranslationY += deltaY;
+      }
+
+      if (location.TranslationY < 0 && location.LayoutRuleY == LayoutRules.AlignParentTop) {
+        location.TranslationY = 0;
+      } else if (location.ViewY is Spinner) {
+        if (location.LayoutRuleY == LayoutRules.AlignParentBottom ||
+            location.LayoutRuleY == LayoutRules.Below) {
+          location.ExtraY = AutoScaleFunction.TransformSize(10, UtilsDroid.GetScreenSize().Width);
+          location.TranslationY -= location.ExtraY;
+        }
       }
     }
 
@@ -204,6 +647,101 @@ namespace scripting.Droid
       Variable viewValue = func.GetValue(script);
       DroidVariable viewVar = viewValue as DroidVariable;
       return viewVar.ViewX;
+    }
+    public virtual void AddData(List<string> data, string varName, string title, string extra)
+    {
+      if (ViewX is NumberPicker) {
+        NumberPicker pickerView = ViewX as NumberPicker;
+
+        pickerView.SaveFromParentEnabled = false;
+        pickerView.SaveEnabled = true;
+
+        pickerView.SetDisplayedValues(data.ToArray());
+        pickerView.MinValue = 0;
+        pickerView.MaxValue = data.Count - 1;
+        pickerView.Value = 0;
+        pickerView.WrapSelectorWheel = false;
+
+        AddAction(varName, title);
+      } else if (ViewX is Spinner) {
+        Spinner spinner = ViewX as Spinner;
+        var adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter == null) {
+          adapter = new TextImageAdapter(MainActivity.TheView);
+        }
+        string first = null;//InitValue == null ? null : InitValue.AsString();
+        adapter.SetItems(data, first);
+        spinner.Adapter = adapter;
+        AddAction(varName, title);
+      } else if (ViewX is ListView) {
+        ListView listView = ViewX as ListView;
+        var adapter = listView.Adapter as TextImageAdapter;
+        if (adapter == null) {
+          adapter = new TextImageAdapter(MainActivity.TheView);
+        }
+        adapter.SetItems(data);
+        listView.Adapter = adapter;
+        AddAction(varName, title);
+      }
+    } 
+    public virtual void AddImages(List<string> images, string varName, string title)
+    {
+      if (ViewX is Spinner) {
+        Spinner spinner = ViewX as Spinner;
+        var adapter = spinner.Adapter as TextImageAdapter;
+        if (adapter == null) {
+          adapter = new TextImageAdapter(MainActivity.TheView);
+        }
+        adapter.SetPics(images);
+        spinner.Adapter = adapter;
+        if (!string.IsNullOrEmpty(title)) {
+          AddAction(varName, title);
+        }
+      } else if (ViewX is ListView) {
+        ListView listView = ViewX as ListView;
+        var adapter = listView.Adapter as TextImageAdapter;
+        if (adapter == null) {
+          adapter = new TextImageAdapter(MainActivity.TheView);
+        }
+        adapter.SetPics(images);
+        listView.Adapter = adapter;
+        if (!string.IsNullOrEmpty(title)) {
+          AddAction(varName, title);
+        }
+      }
+    }
+    public virtual bool SetBackgroundColor(string colorStr, double alpha = 1.0)
+    {
+      if (ViewX == null) {
+        return false;
+      }
+
+      var color = UtilsDroid.String2Color(colorStr);
+      if (alpha < 1.0) {
+        color = Color.Argb((int)(alpha * 255), color.R, color.G, color.B);
+      }
+      ViewX.SetBackgroundColor(color);
+
+      return true;
+    }
+    public virtual bool SetFontColor(string colorStr)
+    {
+      if (ViewX == null) {
+        return false;
+      }
+
+      Color color = UtilsDroid.String2Color(colorStr);
+
+      if (ViewX is Button) {
+        ((Button)ViewX).SetTextColor(color);
+      } else if (ViewX is TextView) {
+        ((TextView)ViewX).SetTextColor(color);
+      } else if (ViewX is EditText) {
+        ((EditText)ViewX).SetTextColor(color);
+      } else {
+        return false;
+      }
+      return true;
     }
   }
 }

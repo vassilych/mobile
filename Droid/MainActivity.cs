@@ -20,13 +20,15 @@ namespace scripting.Droid
             Icon = "@mipmap/icon",
             Label = "",
             //MainLauncher = true,
-            ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
+            ConfigurationChanges = ConfigChanges.ScreenSize |
+                                   ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
             )]
   public partial class MainActivity : Activity,
                                       ActionBar.ITabListener
   {
     public static MainActivity TheView;
     public static RelativeLayout TheLayout;
+    //public static ContentResolver ContentResolver;
 
     static List<ActionBar.Tab> m_actionBars = new List<ActionBar.Tab>();
 
@@ -45,6 +47,7 @@ namespace scripting.Droid
 
       Console.WriteLine("Starting ActionBar: {0}", ActionBar != null);
 
+      //ActionBar.NavigationMode = ActionBarNavigationMode.Standard;
       ActionBar.NavigationMode = ActionBarNavigationMode.Tabs;
       ActionBar.SetDisplayShowTitleEnabled(false);
       ActionBar.SetDisplayShowHomeEnabled(false);
@@ -59,11 +62,25 @@ namespace scripting.Droid
 
       //relativelayout.SetBackgroundColor(Color.ParseColor("#fa0303"));
       SetContentView(relativelayout);
+      //ActionBar.Hide();
 
       TheView = this;
       TheLayout = relativelayout;
 
       InitTTS();
+
+      // For Plugin.InAppBilling.
+      Plugin.CurrentActivity.CrossCurrentActivity.Current.Activity = this;
+    }
+
+    internal void HideBarIfNeeded()
+    {
+      if (m_actionBars.Count > 0) {
+        return;
+      }
+      ActionBar.Hide();
+      TheLayout.ForceLayout();
+      TheLayout.RequestLayout();
     }
 
     protected override void OnRestoreInstanceState(Bundle savedInstanceState)
@@ -107,7 +124,7 @@ namespace scripting.Droid
     {
       base.OnStop();
       OnEnterBackgroundDelegate?.Invoke();
-     }
+    }
     protected override void OnResume()
     {
       base.OnResume();
@@ -323,22 +340,26 @@ namespace scripting.Droid
         TTS.OnTTSResult(requestCode, resultCode, data);
       } else if (requestCode == STT.STT_REQUEST) {
         STT.SpeechRecognitionCompleted(resultCode, data);
-      } else if (requestCode == IAP.IAP_REQUEST) {
-        IAP.OnIAPCallback(requestCode, resultCode, data);
+      } else if (requestCode == InAppBilling.IAP_REQUEST) {
+        InAppBilling.OnIAPCallback(requestCode, resultCode, data);
+      } else if (requestCode == ImageEditor.SELECT_FROM_GALLERY ||
+                 requestCode == ImageEditor.SELECT_FROM_CAMERA) {
+        ImageEditor.OnActivityResult(requestCode, resultCode, data);
       }
 
       base.OnActivityResult(requestCode, resultCode, data);
     }
   }
 
-  public class LayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+public class LayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+{
+  public void OnGlobalLayout()
   {
-    public void OnGlobalLayout()
-    {
-      var vto = MainActivity.TheLayout.ViewTreeObserver;
-      vto.RemoveOnGlobalLayoutListener(this);
+    var vto = MainActivity.TheLayout.ViewTreeObserver;
+    vto.RemoveOnGlobalLayoutListener(this);
 
-      CommonFunctions.RunScript();
-    }
+    CustomInit.InitAndRunScript();
+    MainActivity.TheView.HideBarIfNeeded();
   }
+}
 }

@@ -21,13 +21,13 @@ namespace scripting.Droid
             ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden,
             //ScreenOrientation = ScreenOrientation.Portrait,
             NoHistory = true)]
-  public class SplashActivity : AppCompatActivity
+  public class SplashActivity : Activity //AppCompatActivity
   {
     protected override void OnCreate(Bundle savedInstanceState)
     {
       base.OnCreate(savedInstanceState);
 
-      // Create your application here
+      //StartActivity(typeof(MainActivity));
     }
     // Launches the startup task
     protected override void OnResume()
