@@ -1,0 +1,82 @@
+﻿<Properties StartupConfiguration="{67A58DA0-04AA-464F-971B-CFAE8F1F15D9}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="scripting/Parser.cs">
+    <Files>
+      <File FileName="iOS/AdMob.cs" Line="166" Column="16" />
+      <File FileName="iOS/SfImageEditor.cs" Line="101" Column="7" />
+      <File FileName="iOS/TypePickerViewModel.cs" Line="126" Column="37" />
+      <File FileName="Droid/TextImageAdapter.cs" Line="134" Column="57" />
+      <File FileName="scripting/Resources/custom.cscs" Line="12" Column="15" />
+      <File FileName="Droid/SfWidget.cs" Line="399" Column="1" />
+      <File FileName="scripting/Utils.cs" Line="26" Column="33" />
+      <File FileName="iOS/UtilsiOS.cs" Line="298" Column="1" />
+      <File FileName="Droid/DroidFunctions.cs" Line="275" Column="1" />
+      <File FileName="Droid/AdMob.cs" Line="17" Column="24" />
+      <File FileName="iOS/iOSVariable.cs" Line="248" Column="1" />
+      <File FileName="iOS/iOSFunctions.cs" Line="1759" Column="26" />
+      <File FileName="scripting/Resources/gui.cscs" Line="357" Column="31" />
+      <File FileName="scripting/Resources/iLanguage.cscs" Line="79" Column="45" />
+      <File FileName="Droid/UtilsDroid.cs" Line="275" Column="16" />
+      <File FileName="iOS/Main.cs" Line="18" Column="1" />
+      <File FileName="iOS/IAP.cs" Line="134" Column="26" />
+      <File FileName="scripting/CommonFunctions.cs" Line="37" Column="58" />
+      <File FileName="Droid/MainActivity.cs" Line="241" Column="25" />
+      <File FileName="iOS/SfWidget.cs" Line="113" Column="27" />
+      <File FileName="scripting/Resources/quizFunctions.cscs" Line="1" Column="1" />
+      <File FileName="scripting/Resources/start.cscs" Line="8" Column="1" />
+      <File FileName="scripting/Resources/imaging.cscs" Line="2" Column="20" />
+      <File FileName="scripting/Utils.Parsing.cs" Line="227" Column="1" />
+      <File FileName="scripting/Resources/utilFunctions.cscs" Line="1" Column="1" />
+      <File FileName="scripting/InAppBilling.cs" Line="89" Column="8" />
+      <File FileName="scripting/ParsingScript.cs" Line="203" Column="53" />
+      <File FileName="scripting/Functions.Math.cs" Line="24" Column="1" />
+      <File FileName="scripting/Resources/test.cscs" Line="2" Column="1" />
+      <File FileName="scripting/Resources/sfscript.cscs" Line="24" Column="1" />
+      <File FileName="scripting/Variable.cs" Line="262" Column="29" />
+      <File FileName="scripting/Constants.cs" Line="158" Column="49" />
+      <File FileName="scripting/Interpreter.cs" Line="318" Column="61" />
+      <File FileName="scripting/Parser.cs" Line="101" Column="1" />
+      <File FileName="scripting/Functions.Flow.cs" Line="401" Column="1" />
+      <File FileName="scripting/ParserFunction.cs" Line="267" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/ZXingScanner.cs" relfile="scripting/ZXingScanner.cs" line="53" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/ZXingScanner.cs" relfile="scripting/ZXingScanner.cs" line="51" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfImageEditor.cs" relfile="iOS/SfImageEditor.cs" line="123" column="1" />
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/IAP.cs" relfile="iOS/IAP.cs" line="59" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/IAP.cs" relfile="iOS/IAP.cs" line="54" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/IAP.cs" relfile="iOS/IAP.cs" line="159" column="12" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/IAP.cs" relfile="iOS/IAP.cs" line="101" column="18" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/Droid/IAP.cs" relfile="Droid/IAP.cs" line="255" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/InAppBilling.cs" relfile="scripting/InAppBilling.cs" line="65" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/InAppBilling.cs" relfile="scripting/InAppBilling.cs" line="165" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/Droid/AdMob.cs" relfile="Droid/AdMob.cs" line="77" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="688" column="14" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="49" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="724" column="20" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="738" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="763" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="759" column="18" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="924" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="1021" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="1045" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/SfWidget.cs" relfile="iOS/SfWidget.cs" line="1079" column="1" />
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/InAppBilling.cs" relfile="scripting/InAppBilling.cs" line="160" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/iOS/iOSVariable.cs" relfile="iOS/iOSVariable.cs" line="248" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/Functions.Flow.cs" relfile="scripting/Functions.Flow.cs" line="401" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/Functions.Flow.cs" relfile="scripting/Functions.Flow.cs" line="403" column="1" />
+      <Breakpoint file="/Users/vk/Projects/scripting_sf/scripting/Functions.Math.cs" relfile="scripting/Functions.Math.cs" line="24" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.scripting.Droid AndroidDesignerPreferredDevice="Nexus 4" PreferredExecutionTarget="Android.1440_2560" />
+  <MonoDevelop.Ide.ItemProperties.scripting.iOS PreferredExecutionTarget="MonoDevelop.IPhone.IPhoneSimulatorTarget.9185A6AA-895E-4458-A725-51D09CE4859B" automaticSigning="False" />
+  <MultiItemStartupConfigurations />
+</Properties>

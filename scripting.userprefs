@@ -1,25 +1,25 @@
 ﻿<Properties StartupConfiguration="{67A58DA0-04AA-464F-971B-CFAE8F1F15D9}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="scripting/UIVariable.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="scripting/Trie.cs">
     <Files>
-      <File FileName="scripting/CommonFunctions.cs" Line="86" Column="1" />
-      <File FileName="iOS/iOSFunctions.cs" Line="1664" Column="1" />
-      <File FileName="scripting/Constants.cs" Line="25" Column="34" />
-      <File FileName="scripting/Functions.OS.cs" Line="487" Column="8" />
-      <File FileName="scripting/Resources/msdnScript.cscs" Line="141" Column="22" />
+      <File FileName="scripting/CommonFunctions.cs" Line="152" Column="24" />
+      <File FileName="iOS/iOSFunctions.cs" Line="1626" Column="61" />
+      <File FileName="scripting/Constants.cs" Line="131" Column="50" />
+      <File FileName="scripting/Functions.OS.cs" Line="525" Column="1" />
+      <File FileName="scripting/Resources/msdnScript.cscs" Line="88" Column="1" />
       <File FileName="iOS/STT.cs" Line="25" Column="31" />
       <File FileName="../scripting_iLanguage/scripting/Resources/cscs/gui.cscs" Line="359" Column="76" />
-      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/functions.cscs" Line="459" Column="11" />
-      <File FileName="scripting/Resources/script.cscs" Line="300" Column="27" />
+      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/functions.cscs" Line="555" Column="1" />
+      <File FileName="scripting/Resources/script.cscs" Line="64" Column="25" />
       <File FileName="iOS/AppDelegate.cs" Line="26" Column="34" />
-      <File FileName="iOS/Main.cs" Line="21" Column="1" />
+      <File FileName="iOS/Main.cs" Line="17" Column="1" />
       <File FileName="iOS/UtilsiOS.cs" Line="147" Column="1" />
       <File FileName="Droid/MainActivity.cs" Line="94" Column="57" />
       <File FileName="Droid/DroidFunctions.cs" Line="1726" Column="8" />
       <File FileName="Droid/UtilsDroid.cs" Line="128" Column="5" />
       <File FileName="Droid/Properties/AndroidManifest.xml" Line="3" Column="48" />
-      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/iLanguage.cscs" Line="193" Column="1" />
-      <File FileName="scripting/Functions.Flow.cs" Line="121" Column="36" />
-      <File FileName="scripting/Interpreter.cs" Line="651" Column="1" />
+      <File FileName="../scripting_iLanguage/scripting/Resources/cscs/iLanguage.cscs" Line="164" Column="1" />
+      <File FileName="scripting/Functions.Flow.cs" Line="246" Column="45" />
+      <File FileName="scripting/Interpreter.cs" Line="144" Column="61" />
       <File FileName="scripting/ParserFunction.cs" Line="249" Column="1" />
       <File FileName="scripting/Parser.cs" Line="21" Column="1" />
       <File FileName="iOS/iOSApp.cs" Line="293" Column="6" />
@@ -32,20 +32,31 @@
       <File FileName="iOS/TTS.cs" Line="18" Column="6" />
       <File FileName="Droid/STT.cs" Line="1" Column="1" />
       <File FileName="iOS/IAP.cs" Line="1" Column="1" />
-      <File FileName="scripting/UIVariable.cs" Line="105" Column="44" />
+      <File FileName="scripting/UIVariable.cs" Line="121" Column="7" />
+      <File FileName="Droid/IAP.cs" Line="86" Column="10" />
+      <File FileName="scripting/Trie.cs" Line="1" Column="1" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="scripting" expanded="True">
+            <Node name="scripting.Droid" expanded="True">
+              <Node name="ComponentReferenceFolder" expanded="True" />
+            </Node>
+            <Node name="scripting.Shared" expanded="True">
+              <Node name="Trie.cs" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/Users/vk/Projects/scripting/iOS/TTS.cs" relfile="iOS/TTS.cs" line="13" column="1" />
-      <Breakpoint file="/Users/vk/Projects/scripting/iOS/iOSFunctions.cs" relfile="iOS/iOSFunctions.cs" line="1583" column="1" />
-      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
-      <Breakpoint file="/Users/vk/Projects/scripting/scripting/Functions.Flow.cs" relfile="scripting/Functions.Flow.cs" line="224" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.ItemProperties.scripting.Droid AndroidDesignerPreferredDevice="Nexus 4" PreferredExecutionTarget="Android.1440_2560" />
-  <MonoDevelop.Ide.ItemProperties.scripting.iOS PreferredExecutionTarget="MonoDevelop.IPhone.IPhoneSimulatorTarget.23086F41-F927-4930-949F-A5D27BBAB6EA" />
+  <MonoDevelop.Ide.ItemProperties.scripting.iOS PreferredExecutionTarget="MonoDevelop.IPhone.IPhoneSimulatorTarget.2B20F9E5-D73B-484C-BC05-625842B11A1C" />
   <MultiItemStartupConfigurations />
 </Properties>
