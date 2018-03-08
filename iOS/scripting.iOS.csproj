@@ -104,9 +104,6 @@
     <Reference Include="Firebase.Analytics">
       <HintPath>..\packages\Xamarin.Firebase.iOS.Analytics.4.0.5\lib\Xamarin.iOS10\Firebase.Analytics.dll</HintPath>
     </Reference>
-    <Reference Include="Google.MobileAds">
-      <HintPath>..\packages\Xamarin.Google.iOS.MobileAds.7.27.0\lib\Xamarin.iOS10\Google.MobileAds.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.Forms.Core">
       <HintPath>..\packages\Xamarin.Forms.2.5.0.280555\lib\Xamarin.iOS10\Xamarin.Forms.Core.dll</HintPath>
     </Reference>
@@ -128,23 +125,11 @@
     <Reference Include="Syncfusion.GridCommon.Portable">
       <HintPath>..\packages\Syncfusion.Xamarin.GridCommon.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.GridCommon.Portable.dll</HintPath>
     </Reference>
-    <Reference Include="Syncfusion.OfficeChart.Portable">
-      <HintPath>..\packages\Syncfusion.Xamarin.OfficeChart.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.OfficeChart.Portable.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.DocIO.Portable">
-      <HintPath>..\packages\Syncfusion.Xamarin.DocIO.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.DocIO.Portable.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.Pdf.Portable">
-      <HintPath>..\packages\Syncfusion.Xamarin.Pdf.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.Pdf.Portable.dll</HintPath>
-    </Reference>
     <Reference Include="Syncfusion.SfCalendar.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfCalendar.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfCalendar.iOS.dll</HintPath>
     </Reference>
     <Reference Include="Syncfusion.SfGauge.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfGauge.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfGauge.iOS.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.SfImageEditor.iOS">
-      <HintPath>..\packages\Syncfusion.Xamarin.SfImageEditor.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfImageEditor.iOS.dll</HintPath>
     </Reference>
     <Reference Include="Syncfusion.Linq.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfDataGrid.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.Linq.iOS.dll</HintPath>
@@ -154,9 +139,6 @@
     </Reference>
     <Reference Include="Syncfusion.SfNumericUpDown.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfNumericUpDown.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfNumericUpDown.iOS.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.XlsIO.Portable">
-      <HintPath>..\packages\Syncfusion.Xamarin.XlsIO.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.XlsIO.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Syncfusion.SfBarcode.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfBarcode.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfBarcode.iOS.dll</HintPath>
@@ -176,6 +158,18 @@
     <Reference Include="Syncfusion.SfBusyIndicator.XForms.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfBusyIndicator.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfBusyIndicator.XForms.iOS.dll</HintPath>
     </Reference>
+    <Reference Include="Syncfusion.SFChart.iOS">
+      <HintPath>..\packages\Syncfusion.Xamarin.SfChart.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SFChart.iOS.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.MobileAds">
+      <HintPath>..\packages\Xamarin.Google.iOS.MobileAds.7.27.0.1\lib\Xamarin.iOS10\Google.MobileAds.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.SfPicker.XForms">
+      <HintPath>..\packages\Syncfusion.Xamarin.SfPicker.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfPicker.XForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.SfPicker.XForms.iOS">
+      <HintPath>..\packages\Syncfusion.Xamarin.SfPicker.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfPicker.XForms.iOS.dll</HintPath>
+    </Reference>
     <Reference Include="Syncfusion.SfNumericTextBox.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfNumericTextBox.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfNumericTextBox.iOS.dll</HintPath>
     </Reference>
@@ -185,17 +179,23 @@
     <Reference Include="Syncfusion.SfNumericTextBox.XForms.iOS">
       <HintPath>..\packages\Syncfusion.Xamarin.SfNumericTextBox.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfNumericTextBox.XForms.iOS.dll</HintPath>
     </Reference>
-    <Reference Include="Syncfusion.SfPicker.iOS">
-      <HintPath>..\packages\Syncfusion.Xamarin.SfPicker.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfPicker.iOS.dll</HintPath>
+    <Reference Include="Syncfusion.SfImageEditor.XForms">
+      <HintPath>..\packages\Syncfusion.Xamarin.SfImageEditor.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfImageEditor.XForms.dll</HintPath>
     </Reference>
-    <Reference Include="Syncfusion.SfPicker.XForms">
-      <HintPath>..\packages\Syncfusion.Xamarin.SfPicker.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfPicker.XForms.dll</HintPath>
+    <Reference Include="Syncfusion.SfImageEditor.XForms.iOS">
+      <HintPath>..\packages\Syncfusion.Xamarin.SfImageEditor.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfImageEditor.XForms.iOS.dll</HintPath>
     </Reference>
-    <Reference Include="Syncfusion.SfPicker.XForms.iOS">
-      <HintPath>..\packages\Syncfusion.Xamarin.SfPicker.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SfPicker.XForms.iOS.dll</HintPath>
+    <Reference Include="Syncfusion.XlsIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.XlsIO.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.XlsIO.Portable.dll</HintPath>
     </Reference>
-    <Reference Include="Syncfusion.SFChart.iOS">
-      <HintPath>..\packages\Syncfusion.Xamarin.SfChart.IOS.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.SFChart.iOS.dll</HintPath>
+    <Reference Include="Syncfusion.OfficeChart.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.OfficeChart.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.OfficeChart.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.DocIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.DocIO.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.DocIO.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Pdf.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.Pdf.16.1.0.24\lib\Xamarin.iOS10\Syncfusion.Pdf.Portable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -214,6 +214,12 @@
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1334.png" />
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch960.png" />
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1136.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-167%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-152%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-76%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-29%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-20%401x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\1024x1024bb.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -252,9 +258,6 @@
     <BundleResource Include="GoogleService-Info.plist" />
     <BundleResource Include="..\scripting\Resources\sfscript.cscs">
       <Link>Resources\sfscript.cscs</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\CustomLanguage.pdf">
-      <Link>Resources\CustomLanguage.pdf</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\sfhello.cscs">
       <Link>Resources\sfhello.cscs</Link>
@@ -301,9 +304,6 @@
     <BundleResource Include="..\scripting\Resources\test.cscs">
       <Link>Resources\test.cscs</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\Launch2208.png">
-      <Link>Resources\drawable\Launch2208.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\cn_w_bg.png">
       <Link>Resources\drawable\cn_w_bg.png</Link>
     </BundleResource>
@@ -315,9 +315,6 @@
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\es_w_bg.png">
       <Link>Resources\drawable\es_w_bg.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\Launch960.png">
-      <Link>Resources\drawable\Launch960.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\gb_w_bg.png">
       <Link>Resources\drawable\gb_w_bg.png</Link>
@@ -349,17 +346,11 @@
     <BundleResource Include="..\scripting\Resources\drawable\us_w_bg.png">
       <Link>Resources\drawable\us_w_bg.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\cn_bgOld.png">
-      <Link>Resources\drawable\cn_bgOld.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\funnyDog.png">
       <Link>Resources\drawable\funnyDog.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\es_bg.png">
       <Link>Resources\drawable\es_bg.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\en_bg.png">
-      <Link>Resources\drawable\en_bg.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\it_bg.png">
       <Link>Resources\drawable\it_bg.png</Link>
@@ -406,9 +397,6 @@
     <BundleResource Include="..\scripting\Resources\drawable\ar_bg.png">
       <Link>Resources\drawable\ar_bg.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\pt_bg.png">
-      <Link>Resources\drawable\pt_bg.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\us_bg_l.png">
       <Link>Resources\drawable\us_bg_l.png</Link>
     </BundleResource>
@@ -417,9 +405,6 @@
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\to_row.png">
       <Link>Resources\drawable\to_row.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\tabbg.png">
-      <Link>Resources\drawable\tabbg.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\AdventureCycle.png">
       <Link>Resources\drawable\AdventureCycle.png</Link>
@@ -4414,9 +4399,6 @@
     <BundleResource Include="..\scripting\Resources\drawable\squared.png">
       <Link>Resources\drawable\squared.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\ic_launcher.png">
-      <Link>Resources\drawable\ic_launcher.png</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\pregnant.png">
       <Link>Resources\drawable\pregnant.png</Link>
     </BundleResource>
@@ -4906,30 +4888,6 @@
     <BundleResource Include="..\scripting\Resources\drawable\de_v2.png">
       <Link>Resources\drawable\de_v2.png</Link>
     </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\ic_action_whats_on.png">
-      <Link>Resources\drawable\ic_action_whats_on.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\ic_action_speakers.png">
-      <Link>Resources\drawable\ic_action_speakers.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\ic_action_sessions.png">
-      <Link>Resources\drawable\ic_action_sessions.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\selector_button_speech.axml">
-      <Link>Resources\drawable\selector_button_speech.axml</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\selector_button_image.axml">
-      <Link>Resources\drawable\selector_button_image.axml</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\selector_button_phrases.axml">
-      <Link>Resources\drawable\selector_button_phrases.axml</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\selector_button_text.axml">
-      <Link>Resources\drawable\selector_button_text.axml</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\selector_button_words.axml">
-      <Link>Resources\drawable\selector_button_words.axml</Link>
-    </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\border_button.axml">
       <Link>Resources\drawable\border_button.axml</Link>
     </BundleResource>
@@ -4947,6 +4905,9 @@
     <BundleResource Include="Resources\pt.lproj\Localizable.strings" />
     <BundleResource Include="Resources\ru.lproj\Localizable.strings" />
     <BundleResource Include="Resources\zh-Hans.lproj\Localizable.strings" />
+    <BundleResource Include="..\scripting\Resources\unitTest.cscs">
+      <Link>Resources\unitTest.cscs</Link>
+    </BundleResource>
   </ItemGroup>
   <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
@@ -4954,6 +4915,6 @@
   <Import Project="..\packages\Xamarin.Firebase.iOS.Core.4.0.13\build\Xamarin.Firebase.iOS.Core.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Core.4.0.13\build\Xamarin.Firebase.iOS.Core.targets')" />
   <Import Project="..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.8\build\Xamarin.Firebase.iOS.InstanceID.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.InstanceID.2.0.8\build\Xamarin.Firebase.iOS.InstanceID.targets')" />
   <Import Project="..\packages\Xamarin.Firebase.iOS.Analytics.4.0.5\build\Xamarin.Firebase.iOS.Analytics.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Analytics.4.0.5\build\Xamarin.Firebase.iOS.Analytics.targets')" />
-  <Import Project="..\packages\Xamarin.Google.iOS.MobileAds.7.27.0\build\Xamarin.Google.iOS.MobileAds.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.MobileAds.7.27.0\build\Xamarin.Google.iOS.MobileAds.targets')" />
   <Import Project="..\packages\Xamarin.Forms.2.5.0.280555\build\netstandard1.0\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.2.5.0.280555\build\netstandard1.0\Xamarin.Forms.targets')" />
+  <Import Project="..\packages\Xamarin.Google.iOS.MobileAds.7.27.0.1\build\Xamarin.Google.iOS.MobileAds.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.MobileAds.7.27.0.1\build\Xamarin.Google.iOS.MobileAds.targets')" />
 </Project>

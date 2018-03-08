@@ -134,29 +134,11 @@ namespace scripting.iOS
     }
   }
 
-  /*public class ImageEditorViewController : UIViewController
-  {
-    UIImage m_image;
-    public ImageEditorViewController(UIImage image)
-    {
-      m_image = image;
-    }
-    public override void ViewDidAppear(bool animated)
-    {
-      base.ViewDidAppear(animated);
-      SfImageEditor sfImageEditor = new SfImageEditor(new CGRect(View.Frame.Location.X, 60, View.Frame.Size.Width, View.Frame.Size.Height - 60));
-      sfImageEditor.Image = m_image;
-      this.View.AddSubview(sfImageEditor);
-    }
-  }*/
-
   public class StartSfImageEditor : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = Utils.GetSafeString(args, 0);

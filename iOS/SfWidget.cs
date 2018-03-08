@@ -126,6 +126,8 @@ namespace scripting.iOS
     public override iOSVariable GetWidget(string widgetType, string widgetName, string initArg, CGRect rect)
     {
       switch (widgetType) {
+        case "SfStepper":
+          return new SfWidget(SfWidget.SyncFusionType.STEPPER, widgetName, initArg, rect);
         case "SfCalendar":
           return new SfWidget(SfWidget.SyncFusionType.CALENDAR, widgetName, initArg, rect);
         case "SfQRBarcode":
@@ -136,8 +138,6 @@ namespace scripting.iOS
           return new SfWidget(SfWidget.SyncFusionType.CIRCULAR_GAUGE, widgetName, initArg, rect);
         case "SfDigitalGauge":
           return new SfWidget(SfWidget.SyncFusionType.DIGITAL_GAUGE, widgetName, initArg, rect);
-        case "SfStepper":
-          return new SfWidget(SfWidget.SyncFusionType.STEPPER, widgetName, initArg, rect);
         case "SfBusyIndicator":
           return new SfWidget(SfWidget.SyncFusionType.BUSY_INDICATOR, widgetName, initArg, rect);
         case "SfDataGrid":
@@ -558,6 +558,7 @@ namespace scripting.iOS
       m_stepper.Minimum = (nfloat)minValue;
       m_stepper.Maximum = (nfloat)maxValue;
       m_stepper.Culture = NSLocale.CurrentLocale; //new NSLocale("en_US");
+      m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(m_data, 3);
 
       //m_stepper.BackgroundColor = UIColor.White;
       //m_stepper.UpdownButtonColor = UIColor.Clear;
@@ -778,11 +779,15 @@ namespace scripting.iOS
         m_picker.ItemsSource = images;
       }
     }
-    public override bool SetValue(string value1, string value2 = "")
+    public override bool SetValue(string arg1, string arg2 = "")
     {
-      double valueNum = Utils.ConvertToDouble(value2);
+      if (string.IsNullOrEmpty(arg2)) {
+        arg2 = arg1;
+        arg1 = "value";
+      }
+      double valueNum = Utils.ConvertToDouble(arg2);
       if (m_circularGauge != null) {
-        switch (value1) {
+        switch (arg1) {
           case "from":
             m_circularScale.StartValue = (nfloat)valueNum;
             break;
@@ -807,29 +812,29 @@ namespace scripting.iOS
             m_circularScale.SweepAngle = (nfloat)valueNum;
             break;
           case "color_needle":
-            m_needlePointer.Color = UtilsiOS.String2Color(value2);
+            m_needlePointer.Color = UtilsiOS.String2Color(arg2);
             break;
           case "radius_knob":
             m_needlePointer.KnobRadius = (nfloat)valueNum;
             break;
           case "color_knob":
-            m_needlePointer.KnobColor = UtilsiOS.String2Color(value2);
+            m_needlePointer.KnobColor = UtilsiOS.String2Color(arg2);
             break;
           case "color_labels":
-            m_circularScale.LabelColor = UtilsiOS.String2Color(value2);
-            m_circularGauge.Headers[0].TextColor = UtilsiOS.String2Color(value2);
+            m_circularScale.LabelColor = UtilsiOS.String2Color(arg2);
+            m_circularGauge.Headers[0].TextColor = UtilsiOS.String2Color(arg2);
             break;
           case "color_range1":
-            m_rangePointer1.Color = UtilsiOS.String2Color(value2);
+            m_rangePointer1.Color = UtilsiOS.String2Color(arg2);
             break;
           case "color_range2":
-            m_rangePointer2.Color = UtilsiOS.String2Color(value2);
+            m_rangePointer2.Color = UtilsiOS.String2Color(arg2);
             break;
           case "color_minorticks":
-            m_circularScale.MinorTickSettings.Color = UtilsiOS.String2Color(value2);
+            m_circularScale.MinorTickSettings.Color = UtilsiOS.String2Color(arg2);
             break;
           case "color_majorticks":
-            m_circularScale.MajorTickSettings.Color = UtilsiOS.String2Color(value2);
+            m_circularScale.MajorTickSettings.Color = UtilsiOS.String2Color(arg2);
             break;
           case "scale2_from":
             CreateScale2IfNeeded();
@@ -845,24 +850,24 @@ namespace scripting.iOS
             break;
           case "scale2_rimcolor":
             CreateScale2IfNeeded();
-            m_circularScale2.RimColor = UtilsiOS.String2Color(value2);;
+            m_circularScale2.RimColor = UtilsiOS.String2Color(arg2);
             break;
           case "scale2_labelcolor":
             CreateScale2IfNeeded();
-            m_circularScale2.LabelColor = UtilsiOS.String2Color(value2); ;
+            m_circularScale2.LabelColor = UtilsiOS.String2Color(arg2);
             break;
         }
       } else if (m_digitalGauge != null) {
-        switch (value1) {
+        switch (arg1) {
           case "value":
-            m_digitalGauge.Value = (NSString)value2;
+            m_digitalGauge.Value = (NSString)arg2;
             break;
         }
       } else if (m_picker != null) {
-        switch (value1) {
+        switch (arg1) {
           case "alignment":
             Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al =
-              UtilsiOS.GetAlignment(value2);
+              UtilsiOS.GetAlignment(arg2);
             m_alignment = al.Item2;
             break;
           case "headerHeight":
@@ -870,25 +875,25 @@ namespace scripting.iOS
             break;
           case "headerText":
             m_picker.ShowHeader = true;
-            m_picker.HeaderText = (NSString)value2;
+            m_picker.HeaderText = (NSString)arg2;
             break;
           case "colHeaderHeight":
             m_picker.ColumnHeaderHeight = (nfloat)valueNum;
             break;
           case "colHeaderText":
             m_picker.ShowColumnHeader = true;
-            m_picker.ColumnHeaderText = (NSString)value2;
+            m_picker.ColumnHeaderText = (NSString)arg2;
             break;
           case "index":
             m_picker.SelectedIndex = (int)valueNum;
              break;
           case "pickerMode":
-            m_picker.PickerMode = value2.Equals("Default", StringComparison.OrdinalIgnoreCase) ?
+            m_picker.PickerMode = arg2.Equals("Default", StringComparison.OrdinalIgnoreCase) ?
               PickerMode.Default : PickerMode.Dialog;
             break;
         }
       } else if (m_grid != null) {
-        switch (value1) {
+        switch (arg1) {
           case "swipe_delete":
             AddSwipeDelete();
             break;
@@ -911,7 +916,7 @@ namespace scripting.iOS
      } else if (m_barcode != null) {
         var settings39 = m_barcode.SymbologySettings as SFCode39Settings;
         if (settings39 != null) {
-          switch (value1) {
+          switch (arg1) {
             case "bar_height":
               settings39.BarHeight = (nfloat)valueNum;
               break;
@@ -922,12 +927,12 @@ namespace scripting.iOS
         }
       } else if (m_chart != null) {
         SFNumericalAxis numericalaxis = m_chart.SecondaryAxis as SFNumericalAxis;
-        switch (value1) {
+        switch (arg1) {
           case "primary_axis":
-            m_chart.PrimaryAxis.Title.Text = (NSString)value2;
+            m_chart.PrimaryAxis.Title.Text = (NSString)arg2;
             break;
           case "secondary_axis":
-            m_chart.SecondaryAxis.Title.Text = (NSString)value2;
+            m_chart.SecondaryAxis.Title.Text = (NSString)arg2;
             break;
           case "x_min":
             numericalaxis.Minimum = new NSNumber(valueNum);
@@ -940,7 +945,7 @@ namespace scripting.iOS
             break;
         }
       } else if (m_stepper != null) {
-        switch (value1) {
+        switch (arg1) {
           case "min":
             m_stepper.Minimum   = (nfloat)valueNum;
             break;
@@ -949,12 +954,13 @@ namespace scripting.iOS
             break;
           case "step":
             m_stepper.StepValue = (nfloat)valueNum;
+            m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(arg2);
             break;
           case "value":
             m_stepper.Value = (nfloat)valueNum;
             break;
           case "buttons":
-            switch(value2) {
+            switch(arg2) {
               case "left": m_stepper.SpinButtonAlignment = SFNumericUpDownSpinButtonAlignment.Left;
                 break;
               case "right":
@@ -966,16 +972,16 @@ namespace scripting.iOS
             break;
         }
       } else if (m_busyIndicator != null) {
-        if (value1 == "bg_color") {
-          m_busyIndicator.BackgroundColor = UtilsiOS.String2Color(value2);
-        } else if (value1 == "color") {
-          m_busyIndicator.Foreground = UtilsiOS.String2Color(value2);
-        } else if (value1 == "secondary_color") {
-          m_busyIndicator.SecondaryColor = UtilsiOS.String2Color(value2);
-        } else if (value1 == "duration") {
+        if (arg1 == "bg_color") {
+          m_busyIndicator.BackgroundColor = UtilsiOS.String2Color(arg2);
+        } else if (arg1 == "color") {
+          m_busyIndicator.Foreground = UtilsiOS.String2Color(arg2);
+        } else if (arg1 == "secondary_color") {
+          m_busyIndicator.SecondaryColor = UtilsiOS.String2Color(arg2);
+        } else if (arg1 == "duration") {
           m_busyIndicator.Duration = (nfloat)valueNum;
         } else {
-          SetBusyIndicatorType(value2);
+          SetBusyIndicatorType(arg2);
         }
       }
       return true;
@@ -1114,9 +1120,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 4, m_name);
 
       SfWidget calendar = args[0] as SfWidget;

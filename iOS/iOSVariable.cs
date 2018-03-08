@@ -7,6 +7,7 @@ using CoreGraphics;
 using SplitAndMerge;
 using CoreAnimation;
 using CoreText;
+using Foundation;
 
 namespace scripting.iOS
 {
@@ -75,7 +76,6 @@ namespace scripting.iOS
           type = UIVariable.UIType.TEXT_VIEW;
           widget = new UITextView(rect);
           ((UITextView)widget).TextColor = UIColor.Black;
-          ((UITextView)widget).Text = initArg;
           AddBorderFunction.AddBorder(widget);
           break;
         case "ImageView":
@@ -301,6 +301,30 @@ namespace scripting.iOS
         result = model.RowToString(row);
       }
       return result;
+    }
+
+    public virtual void AddText(string text, string colorStr, double alpha = 1.0)
+    {
+      if (!(m_viewX is UITextView)) {
+        return;
+      }
+      var textView = m_viewX as UITextView;
+      NSMutableAttributedString attrText = new NSMutableAttributedString(textView.AttributedText);
+
+      var atts = new UIStringAttributes();
+      atts.ForegroundColor = UtilsiOS.String2Color(colorStr, alpha);
+      var attrTextAdd = new NSAttributedString(text, atts);
+      //attributedString.BeginEditing();
+      //attributedString.AddAttribute(UIStringAttributeKey.ForegroundColor, atts.ForegroundColor, new NSRange(0, 10));
+      //attributedString.AddAttribute(UIStringAttributeKey.Font, UIFont.GetPreferredFontForTextStyle(UIFontTextStyle.Headline), new NSRange(0, 10));
+      //attributedString.EndEditing();
+
+      if (attrText.Length > 0) {
+        attrText.Append(new NSAttributedString("\n"));
+
+      }
+      attrText.Append(attrTextAdd);
+      textView.AttributedText = attrText;
     }
 
     public CGSize GetParentSize()
@@ -843,9 +867,9 @@ namespace scripting.iOS
       }
       return true;
     }
-    public virtual bool SetValue(string value1, string value2 = "")
+    public virtual bool SetValue(string arg1, string arg2 = "")
     {
-      double val = Utils.ConvertToDouble(value1);
+      double val = Utils.ConvertToDouble(arg1);
       CurrVal = val;
       if (m_viewY is UIStepper) {
         UIStepper stepper = m_viewY as UIStepper;
@@ -858,26 +882,26 @@ namespace scripting.iOS
           }
         }
       } else if (WidgetType == UIType.COMBOBOX) {
-        switch(value1) {
+        switch(arg1) {
           case "alignment":
             Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al =
-                UtilsiOS.GetAlignment(value2);
+              UtilsiOS.GetAlignment(arg2);
             m_button.HorizontalAlignment = al.Item1;
             break;
           case "backgroundcolorpicker":
-            m_picker.BackgroundColor = UtilsiOS.String2Color(value2);
+            m_picker.BackgroundColor = UtilsiOS.String2Color(arg2);
             break;
           case "backgroundcolorbutton2":
-            m_button2.BackgroundColor = UtilsiOS.String2Color(value2);
+            m_button2.BackgroundColor = UtilsiOS.String2Color(arg2);
             break;
           case "fontcolor2":
-            m_button2.SetTitleColor(UtilsiOS.String2Color(value2), UIControlState.Normal);
+            m_button2.SetTitleColor(UtilsiOS.String2Color(arg2), UIControlState.Normal);
             break;
           case "text2":
-            m_button2.SetTitle(value2 + "\t", UIControlState.Normal);
+            m_button2.SetTitle(arg2 + "\t", UIControlState.Normal);
             break;
         }
-        if (string.IsNullOrEmpty(value1)) {
+        if (string.IsNullOrEmpty(arg1)) {
           SetComboboxText("", (int)val);
         }
       } else if (m_viewX is UISwitch) {

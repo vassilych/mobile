@@ -13,9 +13,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 4, m_name);
 
       string viewNameX = args[0].AsString();
@@ -62,9 +60,7 @@ namespace scripting.iOS
     {
       string widgetType = m_widgetType;
       int start = string.IsNullOrEmpty(widgetType) ? 1 : 0;
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2 + start, m_name);
 
       if (start == 1) {
@@ -164,9 +160,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -198,9 +192,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -236,9 +228,7 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
@@ -286,9 +276,7 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
@@ -315,9 +303,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -360,9 +346,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -424,10 +408,7 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -518,10 +499,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       if (args.Count == 1) {
@@ -567,10 +545,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName   = Utils.GetSafeString(args, 0);
@@ -620,11 +595,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string varName = Utils.GetSafeString(args, 0);
       string direction = Utils.GetSafeString(args, 1);
       string strAction = Utils.GetSafeString(args, 2);
@@ -658,9 +631,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName   = Utils.GetSafeString(args, 0);
@@ -741,12 +712,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
-      //UIView view = iOSVariable.GetView(args[0].AsString(), script);
+
       iOSVariable viewVar = args[0] as iOSVariable;
       UIView view = viewVar.ViewX;
 
@@ -837,11 +805,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string msg         = Utils.GetSafeString(args, 0);
       int duration       = Utils.GetSafeInt(args, 1, 10);
       string fgColorStr  = Utils.GetSafeString(args, 2);
@@ -872,11 +838,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string title = Utils.GetSafeString(args, 0);
       string msg = Utils.GetSafeString(args, 1);
       string buttonOK = Utils.GetSafeString(args, 2, "Dismiss");
@@ -913,11 +877,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string varName = Utils.GetSafeString(args, 0);
       Utils.CheckNotEmpty(script, varName, m_name);
 
@@ -957,11 +919,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       iOSVariable viewVar = args[0] as iOSVariable;
       Utils.CheckNotNull(viewVar, m_name);
 
@@ -995,9 +955,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -1026,9 +984,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -1057,9 +1013,7 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -1093,9 +1047,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -1112,6 +1064,28 @@ namespace scripting.iOS
     }
   }
 
+  public class AddTextFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string varName = args[0].AsString();
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      string text     = args[1].AsString();
+      string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
+      double alpha    = Utils.GetSafeDouble(args, 3, 1.0);
+      viewVar.AddText(text, colorStr, alpha);
+
+      return Variable.EmptyInstance;
+    }
+  }
   public class GadgetSizeFunction : ParserFunction
   {
     bool m_needWidth;
@@ -1132,10 +1106,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       string orientation = Utils.GetSafeString(args, 0).ToLower();
 
       UIInterfaceOrientationMask orientationMask = orientation == "landscape" ?
@@ -1156,9 +1127,7 @@ namespace scripting.iOS
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       m_actionPortrait  = Utils.GetSafeString(args, 0);
@@ -1269,9 +1238,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string strAction = args[0].AsString();
@@ -1300,9 +1267,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       TTS.Init();
@@ -1320,9 +1285,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       TTS.Init();
@@ -1358,9 +1321,7 @@ namespace scripting.iOS
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string strAction = args[0].AsString();
@@ -1417,9 +1378,7 @@ namespace scripting.iOS
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string key = args[0].AsString();
@@ -1453,9 +1412,7 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       // Just consume the arguments: not needed for iOS:
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       IAP.Init();
 
       return Variable.EmptyInstance;
@@ -1465,9 +1422,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
       string strAction = args[0].AsString();
 
@@ -1492,10 +1447,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string strAction = args[0].AsString();
       string productId = args[1].AsString();
 
@@ -1517,10 +1471,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string productId = args[0].AsString();
 
       string description = IAP.GetDescription(productId);
@@ -1573,9 +1526,7 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       if (!m_startTimer) {
         Utils.CheckArgs(args.Count, 1, m_name);
@@ -1668,10 +1619,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string settingName = args[0].AsString();
       string strType = Utils.GetSafeString(args, 1, "string");
       Variable defValue = Utils.GetSafeVariable(args, 2);
@@ -1705,10 +1655,9 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string settingName = args[0].AsString();
       Variable settingValue = Utils.GetSafeVariable(args, 1);
       string strType = Utils.GetSafeString(args, 2, "string");
@@ -1745,10 +1694,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string styleStr      = Utils.GetSafeString(args, 0);

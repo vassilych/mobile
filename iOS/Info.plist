@@ -7,7 +7,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>ch.iLanguage.vk</string>
 	<key>CFBundleShortVersionString</key>
-	<string>4.2.1</string>
+	<string>4.3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
@@ -16,8 +16,6 @@
 	<array>
 		<integer>1</integer>
 	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIMainStoryboardFile~ipad</key>
@@ -67,6 +65,6 @@
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/AppIcon.appiconset</string>
 	<key>CFBundleVersion</key>
-	<string>4.2.2</string>
+	<string>4.3.1</string>
 </dict>
 </plist>
