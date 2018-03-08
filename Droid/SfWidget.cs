@@ -77,6 +77,7 @@ namespace scripting.Droid
     List<View>      m_imageViews;
 
     int             m_linePic;
+    bool            m_isLoaded;
 
     public enum SyncFusionType
     {
@@ -689,8 +690,18 @@ namespace scripting.Droid
       m_stepper.TextGravity = GravityFlags.CenterVertical;
       m_stepper.SpinButtonAlignment = SpinButtonAlignment.Right;
       m_stepper.TextAlignment = Android.Views.TextAlignment.TextStart;
+      m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(m_data, 3);
+      m_stepper.Focusable = false;
+      m_stepper.IsEditable = false;
+
+      m_stepper.ValueChanged += StepperCallback;
 
       ViewX = m_stepper;
+    }
+
+    void StepperCallback(object sender, ValueChangedEventArgs e) {
+      ActionDelegate?.Invoke(WidgetName, e.Value.ToString());
+      MainActivity.TheView.ShowHideKeybord(m_stepper, false);
     }
 
     void CreateDigitalGauge()
@@ -921,8 +932,44 @@ namespace scripting.Droid
       }
     }
 
+    public override void ShowView(bool show)
+    {
+      if (!show || ViewX.Visibility == ViewStates.Visible || m_stepper == null) {
+        return;
+      }
+      if (!m_isLoaded) {
+        m_isLoaded = true;
+        return;
+      }
+
+      MainActivity.RemoveView(this);
+
+      if (m_stepper != null) {
+        // There is a bug with the Stepper, some of its values are lost after it was hidden.
+        // So we recreate it each time it's shown after it was hidden.
+        m_stepper.ValueChanged -= StepperCallback;
+        m_data = m_stepper.Value + ":" + m_stepper.Minimum + ":" + m_stepper.Maximum + ":" + m_stepper.StepValue;
+        var fontSize = m_stepper.FontSize;
+
+        //m_stepper.ValueChanged += StepperCallback;
+        CreateStepper();
+        m_stepper.FontSize = fontSize;
+        MainActivity.TheView.ShowHideKeybord(m_stepper, false);
+      }
+
+      ViewX.LayoutParameters = LayoutParams;
+      ViewX.TranslationX = TranslationX;
+      ViewX.TranslationY = TranslationY;
+
+      MainActivity.AddView(this, true);
+      ParserFunction.AddGlobal(WidgetName, new GetVarFunction(this));
+    }
     public override bool SetValue(string arg1, string arg2 = "")
     {
+      if (string.IsNullOrEmpty(arg2)) {
+        arg2 = arg1;
+        arg1 = "value";
+      }
       double valueNum = Utils.ConvertToDouble(arg2);
       if (m_circularGauge != null) {
         switch (arg1) {
@@ -1102,6 +1149,7 @@ namespace scripting.Droid
             break;
           case "step":
             m_stepper.StepValue = valueNum;
+            m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(arg2);
             break;
           case "value":
             m_stepper.Value     = valueNum;
@@ -1331,9 +1379,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 4, m_name);
 
       SfWidget calendar = args[0] as SfWidget;

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Android.Graphics;
+using Android.Text;
+using Android.Text.Method;
+using Android.Text.Style;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
@@ -55,6 +58,8 @@ namespace scripting.Droid
     public ViewGroup ViewLayout {
       get { return m_viewX as ViewGroup; }
     }
+    public ViewGroup.LayoutParams LayoutParams { get; set; }
+
     public int  ExtraX      { get; set; }
     public int  ExtraY      { get; set; }
     public bool IsAdjustedX { get; set; }
@@ -87,6 +92,19 @@ namespace scripting.Droid
           ((Button)widget).Text = initArg;
           UtilsDroid.AddViewBorder(widget, Color.Black);
           break;
+        case "TextView":
+          type = UIVariable.UIType.TEXT_VIEW;
+          widget = new TextView(MainActivity.TheView);
+          ((TextView)widget).SetTextColor(Color.Black);
+          ((TextView)widget).Text = initArg;
+          ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
+          ((TextView)widget).MovementMethod = new ScrollingMovementMethod();
+          ((TextView)widget).VerticalScrollBarEnabled = true;
+          ((TextView)widget).HorizontalScrollBarEnabled = true;
+          //((TextView)widget).SetMaxLines(40);
+          //((TextView)widget).ScrollBarStyle = ScrollbarStyles.OutsideOverlay;
+          //((TextView)widget).ScrollBarSize = 2;
+          break;
         case "Label":
           type = UIVariable.UIType.LABEL;
           widget = new TextView(MainActivity.TheView);
@@ -94,7 +112,6 @@ namespace scripting.Droid
           ((TextView)widget).Text = initArg;
           ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
           break;
-        case "TextView":
         case "TextEdit":
           type = UIVariable.UIType.TEXT_FIELD;
           widget = new EditText(MainActivity.TheView);
@@ -309,6 +326,23 @@ namespace scripting.Droid
       return text;
     }
 
+    public virtual void AddText(string text, string colorStr, double alpha = 1.0)
+    {
+      if (!(m_viewX is TextView)) {
+        return;
+      }
+      var color = UtilsDroid.String2Color(colorStr);
+      var textView = m_viewX as TextView;
+      SpannableString newText = new SpannableString(text);
+
+      newText.SetSpan(new ForegroundColorSpan(color), 0, text.Length, SpanTypes.InclusiveExclusive);
+
+      if (textView.Text.Length > 0) {
+        textView.Append("\n");
+      }
+      textView.Append(newText);
+    }
+
     public virtual bool SetValue(string arg1, string arg2 = "")
     {
       double val = Utils.ConvertToDouble(arg1);
@@ -352,6 +386,10 @@ namespace scripting.Droid
         result = spinner.SelectedItemPosition;
       }
       return result;
+    }
+
+    public virtual void ShowView(bool show)
+    {
     }
 
     static Dictionary<string, Tuple<string, string>> m_actions =

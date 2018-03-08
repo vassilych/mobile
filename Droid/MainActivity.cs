@@ -235,15 +235,50 @@ namespace scripting.Droid
       ScriptingFragment.RemoveAll();
     }
 
-    public static void AddView(View view, ViewGroup parent)
+    public static void AddView(DroidVariable widget, bool alreadyExists)
     {
-      ScriptingFragment.AddView(view, parent);
+      var location = widget.Location;
+      var view = widget.ViewX;
+      var parentView   = location.ParentView as DroidVariable;
+      var parent = parentView?.ViewLayout;
+      //Console.WriteLine("--ADDING {0} {1}, text: {2}, parent: {3}, exists: {4}",
+      //                  varName, widgetType, text, parentView == null, alreadyExists);
+      //MainActivity.AddView(widget, parentView?.ViewLayout);
+      ScriptingFragment.AddView(widget, parent);
       if (parent != null) {
         parent.AddView(view);
       } else {
         TheLayout.AddView(view);
       }
+      if (alreadyExists) {
+        MainActivity.TheLayout.Invalidate();
+        MainActivity.TheLayout.RefreshDrawableState();
+        view.Invalidate();
+        view.RefreshDrawableState();
+        //if (parentView != null) {
+        parentView?.ViewLayout.Invalidate();
+        //}
+      }
     }
+    public static void RemoveView(DroidVariable viewVar)
+    {
+      if (viewVar == null || viewVar.ViewX == null) {
+        return;
+      }
+      var parent = viewVar.Location?.ParentView as DroidVariable;
+
+      ViewGroup parentView = parent != null ? parent.ViewLayout : MainActivity.TheLayout;
+      View viewToRemove = viewVar.ViewX;
+
+      parentView.RemoveView(viewToRemove);
+
+      parentView = viewToRemove.Parent as ViewGroup;
+      if (parentView != null && parentView.Parent != null) {
+        parentView.RemoveView(viewToRemove);
+      }
+      ScriptingFragment.RemoveView(viewVar);
+    }
+
     public static ViewGroup CreateViewLayout(int width, int height, ViewGroup parent = null)
     {
       RelativeLayout relativelayout = new RelativeLayout(MainActivity.TheView);
@@ -283,9 +318,9 @@ namespace scripting.Droid
     public static void ShowView(View view, bool showIt)
     {
       ScriptingFragment.ShowView(view, showIt, false);
-      if (view is EditText) {
-        EditText editText = view as EditText;
-        TheView.HideShowKeybord(editText, showIt);
+      if (view is TextView) {
+        TextView textView = view as TextView;
+        TheView.ShowHideKeybord(textView, showIt);
       }
     }
     public static string ProcessClick(string arg)
@@ -306,14 +341,15 @@ namespace scripting.Droid
       return resourceID;
     }
 
-
-    public void HideShowKeybord(EditText widget, bool show)
+    public void ShowHideKeybord(View widget, bool show)
     {
       InputMethodManager imm = (InputMethodManager)GetSystemService(Context.InputMethodService);
       if (!show) { // Hide!
         imm.HideSoftInputFromWindow(widget.WindowToken, 0);
       } else { // Show!
-        widget.SetCursorVisible(show);
+        if (widget is TextView) {
+          ((TextView)widget).SetCursorVisible(show);
+        }
         widget.RequestFocus();
         imm.ShowSoftInput(widget, ShowFlags.Implicit);
       }

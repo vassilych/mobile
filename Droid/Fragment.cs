@@ -10,14 +10,16 @@ namespace scripting.Droid
 {
   public class ScriptingFragment : Fragment
   {
-    List<View> m_views = new List<View>();
+    List<View> m_views   = new List<View>();
+    List<DroidVariable> m_widgets = new List<DroidVariable>();
+
     int m_index;
     static List<View> m_hiddenViews = new List<View>();
 
     static List<ScriptingFragment> m_fragments = new List<ScriptingFragment>();
     static ScriptingFragment m_activeFragment = null;
 
-    static Dictionary<View, ViewGroup> m_allViews = new Dictionary<View, ViewGroup>();
+    static Dictionary<DroidVariable, ViewGroup> m_allViews = new Dictionary<DroidVariable, ViewGroup>();
 
     public string OriginalText { get; private set; }
     public string OriginalText_Wide { get; private set; }
@@ -72,32 +74,36 @@ namespace scripting.Droid
     {
       m_activeFragment = index < m_fragments.Count ? m_fragments[index] : null;
     }
-    public static void AddView(View view, ViewGroup parent = null)
+    public static void AddView(DroidVariable widget, ViewGroup parent = null)
     {
+      var view = widget.ViewX;
       if (m_activeFragment != null) {
-        m_activeFragment.m_views.Add(view);
+        //m_activeFragment.m_views.Add(view);
+        m_activeFragment.m_widgets.Add(widget);
       }
       if (parent == null) {
         parent = MainActivity.TheLayout;
       }
-      m_allViews.Add(view, parent);
+      m_allViews.Add(widget, parent);
     }
     public static void RemoveAll()
     {
-      foreach (KeyValuePair<View, ViewGroup> entry in m_allViews) {
+      foreach (KeyValuePair<DroidVariable, ViewGroup> entry in m_allViews) {
         ViewGroup parentView = entry.Value;
-        View viewToRemove = entry.Key;
+        View viewToRemove = entry.Key.ViewX;
         parentView.RemoveView(viewToRemove);
         //((ViewGroup)viewToRemove.Parent).RemoveAllViews();
       }
       m_allViews.Clear();
     }
-    public static void RemoveView(View view)
+    public static void RemoveView(DroidVariable widget)
     {
+      var view = widget.ViewX;
       if (m_activeFragment != null) {
-        m_activeFragment.m_views.Remove(view);
+        //m_activeFragment.m_views.Remove(view);
+        m_activeFragment.m_widgets.Remove(widget);
       }
-      m_allViews.Remove(view);
+      m_allViews.Remove(widget);
     }
     public static void ShowFragments(int activeIndex)
     {
@@ -109,9 +115,19 @@ namespace scripting.Droid
     }
     public static void ShowFragment(ScriptingFragment fragment, bool showIt, bool tabChange)
     {
-      foreach (View view in fragment.m_views) {
+      for (int i = 0; i < fragment.m_widgets.Count; i++) {
+        var widget = fragment.m_widgets[i];
+        var view   = widget.ViewX;
+        widget.ShowView(showIt);
         ShowView(view, showIt, tabChange);
       }
+      /*for (int i = 0; i < fragment.m_views.Count; i++) {
+        var view = fragment.m_views[i];
+        ShowView(view, showIt, tabChange);
+      }
+      foreach (View view in fragment.m_views) {
+        ShowView(view, showIt, tabChange);
+      }*/
     }
     public static void ShowView(View view, bool showIt, bool tabChange)
     {

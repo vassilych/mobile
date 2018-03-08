@@ -21,9 +21,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 4, m_name);
 
       string viewNameX = args[0].AsString();
@@ -80,9 +78,7 @@ namespace scripting.Droid
     {
       string widgetType = m_widgetType;
       int start = string.IsNullOrEmpty(widgetType) ? 1 : 0;
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2 + start, m_name);
 
       if (start == 1) {
@@ -151,24 +147,12 @@ namespace scripting.Droid
         layoutParams.Height = location.Height;
         layoutParams.Width = location.Width;
       }
-      widget.LayoutParameters = layoutParams;
 
-      widget.TranslationX = widgetFunc.TranslationX = location.TranslationX;
-      widget.TranslationY = widgetFunc.TranslationY = location.TranslationY;
+      widget.LayoutParameters = widgetFunc.LayoutParams = layoutParams;
+      widget.TranslationX     = widgetFunc.TranslationX = location.TranslationX;
+      widget.TranslationY     = widgetFunc.TranslationY = location.TranslationY;
 
-      var parentView = location.ParentView as DroidVariable;
-      //Console.WriteLine("--ADDING {0} {1}, text: {2}, parent: {3}, exists: {4}",
-      //                  varName, widgetType, text, parentView == null, alreadyExists);
-      MainActivity.AddView(widget, parentView?.ViewLayout);
-      if (alreadyExists) {
-        MainActivity.TheLayout.Invalidate();
-        MainActivity.TheLayout.RefreshDrawableState();
-        widget.Invalidate();
-        widget.RefreshDrawableState();
-        //if (parentView != null) {
-          parentView?.ViewLayout.Invalidate();
-        //}
-      }
+      MainActivity.AddView(widgetFunc, alreadyExists);
 
       RegisterWidget(widgetFunc);
       ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
@@ -215,7 +199,7 @@ namespace scripting.Droid
         return null;
       }
       DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      RemoveViewFunction.RemoveView(viewVar);
+      MainActivity.RemoveView(viewVar);
       return viewVar;
     }
 
@@ -226,11 +210,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       DroidVariable viewVar = args[0] as DroidVariable;
       View view = viewVar.ViewX;
 
@@ -315,9 +297,7 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
@@ -364,9 +344,7 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
@@ -397,10 +375,7 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -420,6 +395,7 @@ namespace scripting.Droid
         view = MainActivity.TheLayout.RootView;
       }
 
+      viewVar.ShowView(show);
       MainActivity.ShowView(view, show);
 
       return Variable.EmptyInstance;
@@ -437,26 +413,8 @@ namespace scripting.Droid
       DroidVariable viewVar = func.GetValue(script) as DroidVariable;
       Utils.CheckNotNull(viewVar, m_name);
 
-      RemoveView(viewVar);
+      MainActivity.RemoveView(viewVar);
       return Variable.EmptyInstance;
-    }
-    public static void RemoveView(DroidVariable viewVar)
-    {
-      if (viewVar == null || viewVar.ViewX == null) {
-        return;
-      }
-      var parent = viewVar.Location?.ParentView as DroidVariable;
-
-      ViewGroup parentView = parent != null ? parent.ViewLayout : MainActivity.TheLayout;
-      View viewToRemove = viewVar.ViewX;
-
-      parentView.RemoveView(viewToRemove);
-
-      parentView = viewToRemove.Parent as ViewGroup;
-      if (parentView != null && parentView.Parent != null) {
-        parentView.RemoveView(viewToRemove);
-      }
-      ScriptingFragment.RemoveView(viewToRemove);
     }
   }
   public class RemoveAllViewsFunction : ParserFunction
@@ -532,11 +490,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
+
       string varName = Utils.GetSafeString(args, 0);
       Utils.CheckNotEmpty(script, varName, m_name);
 
@@ -602,10 +558,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       if (args.Count == 1) {
@@ -654,10 +607,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -706,11 +656,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string varName = Utils.GetSafeString(args, 0);
       string direction = Utils.GetSafeString(args, 1);
       string strAction = Utils.GetSafeString(args, 2);
@@ -781,11 +729,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string varName = Utils.GetSafeString(args, 0);
       string strAction = Utils.GetSafeString(args, 1);
 
@@ -941,9 +887,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -979,9 +923,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -1033,10 +975,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 0, m_name);
       // TODO: implement
       return Variable.EmptyInstance;
@@ -1046,9 +985,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -1071,9 +1008,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -1103,9 +1038,7 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
@@ -1140,9 +1073,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
@@ -1152,6 +1083,29 @@ namespace scripting.Droid
 
       string colorStr = args[1].AsString();
       droidVar.SetFontColor(colorStr);
+
+      return Variable.EmptyInstance;
+    }
+  }
+
+  public class AddTextFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
+
+      string varName = args[0].AsString();
+      ParserFunction func = ParserFunction.GetFunction(varName);
+      Utils.CheckNotNull(func, varName);
+
+      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
+      Utils.CheckNotNull(viewVar, m_name);
+
+      string text = args[1].AsString();
+      string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
+      double alpha = Utils.GetSafeDouble(args, 3, 1.0);
+      viewVar.AddText(text, colorStr, alpha);
 
       return Variable.EmptyInstance;
     }
@@ -1185,9 +1139,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       string orientation = Utils.GetSafeString(args, 0).ToLower();
 
@@ -1209,9 +1161,7 @@ namespace scripting.Droid
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       m_actionPortrait = Utils.GetSafeString(args, 0);
@@ -1291,9 +1241,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string strAction = args[0].AsString();
@@ -1321,11 +1269,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string msg = Utils.GetSafeString(args, 0);
       int duration = Utils.GetSafeInt(args, 1, 10);
       string fgColorStr = Utils.GetSafeString(args, 2);
@@ -1367,11 +1313,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string title = Utils.GetSafeString(args, 0);
       string msg = Utils.GetSafeString(args, 1);
       string buttonOK = Utils.GetSafeString(args, 2, "Dismiss");
@@ -1407,9 +1351,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string phrase = args[0].AsString();
@@ -1426,9 +1368,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string option = args[0].AsString();
@@ -1461,9 +1401,7 @@ namespace scripting.Droid
     string m_action;
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       m_action = args[0].AsString();
@@ -1504,9 +1442,7 @@ namespace scripting.Droid
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string currentCode = Localization.CurrentCode;
@@ -1543,9 +1479,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       List<string> keyParts = new List<string>();
@@ -1574,9 +1508,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
       string strFilename = args[0].AsString();
 
@@ -1631,9 +1563,7 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       if (!m_startTimer) {
         Utils.CheckArgs(args.Count, 1, m_name);
@@ -1725,10 +1655,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string settingName = args[0].AsString();
       string strType = Utils.GetSafeString(args, 1, "string");
       Variable defValue = Utils.GetSafeVariable(args, 2);
@@ -1762,10 +1691,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string settingName = args[0].AsString();
       Variable settingValue = Utils.GetSafeVariable(args, 1);
       string strType = Utils.GetSafeString(args, 2, "string");
@@ -1801,10 +1729,7 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string strController = Utils.GetSafeString(args, 0);
@@ -1820,10 +1745,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string strAction = args[0].AsString();
 
       for (int i = 1; i < args.Count; i++) {
@@ -1865,10 +1789,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
+
       string strAction = args[0].AsString();
       string productId = args[1].AsString();
 
@@ -1891,10 +1814,9 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
+
       string productId = args[0].AsString();
 
       //string description = IAP.GetDescription(productId);
@@ -1903,5 +1825,4 @@ namespace scripting.Droid
       return new Variable(description);
     }
   }
-
 }
