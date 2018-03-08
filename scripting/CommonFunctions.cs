@@ -60,6 +60,7 @@ namespace scripting
       ParserFunction.RegisterFunction("MoveViewTo", new MoveViewFunction(true));
       ParserFunction.RegisterFunction("SetBackgroundColor", new SetBackgroundColorFunction());
       ParserFunction.RegisterFunction("SetBackground", new SetBackgroundImageFunction());
+      ParserFunction.RegisterFunction("AddText", new AddTextFunction());
       ParserFunction.RegisterFunction("SetText", new SetTextFunction());
       ParserFunction.RegisterFunction("GetText", new GetTextFunction());
       ParserFunction.RegisterFunction("SetValue", new SetValueFunction());
@@ -167,10 +168,7 @@ namespace scripting
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
-      Utils.CheckArgs(args.Count, 0, m_name);
+      List<Variable> args = script.GetFunctionArgs();
 
       ScaleX = Utils.GetSafeDouble(args, 0, 1.0);
       ScaleY = Utils.GetSafeDouble(args, 1, ScaleX);
@@ -253,9 +251,7 @@ namespace scripting
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       int baseWidth = Utils.GetSafeInt(args, 0);
@@ -293,9 +289,7 @@ namespace scripting
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
       int limit = args[0].AsInt();
       Utils.CheckPosInt(args[0]);
@@ -323,9 +317,7 @@ namespace scripting
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string id = Utils.GetSafeString(args, 0);
@@ -352,9 +344,7 @@ namespace scripting
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       Trie trie = Utils.GetSafeVariable(args, 0, null) as Trie;
@@ -378,9 +368,7 @@ namespace scripting
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
       string uri = args[0].AsString();
 
@@ -475,9 +463,7 @@ namespace scripting
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string version1 = Utils.GetSafeString(args, 0);

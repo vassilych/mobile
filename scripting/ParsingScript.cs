@@ -195,7 +195,7 @@ namespace SplitAndMerge
       }
     }
 
-    public List<Variable> GetArgs(char start = Constants.START_ARG,
+    public List<Variable> GetFunctionArgs(char start = Constants.START_ARG,
                                   char end   = Constants.END_ARG)
     {
       bool isList;

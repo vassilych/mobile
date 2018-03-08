@@ -92,7 +92,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Delete.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Edit.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Open.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\CustomLanguage.pdf" />
     <None Include="$(MSBuildThisFileDirectory)Resources\sfhello.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\AdventureCycle.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Road550W.png" />
@@ -1034,7 +1033,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\printer.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\prisoner_inmate.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\product.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pt_bg.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pt_v.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pt_v2.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\puck.png" />
@@ -1427,7 +1425,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\closet.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\cloud.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\clown.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\cn_bgOld.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\cn_v2.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\coach.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\coat.png" />
@@ -1561,7 +1558,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\elevator.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\eleven.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\elk.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\en_bg.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\engine_hood.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\engineer.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\envelope.png" />
@@ -1594,6 +1590,7 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\February.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\felt_tip_pen.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fencing.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\unitTest.cscs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

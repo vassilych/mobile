@@ -166,9 +166,7 @@ namespace SplitAndMerge
       // Data buffer for incoming data.
       byte[] bytes = new byte[1024];
 
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       Utils.CheckArgs(args.Count, 3, Constants.CONNECTSRV);
       Utils.CheckPosInt(args[1]);
@@ -257,9 +255,7 @@ namespace SplitAndMerge
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       string output = string.Empty;
       for (int i = 0; i < args.Count; i++) {
@@ -285,9 +281,7 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       for (int i = 0; i < args.Count; i++) {
         Console.Write(args[i].AsString());
@@ -425,9 +419,7 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       Utils.CheckArgs(args.Count, 1, m_name);
       string data = Utils.GetSafeString(args, 0);
@@ -468,9 +460,7 @@ namespace SplitAndMerge
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-          Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       Utils.CheckArgs(args.Count, 1, m_name);
       string source    = Utils.GetSafeString(args, 0);
@@ -1112,9 +1102,7 @@ namespace SplitAndMerge
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       double timestamp = Utils.GetSafeDouble(args, 0);
       string strFormat = Utils.GetSafeString(args, 1, "yyyy/MM/dd HH:mm:ss.fff");
@@ -1137,9 +1125,7 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       string strFormat = Utils.GetSafeString(args, 0, "HH:mm:ss.fff");
       Utils.CheckNotEmpty(strFormat, m_name);
@@ -1161,9 +1147,7 @@ namespace SplitAndMerge
 
     protected override Variable Evaluate(ParsingScript script)
     {
-      bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-        Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = script.GetFunctionArgs();
 
       if (m_mode == Mode.START) {
         m_stopwatch.Restart();
