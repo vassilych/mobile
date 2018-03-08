@@ -646,6 +646,26 @@ namespace SplitAndMerge
         }
       }
     }
+    public static int GetNumberOfDigits(string data, int itemNumber = -1)
+    {
+      if (itemNumber >= 0) {
+        string[] vals = data.Split(new char[] { ',', ':' });
+        if (vals.Length <= itemNumber) {
+          return 0;
+        }
+        int min = 0;
+        for (int i = 0; i < vals.Length; i++) {
+          min = Math.Max(min, GetNumberOfDigits(vals[i]));
+        }
+        return min;
+      }
+
+      int index = data.IndexOf(".");
+      if (index < 0 || index >= data.Length - 1) {
+        return 0;
+      }
+      return data.Length - index - 1; 
+    }
     public static void Extract(string data, ref double val1, ref double val2,
                                             ref double val3, ref double val4)
     {
