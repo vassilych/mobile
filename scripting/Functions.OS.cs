@@ -16,10 +16,9 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string pattern = Utils.GetItem(script).String;
-      if (string.IsNullOrWhiteSpace(pattern)) {
-        throw new ArgumentException("Couldn't extract process name");
-      }
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+      string pattern = args[0].AsString();
 
       int MAX_PROC_NAME = 26;
       Interpreter.Instance.AppendOutput(Utils.GetLine(), true);
@@ -52,10 +51,6 @@ namespace SplitAndMerge
       }
       Interpreter.Instance.AppendOutput(Utils.GetLine(), true);
 
-      if (script.TryCurrent() == Constants.NEXT_ARG) {
-        script.Forward(); // eat end of statement semicolon
-      }
-
       return new Variable(results);
     }
   }
@@ -65,7 +60,10 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      Variable id = Utils.GetItem(script);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      Variable id = args[0];
       Utils.CheckPosInt(id);
 
       int processId = (int)id.Value;

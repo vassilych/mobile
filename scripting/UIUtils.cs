@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SplitAndMerge;
 
 namespace scripting
 {
@@ -66,11 +67,18 @@ namespace scripting
     static Dictionary<string, Tuple<string, Rect>> m_widget2Location =
        new Dictionary<string, Tuple<string, Rect>>();
     
+    public static void RegisterWidget(UIVariable widget, Rect rect,
+                                      string parent = "", int tabId = 0)
+    {
+      RegisterWidget(widget.Name, rect, parent, tabId);
+      ParserFunction.AddGlobal(widget.Name, new GetVarFunction(widget));
+    }
+
     public static void RegisterWidget(string widgetName, Rect rect,
                                       string parent = "", int tabId = 0)
     {
       string key = parent + "_" + tabId;
-      List <Tuple<string, Rect >> locations;
+      List<Tuple<string, Rect>> locations;
       if (!m_widgetLocations.TryGetValue(key, out locations)) {
         locations = new List<Tuple<string, Rect>>();
       } else {
@@ -79,10 +87,55 @@ namespace scripting
           locations.Remove(existing);
         }
       }
-      var location = new Tuple<string, Rect>(widgetName, rect);
+      Tuple<string, Rect> location = new Tuple<string, Rect>(widgetName, rect);
       locations.Add(location);
       m_widgetLocations[key] = locations;
       m_widget2Location[widgetName] = location;
+    }
+
+    public static void DeregisterTab(int tabId, string parent = "")
+    {
+      string key = parent + "_" + tabId;
+      List<Tuple<string, Rect>> locations;
+      if (!m_widgetLocations.TryGetValue(key, out locations)) {
+        return;
+      }
+
+      List<string> toDeregister = new List<string>();
+      foreach (var location in locations) {
+        toDeregister.Add(location.Item1);
+      }
+      foreach (var widgetName in toDeregister) {
+        DeregisterWidget(widgetName);
+      }
+    }
+    public static void DeregisterAll()
+    {
+      foreach(string widgetName in m_widget2Location.Keys) {
+        ParserFunction.RemoveGlobal(widgetName);
+      }
+
+      m_widgetLocations.Clear();
+      m_widget2Location.Clear();
+    }
+
+    public static void DeregisterWidget(string widgetName)
+    {
+      Tuple<string, Rect> location;
+      if (!m_widget2Location.TryGetValue(widgetName, out location)) {
+        return;
+      }
+      m_widget2Location.Remove(widgetName);
+      foreach (var locations in m_widgetLocations.Values) {
+        locations.Remove(location);
+      }
+
+      ParserFunction.RemoveGlobal(widgetName);
+    }
+
+    public static List<string> GetAllWidgets(string widgetName)
+    {
+      return new List<string>(m_widget2Location.Keys);
     }
 
     public static List<string> FindWidgets(Rect location, string parent = "", int tabId = 0,

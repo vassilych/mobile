@@ -107,7 +107,7 @@ namespace SplitAndMerge
     {
       ParserFunction impl;
       // First search among local variables.
-      if (s_locals.Count > 0) {
+      if (s_locals.Count > StackLevelDelta) {
         Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
         if (local.TryGetValue(name, out impl)) {
           // Local function exists (a local variable)
@@ -129,7 +129,7 @@ namespace SplitAndMerge
     public static void UpdateFunction(string name, ParserFunction function)
     {
       // First search among local variables.
-      if (s_locals.Count > 0) {
+      if (s_locals.Count > StackLevelDelta) {
         Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
 
         if (local.ContainsKey(name)) {
@@ -165,7 +165,7 @@ namespace SplitAndMerge
     public static void AddGlobalOrLocalVariable(string name, ParserFunction function)
     {
       function.Name = name;
-      if (s_locals.Count > 0 && (LocalNameExists(name) || !GlobalNameExists(name))) {
+      if (s_locals.Count > StackLevelDelta && (LocalNameExists(name) || !GlobalNameExists(name))) {
         AddLocalVariable(function);
       } else {
         AddGlobal(name, function, false /* not native */);
@@ -174,7 +174,7 @@ namespace SplitAndMerge
 
     static bool LocalNameExists(string name)
     {
-      if (s_locals.Count == 0) {
+      if (s_locals.Count <= StackLevelDelta) {
         return false;
       }
       var vars = s_locals.Peek().Variables;
@@ -189,6 +189,11 @@ namespace SplitAndMerge
                                         bool isNative = true)
     {
       AddGlobal(name, function, isNative);
+    }
+
+    public static void RemoveGlobal(string name)
+    {
+      s_functions.Remove(name);
     }
 
     public static void AddGlobal(string name, ParserFunction function,
@@ -238,7 +243,9 @@ namespace SplitAndMerge
 
     public static void PopLocalVariables()
     {
-      s_locals.Pop();
+      if (s_locals.Count > 0 ) {
+        s_locals.Pop();
+      }
     }
 
     public static int GetCurrentStackLevel()
@@ -248,7 +255,7 @@ namespace SplitAndMerge
 
     public static void InvalidateStacksAfterLevel(int level)
     {
-      while (s_locals.Count > level) {
+      while (level >= 0 && s_locals.Count > level) {
         s_locals.Pop();
       }
     }
@@ -289,15 +296,15 @@ namespace SplitAndMerge
     protected bool m_isNative = true;
     public bool isNative { get { return m_isNative; } set { m_isNative = value; } }
 
-    private ParserFunction m_impl;
+    ParserFunction m_impl;
     // Global functions and variables:
-    private static Dictionary<string, ParserFunction> s_functions = new Dictionary<string, ParserFunction>();
+    static Dictionary<string, ParserFunction> s_functions = new Dictionary<string, ParserFunction>();
 
     // Global variables:
     //private static Dictionary<string, ParserFunction> s_globals = new Dictionary<string, ParserFunction> ();
 
     // Global actions - function:
-    private static Dictionary<string, ActionFunction> s_actions = new Dictionary<string, ActionFunction>();
+    static Dictionary<string, ActionFunction> s_actions = new Dictionary<string, ActionFunction>();
 
     public class StackLevel
     {
@@ -312,13 +319,15 @@ namespace SplitAndMerge
 
     // Local variables:
     // Stack of the functions being executed:
-    private static Stack<StackLevel> s_locals = new Stack<StackLevel>();
+    static Stack<StackLevel> s_locals = new Stack<StackLevel>();
     public static Stack<StackLevel> ExecutionStack { get { return s_locals; } }
 
-    private static StringOrNumberFunction s_strOrNumFunction =
+    static StringOrNumberFunction s_strOrNumFunction =
       new StringOrNumberFunction();
-    private static IdentityFunction s_idFunction =
+    static IdentityFunction s_idFunction =
       new IdentityFunction();
+
+    public static int StackLevelDelta { get; set; }
   }
 
   public abstract class ActionFunction : ParserFunction

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SplitAndMerge;
-using Syncfusion.XlsIO;
+/*using Syncfusion.XlsIO;
 using COLOR = Syncfusion.Drawing;
 using System.IO;
 using System.Reflection;
@@ -371,3 +371,4 @@ namespace scripting
     }
   }
 }
+*/

@@ -24,6 +24,7 @@ namespace scripting
       ParserFunction.RegisterFunction("AddLabel", new AddWidgetFunction("Label"));
       ParserFunction.RegisterFunction("AddTextEdit", new AddWidgetFunction("TextEdit"));
       ParserFunction.RegisterFunction("AddTextView", new AddWidgetFunction("TextView"));
+      ParserFunction.RegisterFunction("AddTextEditView", new AddWidgetFunction("TextEditView"));
       ParserFunction.RegisterFunction("AddImageView", new AddWidgetFunction("ImageView"));
       ParserFunction.RegisterFunction("AddPickerView", new AddWidgetFunction("Picker"));
       ParserFunction.RegisterFunction("AddTypePickerView", new AddWidgetFunction("TypePicker"));
@@ -54,6 +55,7 @@ namespace scripting
       ParserFunction.RegisterFunction("SetVisible", new ShowHideFunction(true));
       ParserFunction.RegisterFunction("RemoveView", new RemoveViewFunction());
       ParserFunction.RegisterFunction("RemoveAllViews", new RemoveAllViewsFunction());
+      ParserFunction.RegisterFunction("RemoveTabViews", new RemoveAllViewsFunction());
       ParserFunction.RegisterFunction("GetX", new GetCoordinateFunction(true));
       ParserFunction.RegisterFunction("GetY", new GetCoordinateFunction(false));
       ParserFunction.RegisterFunction("MoveView", new MoveViewFunction(false));
@@ -74,6 +76,9 @@ namespace scripting
       ParserFunction.RegisterFunction("SetNormalFont", new SetFontTypeFunction(SetFontTypeFunction.FontType.NORMAL));
       ParserFunction.RegisterFunction("AlignText", new AlignTitleFunction());
       ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
+      ParserFunction.RegisterFunction("Relative", new RelativeSizeFunction());
+      ParserFunction.RegisterFunction("ShowHideKeyboard", new ShowHideKeyboardFunction());
+      ParserFunction.RegisterFunction("IsKeyboard", new IsKeyboardFunction());
 
       ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
       ParserFunction.RegisterFunction("AllowedOrientation", new AllowedOrientationFunction());
@@ -96,6 +101,7 @@ namespace scripting
       ParserFunction.RegisterFunction("Restore", new RestoreFunction());
       ParserFunction.RegisterFunction("ProductIdDescription", new ProductIdDescriptionFunction());
       ParserFunction.RegisterFunction("ReadFile", new ReadFileFunction());
+      ParserFunction.RegisterFunction("ReadFileAsString", new ReadFileFunction(true));
       ParserFunction.RegisterFunction("Schedule", new PauseFunction(true));
       ParserFunction.RegisterFunction("CancelSchedule", new PauseFunction(false));
       ParserFunction.RegisterFunction("GetDeviceLocale", new GetDeviceLocale());
@@ -119,6 +125,7 @@ namespace scripting
       ParserFunction.RegisterFunction("_VERSION_NUMBER_", new GetVersionNumberFunction());
       ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
+      ParserFunction.RegisterFunction("Run", new RunScriptFunction());
       ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
     }
     public static void RunScript(string fileName)
@@ -132,7 +139,11 @@ namespace scripting
 #endif
 
       string script = FileToString(fileName);
+      Run(script);
+    }
 
+    public static Variable Run(string script)
+    {
       Variable result = null;
       try {
         result = Interpreter.Instance.Process(script);
@@ -142,6 +153,7 @@ namespace scripting
         ParserFunction.InvalidateStacksAfterLevel(0);
         throw;
       }
+      return result;
     }
     public static string FileToString(string filename)
     {
@@ -156,6 +168,22 @@ namespace scripting
       contents = string.Join("\n", lines);
 #endif
       return contents;
+    }
+  }
+
+  public class RelativeSizeFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      double original   = Utils.GetSafeDouble(args, 0);
+      double multiplier = Utils.GetSafeDouble(args, 1);
+      double relative   = AutoScaleFunction.TransformSize(original,
+                          AutoScaleFunction.GetRealScreenSize(), multiplier);
+      
+      return new Variable(relative);
     }
   }
 
@@ -186,18 +214,18 @@ namespace scripting
     public static void TransformSizes(ref int width, ref int height,
                                       int screenWidth, double extra = 0.0)
     {
-      int newWidth = TransformSize(width, screenWidth, extra);
+      int newWidth = (int)TransformSize(width, screenWidth, extra);
       if (width != 0) {
         double ratio = (double)newWidth / (double)width;
         height = (int)(height * ratio);
       } else {
-        height = TransformSize(height, screenWidth, extra);
+        height = (int)TransformSize(height, screenWidth, extra);
       }
       width = newWidth;
 
       return;
     }
-    public static int TransformSize(int size, int screenWidth, double extra = 0.0)
+    public static double TransformSize(double size, int screenWidth, double extra = 0.0)
     {
       if (extra == 0.0) {
         extra = ScaleX;
@@ -208,10 +236,20 @@ namespace scripting
       //int oldSize = (int)(size * screenWidth * extra / BASE_WIDTH);
       double newSize = (size * screenWidth / BASE_WIDTH);
       double delta = (newSize - size) * extra;
-      size = (int)(size + delta);
+      size = (size + delta);
 
       return size;
     }
+    public static int GetRealScreenSize(bool width = true)
+    {
+#if __ANDROID__
+      var size = UtilsDroid.GetScreenSize();
+      return width ? size.Width : size.Height;
+#elif __IOS__
+      return width ? (int)UtilsiOS.GetRealScreenWidth() : (int)UtilsiOS.GetRealScreenHeight();
+#endif
+    }
+
     public static float ConvertFontSize(float original, int widgetWidth)
     {
       float newSize = original;
@@ -246,9 +284,46 @@ namespace scripting
       return newSize;
     }
   }
+  public class RunScriptFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string strScript = Utils.GetSafeString(args, 0);
+      Variable result = null;
+
+      ParserFunction.StackLevelDelta++;
+      try {
+        result = Execute(strScript);
+      } finally {
+        ParserFunction.StackLevelDelta--;
+      }
+
+      return result != null ? result : Variable.EmptyInstance;
+    }
+
+    public static Variable Execute(string text, string filename = "")
+    {
+      string[] lines = text.Split(new char[] { '\n' });
+
+      Dictionary<int, int> char2Line;
+      string includeScript = Utils.ConvertToScript(text, out char2Line);
+      ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
+      tempScript.Filename = filename;
+      tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+
+      Variable result = null;
+      while (tempScript.Pointer < includeScript.Length) {
+        result = tempScript.ExecuteTo();
+        tempScript.GoToNextStatement();
+      }
+      return result;
+    }
+  }
   public class SetBaseWidthFunction : ParserFunction
   {
-
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();

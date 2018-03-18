@@ -76,7 +76,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\angry.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\apple.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\dog.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Launch2208.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\us_w_bg.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\pictures.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\start.png" />
@@ -796,7 +795,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Laos.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\laptop.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Latvia.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Launch960.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\lawn.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\lawnmower.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\lawyer.png" />
@@ -1591,6 +1589,11 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\felt_tip_pen.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fencing.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\unitTest.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\cscs.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\run_icon.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\busyIndicators.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\unitTests.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Launch2208.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

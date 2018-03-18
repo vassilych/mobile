@@ -37,7 +37,7 @@ namespace scripting
       ParserFunction.RegisterFunction("AddSfImageEditor", new AddWidgetFunction("SfImageEditor"));
       ParserFunction.RegisterFunction("StartSfImageEditor", new StartSfImageEditor());
 
-      ParserFunction.RegisterFunction("SfExcelNew", new CreateExcel());
+      /*ParserFunction.RegisterFunction("SfExcelNew", new CreateExcel());
       ParserFunction.RegisterFunction("SfExcelOpen", new OpenExcel());
       ParserFunction.RegisterFunction("SfExcelSet", new SetExcelOption());
       ParserFunction.RegisterFunction("SfAddExcelWorksheet", new AddExcelWorksheet());
@@ -64,7 +64,7 @@ namespace scripting
       ParserFunction.RegisterFunction("SfSetPdfRectangle", new SetPdfRectangle());
       ParserFunction.RegisterFunction("SfSetPdfPie", new SetPdfPie());
       ParserFunction.RegisterFunction("SfSetPdfFont", new SetPdfFont());
-      ParserFunction.RegisterFunction("SfSavePdf", new SavePdf());
+      ParserFunction.RegisterFunction("SfSavePdf", new SavePdf());*/
 
       CommonFunctions.RunScript(fileName);
     }

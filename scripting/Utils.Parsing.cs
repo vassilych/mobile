@@ -367,6 +367,7 @@ namespace SplitAndMerge
             break;
           case '“':
           case '”':
+          case '„':
           case '"':
             ch = '"';
             if (!inComments) {
@@ -628,6 +629,14 @@ namespace SplitAndMerge
       return sb.ToString();
     }
 
+    public static string ProcessString(string text)
+    {
+      text = text.Replace("\\\"", "\"");
+      text = text.Replace("\\t", "\t");
+      text = text.Replace("\\n", "\n");
+
+      return text;
+    }
   }
 }
 

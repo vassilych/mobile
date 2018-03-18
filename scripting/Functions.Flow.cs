@@ -72,7 +72,11 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate (ParsingScript script)
     {
-      string funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string funcName = args[0].AsString();
+
       ParserFunction function = ParserFunction.GetFunction(funcName);
       CustomFunction custFunc = function as CustomFunction;
       Utils.CheckNotNull(funcName, custFunc);
@@ -88,8 +92,11 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate (ParsingScript script)
     {
-      string language = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
-      string funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name, true);
+
+      string language = args[0].AsString();
+      string funcName = args[1].AsString();
 
       ParserFunction function = ParserFunction.GetFunction(funcName);
       CustomFunction custFunc = function as CustomFunction;
@@ -214,7 +221,7 @@ namespace SplitAndMerge
       }
 
       // Otherwise this should be a number.
-      double num = Utils.ConvertToDouble(Item, m_name);
+      double num = Utils.ConvertToDouble(Item, "StringOrNumber");
       /*if (!Double.TryParse(Item, NumberStyles.Number |
                            NumberStyles.AllowExponent |
                            NumberStyles.Float,
@@ -251,8 +258,9 @@ namespace SplitAndMerge
     protected override Variable Evaluate(ParsingScript script)
     {
       // 1. Get the name of the variable.
-      string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-      Utils.CheckNotEnd(script, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name, true);
+      string varName = args[0].AsString();
 
       // 2. Get the current value of the variable.
       ParserFunction func = ParserFunction.GetFunction(varName);
@@ -261,7 +269,7 @@ namespace SplitAndMerge
       Utils.CheckArray(currentValue, varName);
 
       // 3. Get the variable to remove.
-      Variable item = Utils.GetItem(script);
+      Variable item = args[1];
 
       bool removed = currentValue.Tuple.Remove(item);
 
@@ -437,7 +445,10 @@ namespace SplitAndMerge
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string filename = Utils.GetItem(script).AsString();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string filename = args[0].AsString();
       string[] lines = Utils.GetFileLines(filename);
 
       string includeFile = string.Join(Environment.NewLine, lines);

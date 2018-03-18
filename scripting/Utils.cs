@@ -77,10 +77,12 @@ namespace SplitAndMerge
         throw new ArgumentException("Incomplete arguments for [" + name + "]");
       }
     }
-    public static void CheckNotNull(object obj, string name)
+    public static void CheckNotNull(object obj, string name, int index = -1)
     {
       if (obj == null) {
-        throw new ArgumentException("Invalid argument in function [" + name + "]");
+        string indexStr = index >= 0 ? " in position " + (index + 1) : ""; 
+        throw new ArgumentException("Invalid argument " + indexStr +
+                                    " in function [" + name + "]");
       }
     }
     public static void CheckNotEnd(ParsingScript script)
@@ -411,6 +413,9 @@ namespace SplitAndMerge
       string fileContents = string.Empty;
       if (File.Exists(filename)) {
         fileContents = File.ReadAllText(filename);
+      } else {
+        throw new ArgumentException("Couldn't read file [" + filename +
+                                    "] from disk.");
       }
       return fileContents;
     }
@@ -421,7 +426,8 @@ namespace SplitAndMerge
         string[] lines = File.ReadAllLines(filename);
         return lines;
       } catch (Exception ex) {
-        throw new ArgumentException("Couldn't read file from disk: " + ex.Message);
+        throw new ArgumentException("Couldn't read file [" + filename +
+                                    "] from disk: " + ex.Message);
       }
     }
 
@@ -571,6 +577,7 @@ namespace SplitAndMerge
       ParserFunction func = ParserFunction.GetFunction(varName);
       Utils.CheckNotNull(varName, func);
       Variable varValue = func.GetValue(script);
+      Utils.CheckNotNull(varValue, varName);
       return varValue;
     }
 
@@ -609,7 +616,7 @@ namespace SplitAndMerge
                            NumberStyles.Float,
                            CultureInfo.InvariantCulture, out num) &&
           !string.IsNullOrWhiteSpace(errorOrigin)) {
-        throw new ArgumentException("Couldn't parse [" + str + "] to a double in " + errorOrigin);
+        throw new ArgumentException("Couldn't parse [" + str + "] in " + errorOrigin);
       }
       return num;
     }

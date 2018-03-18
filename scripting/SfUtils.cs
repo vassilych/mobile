@@ -1,5 +1,5 @@
 ﻿using System;
-using Syncfusion.Pdf.Graphics;
+/*using Syncfusion.Pdf.Graphics;
 using Syncfusion.DocIO;
 using Syncfusion.DocIO.DLS;
 using Syncfusion.XlsIO;
@@ -319,3 +319,4 @@ namespace scripting
     }
   }
 }
+*/
