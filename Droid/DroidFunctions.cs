@@ -155,7 +155,6 @@ namespace scripting.Droid
       MainActivity.AddView(widgetFunc, alreadyExists);
 
       RegisterWidget(widgetFunc);
-      ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
       return widgetFunc;
     }
 
@@ -181,7 +180,7 @@ namespace scripting.Droid
       int tabId = MainActivity.CurrentTabId;
       UIUtils.Rect rect = new UIUtils.Rect((int)view.GetX(), (int)view.GetY(),
                                             view.Width, view.Height);
-      UIUtils.RegisterWidget(widget.WidgetName, rect, parentName, tabId);
+      UIUtils.RegisterWidget(widget, rect, parentName, tabId);
     }
     public static void ApplyRule(RelativeLayout.LayoutParams layoutParams,
                                  LayoutRules rule, View view = null)
@@ -232,15 +231,14 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      Variable data = Utils.GetItem(script);
+      Variable data = Utils.GetSafeVariable(args, 1, null);
+      Utils.CheckNotNull(data, m_name);
       Utils.CheckNotNull(data.Tuple, m_name);
 
       List<string> types = new List<string>(data.Tuple.Count);
@@ -248,13 +246,10 @@ namespace scripting.Droid
         types.Add(data.Tuple[i].AsString());
       }
 
-      Variable actionValue = Utils.GetItem(script);
-      string strAction = actionValue.AsString();
-      script.MoveForwardIf(Constants.NEXT_ARG);
+      string strAction = Utils.GetSafeString(args, 2);
+      string extra = Utils.GetSafeString(args, 3);
 
-      string extra = Utils.GetItem(script).AsString();
-
-      viewVar.AddData(types, varName, strAction, extra);
+      widget.AddData(types, varName, strAction, extra);
 
       return Variable.EmptyInstance;
     }
@@ -263,15 +258,14 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      Variable data = Utils.GetItem(script);
+      Variable data = Utils.GetSafeVariable(args, 1, null);
+      Utils.CheckNotNull(data, m_name);
       Utils.CheckNotNull(data.Tuple, m_name);
 
       List<string> images = new List<string>(data.Tuple.Count);
@@ -279,11 +273,8 @@ namespace scripting.Droid
         images.Add(data.Tuple[i].AsString());
       }
 
-      Variable actionValue = Utils.GetItem(script);
-      string strAction = actionValue.AsString();
-      script.MoveForwardIf(Constants.NEXT_ARG);
-
-      viewVar.AddImages(images, varName, strAction);
+      string strAction = Utils.GetSafeString(args, 2);
+      widget.AddImages(images, varName, strAction);
 
       return Variable.EmptyInstance;
     }
@@ -301,10 +292,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
@@ -316,7 +304,7 @@ namespace scripting.Droid
                           UtilsDroid.GetScreenSize().Width, multiplier);
       }
 
-      View view = viewVar.ViewX;
+      View view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
 
       if (deltaX < 0) {
@@ -348,12 +336,9 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      View view = viewVar.ViewX;
+      View view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
 
       int coord = 0;
@@ -379,23 +364,18 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       bool show = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
-
       // Special dealing if the user tries to show/hide the layout:
-      View view = viewVar.ViewX;
+      View view = widget.ViewX;
       if (view == null) {
         // Otherwise it's a a Main Root view.
         view = MainActivity.TheLayout.RootView;
       }
 
-      viewVar.ShowView(show);
+      widget.ShowView(show);
       MainActivity.ShowView(view, show);
 
       return Variable.EmptyInstance;
@@ -405,15 +385,15 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      MainActivity.RemoveView(viewVar);
+      MainActivity.RemoveView(widget);
+      UIUtils.DeregisterWidget(varName);
+
       return Variable.EmptyInstance;
     }
   }
@@ -421,7 +401,16 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      MainActivity.RemoveAll();
+      List<Variable> args = script.GetFunctionArgs();
+
+      int tabId = Utils.GetSafeInt(args, 0, -1);
+      if (tabId >= 0) {
+        MainActivity.RemoveTabViews(tabId);
+        UIUtils.DeregisterTab(tabId);
+      } else {
+        MainActivity.RemoveAll();
+        UIUtils.DeregisterAll();
+      }
 
       return Variable.EmptyInstance;
     }
@@ -444,22 +433,18 @@ namespace scripting.Droid
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      string text = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
 
-      string imageName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
-
-      string selectedImageName = null;
-      if (script.Current == Constants.NEXT_ARG) {
-        selectedImageName = Utils.GetItem(script).AsString();
-      }
+      string text = Utils.GetSafeString(args, 0);
+      string selectedImageName = Utils.GetSafeString(args, 1);
+      string notSelectedImageName = Utils.GetSafeString(args, 2, selectedImageName);
 
       if (!m_forceCreate && MainActivity.SelectTab(text)) {
         return Variable.EmptyInstance;
       }
 
-      MainActivity.AddTab(text, imageName, selectedImageName);
+      MainActivity.AddTab(text, selectedImageName, notSelectedImageName);
 
       return Variable.EmptyInstance;
     }
@@ -468,7 +453,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      int tabId = Utils.GetItem(script).AsInt();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      int tabId = Utils.GetSafeInt(args, 0);
       MainActivity.TheView.ChangeTab(tabId);
       return Variable.EmptyInstance;
     }
@@ -477,8 +465,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string action = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, action, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string action = args[0].AsString();
 
       MainActivity.TabSelectedDelegate += (tab) => {
         UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
@@ -494,8 +484,6 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
       Variable widthVar = Utils.GetSafeVariable(args, 1);
       Utils.CheckNonNegativeInt(widthVar);
       int width = widthVar.AsInt();
@@ -524,15 +512,48 @@ namespace scripting.Droid
       return Variable.EmptyInstance;
     }
   }
+  public class ShowHideKeyboardFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
+      bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
+
+      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
+
+      MainActivity.TheView.ShowHideKeyboard(droidVar.ViewX, showKeyboard);
+      return Variable.EmptyInstance;
+    }
+  }
+  public class IsKeyboardFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
+      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
+      Utils.CheckNotNull(droidVar, varName);
+
+      //bool result = MainActivity.TheView.IsKeyboardVisible(droidVar.ViewX);
+      bool result = MainActivity.KeyboardVisible;
+
+      return new Variable(result);
+    }
+  }
   public class SetImageFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable imageNameVar = Utils.GetItem(script);
-      string imageStr = imageNameVar.AsString();
+      string varName = args[0].AsString();
+      string imageStr = args[1].AsString();
 
       string imageName = UIUtils.String2ImageName(imageStr);
 
@@ -548,7 +569,8 @@ namespace scripting.Droid
           view.SetBackgroundResource(resourceID);
         }
       } else {
-        Console.WriteLine("Couldn't find pic [{0}]", imageName);
+        throw new ArgumentException("Couldn't load [" + imageName +
+                    "] from disk.");
       }
 
       return resourceID > 0 ? new Variable(imageName) : Variable.EmptyInstance;
@@ -576,12 +598,8 @@ namespace scripting.Droid
         return Variable.EmptyInstance;
       }
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
-
-      viewVar.SetBackgroundColor(strColor, alpha);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      widget.SetBackgroundColor(strColor, alpha);
 
       return Variable.EmptyInstance;
     }
@@ -591,10 +609,17 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      Variable imageNameVar = Utils.GetItem(script);
-      string imageName = imageNameVar.AsString();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string imageName = Utils.GetSafeString(args, 0);
 
       int resourceID = MainActivity.String2Pic(imageName);
+
+      if (resourceID <= 0) {
+        throw new ArgumentException("Couldn't load [" + imageName +
+                    "] from disk.");
+      }
 
       View view = MainActivity.TheLayout.RootView;
       view.SetBackgroundResource(resourceID);
@@ -614,9 +639,8 @@ namespace scripting.Droid
       string strAction = Utils.GetSafeString(args, 1);
       string argument = Utils.GetSafeString(args, 2);
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
-      droidVar.AddAction(varName, strAction, argument);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      widget.AddAction(varName, strAction, argument);
 
       return Variable.EmptyInstance;
     }
@@ -625,14 +649,11 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      //string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
-      script.MoveForwardIf(Constants.NEXT_ARG);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable actionValue = Utils.GetItem(script);
-      string strAction = actionValue.AsString();
-      script.MoveForwardIf(Constants.NEXT_ARG);
+      string varName = args[0].AsString();
+      string strAction = args[1].AsString();
 
       View view = DroidVariable.GetView(varName, script);
 
@@ -735,14 +756,10 @@ namespace scripting.Droid
       string varName = Utils.GetSafeString(args, 0);
       string strAction = Utils.GetSafeString(args, 1);
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
-
-      OnTouchListener listener = new OnTouchListener(viewVar, strAction, script);
-      viewVar.ViewX.Touch += listener.OnTouch;
+      OnTouchListener listener = new OnTouchListener(widget, strAction, script);
+      widget.ViewX.Touch += listener.OnTouch;
 
       /*DragEventListener listener = new DragEventListener(view);
       view.SetOnDragListener(listener);
@@ -891,15 +908,12 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      DroidVariable droidVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       string strTitle = args[1].AsString();
       string alignment = Utils.GetSafeString(args, 2, "left");
 
-      bool isSet = droidVar.SetText(strTitle, alignment);
+      bool isSet = widget.SetText(strTitle, alignment);
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -908,13 +922,13 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      string text = droidVar.GetText();
+      string text = widget.GetText();
 
       return new Variable(text);
     }
@@ -930,10 +944,8 @@ namespace scripting.Droid
       Variable arg1 = Utils.GetSafeVariable(args, 1);
       Variable arg2 = Utils.GetSafeVariable(args, 2);
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
-
-      bool isSet = droidVar.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      bool isSet = widget.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -942,13 +954,13 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      string varName = args[0].AsString();
 
-      double result = droidVar.GetValue();
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      double result = widget.GetValue();
 
       return new Variable(result);
     }
@@ -958,18 +970,17 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      string varName = args[0].AsString();
 
-      string alignment = Utils.GetItem(script).AsString();
-      bool aligned = droidVar.AlignText(alignment);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      string alignment = args[1].AsString();
+      bool aligned = widget.AlignText(alignment);
 
       return new Variable(aligned);
     }
-
   }
   public class SetOptionsFunction : ParserFunction
   {
@@ -991,15 +1002,14 @@ namespace scripting.Droid
       string varName = args[0].AsString();
       float fontSize = (float)args[1].AsDouble();
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       bool autoResize = Utils.GetSafeInt(args, 2, 1) == 1;
       if (autoResize) {
         fontSize = AutoScaleFunction.ConvertFontSize(fontSize, UtilsDroid.GetScreenSize().Width);
       }
 
-      droidVar.SetFontSize(fontSize);
+      widget.SetFontSize(fontSize);
 
       return Variable.EmptyInstance;
     }
@@ -1012,18 +1022,12 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       string fontName = args[1].AsString();
       double fontSize = Utils.GetSafeDouble(args, 2);
 
-      bool isSet = viewVar.SetFont(fontName, fontSize);
+      bool isSet = widget.SetFont(fontName, fontSize);
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -1042,26 +1046,20 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       double fontSize = Utils.GetSafeDouble(args, 1);
 
       bool isSet = false;
       switch (m_fontType) {
         case FontType.NORMAL:
-          isSet = viewVar.SetNormalFont(fontSize);
+          isSet = widget.SetNormalFont(fontSize);
           break;
         case FontType.BOLD:
-          isSet = viewVar.SetBold(fontSize);
+          isSet = widget.SetBold(fontSize);
           break;
         case FontType.ITALIC:
-          isSet = viewVar.SetItalic(fontSize);
+          isSet = widget.SetItalic(fontSize);
           break;
       }
 
@@ -1074,15 +1072,13 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       string varName = args[0].AsString();
-
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, m_name);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
       string colorStr = args[1].AsString();
-      droidVar.SetFontColor(colorStr);
+      widget.SetFontColor(colorStr);
 
       return Variable.EmptyInstance;
     }
@@ -1096,16 +1092,12 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
+      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
 
-      DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-      Utils.CheckNotNull(viewVar, m_name);
-
-      string text = args[1].AsString();
+      string text = Utils.ProcessString(args[1].AsString());
       string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
       double alpha = Utils.GetSafeDouble(args, 3, 1.0);
-      viewVar.AddText(text, colorStr, alpha);
+      widget.AddText(text, colorStr, alpha);
 
       return Variable.EmptyInstance;
     }
@@ -1154,7 +1146,6 @@ namespace scripting.Droid
 
   public class RegisterOrientationChangeFunction : ParserFunction
   {
-    const string DEFAULT_ORIENTATION = "Portrait";
     static string m_actionPortrait;
     static string m_actionLandscape;
     static string m_currentOrientation;
@@ -1213,9 +1204,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      Variable actionValue = Utils.GetItem(script);
-      string strAction = actionValue.AsString();
-      Utils.CheckNotEmpty(script, strAction, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string strAction = args[0].AsString();
 
       MainActivity.OnOrientationChange += (newOrientation) => {
         UIVariable.GetAction(strAction, "\"ROOT\"", "\"" + newOrientation + "\"");
@@ -1242,7 +1234,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
       string strAction = args[0].AsString();
 
@@ -1369,7 +1361,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       string option = args[0].AsString();
       Variable optionValue = Utils.GetSafeVariable(args, 1);
@@ -1506,19 +1498,35 @@ namespace scripting.Droid
 
   public class ReadFileFunction : ParserFunction
   {
+    bool m_asString;
+    public ReadFileFunction(bool asString = false)
+    {
+      m_asString = asString;
+    }
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
-      string strFilename = args[0].AsString();
+
+      string filename = args[0].AsString();
 
       List<Variable> results = new List<Variable>();
       AssetManager assets = MainActivity.TheView.Assets;
-      using (StreamReader sr = new StreamReader(assets.Open(strFilename))) {
-        while (!sr.EndOfStream) {
-          Variable varLine = new Variable(sr.ReadLine());
-          results.Add(varLine);
+
+      try {
+        using (StreamReader sr = new StreamReader(assets.Open(filename))) {
+          if (m_asString) {
+            string text = sr.ReadToEnd();
+            return new Variable(text);
+          }
+          while (!sr.EndOfStream) {
+            Variable varLine = new Variable(sr.ReadLine());
+            results.Add(varLine);
+          }
         }
+      } catch(Exception) {
+        throw new ArgumentException("Couldn't read file [" + filename +
+                            "] from disk.");
       }
       return new Variable(results);
     }
@@ -1527,7 +1535,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string filename = Utils.GetItem(script).AsString();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string filename = args[0].AsString();
 
       string fileContents = "";
       AssetManager assets = MainActivity.TheView.Assets;
@@ -1535,19 +1546,8 @@ namespace scripting.Droid
         fileContents = sr.ReadToEnd();
       }
 
-      string[] lines = fileContents.Split('\n');
-
-      Dictionary<int, int> char2Line;
-      string includeScript = Utils.ConvertToScript(fileContents, out char2Line);
-      ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
-      tempScript.Filename = filename;
-      tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
-
-      while (tempScript.Pointer < includeScript.Length) {
-        tempScript.ExecuteTo();
-        tempScript.GoToNextStatement();
-      }
-      return Variable.EmptyInstance;
+      Variable result = RunScriptFunction.Execute(fileContents, filename);
+      return result;
     }
   }
   public class PauseFunction : ParserFunction
@@ -1617,8 +1617,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string code = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, code, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string code = args[0].AsString();
 
       bool found = Localization.SetProgramLanguageCode(code);
       return new Variable(found);
@@ -1628,8 +1630,10 @@ namespace scripting.Droid
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string urlStr = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, urlStr, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string urlStr = args[0].AsString();
 
       if (!urlStr.StartsWith("http")) {
         urlStr = "http://" + urlStr;
@@ -1790,7 +1794,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       string strAction = args[0].AsString();
       string productId = args[1].AsString();
@@ -1815,7 +1819,7 @@ namespace scripting.Droid
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
       string productId = args[0].AsString();
 

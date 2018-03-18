@@ -10,7 +10,6 @@ namespace scripting.Droid
 {
   public class ScriptingFragment : Fragment
   {
-    List<View> m_views   = new List<View>();
     List<DroidVariable> m_widgets = new List<DroidVariable>();
 
     int m_index;
@@ -54,9 +53,9 @@ namespace scripting.Droid
         m_view.FindViewById<ImageView>(Resource.Id.imageView1).SetImageResource(GetViewImage(false));
         return m_view;
     }*/
-    public static ScriptingFragment AddFragment(string text, string imageName, string selectedImageName = null)
+    public static ScriptingFragment AddFragment(string text, string imageNameActive, string imageNameInactive)
     {
-      ScriptingFragment fragment = new ScriptingFragment(text, imageName, selectedImageName);
+      ScriptingFragment fragment = new ScriptingFragment(text, imageNameActive, imageNameInactive);
       m_fragments.Add(fragment);
       m_activeFragment = fragment;
       return fragment;
@@ -78,7 +77,6 @@ namespace scripting.Droid
     {
       var view = widget.ViewX;
       if (m_activeFragment != null) {
-        //m_activeFragment.m_views.Add(view);
         m_activeFragment.m_widgets.Add(widget);
       }
       if (parent == null) {
@@ -96,14 +94,25 @@ namespace scripting.Droid
       }
       m_allViews.Clear();
     }
-    public static void RemoveView(DroidVariable widget)
+    public static void RemoveView(DroidVariable widget, bool removeFromActive = true)
     {
       var view = widget.ViewX;
-      if (m_activeFragment != null) {
-        //m_activeFragment.m_views.Remove(view);
+      if (removeFromActive && m_activeFragment != null) {
         m_activeFragment.m_widgets.Remove(widget);
       }
       m_allViews.Remove(widget);
+
+      var parent = widget.Location?.ParentView as DroidVariable;
+
+      ViewGroup parentView = parent != null ? parent.ViewLayout : MainActivity.TheLayout;
+      View viewToRemove = widget.ViewX;
+
+      parentView.RemoveView(viewToRemove);
+
+      parentView = viewToRemove.Parent as ViewGroup;
+      if (parentView != null && parentView.Parent != null) {
+        parentView.RemoveView(viewToRemove);
+      }
     }
     public static void ShowFragments(int activeIndex)
     {
@@ -113,6 +122,18 @@ namespace scripting.Droid
         ShowFragment(fragment, isActive, true);
       }
     }
+    public static void RemoveTabViews(int index)
+    {
+      var fragment = GetFragment(index);
+      if (fragment == null) {
+        return;
+      }
+      for (int i = 0; i < fragment.m_widgets.Count; i++) {
+        var widget = fragment.m_widgets[i];
+        RemoveView(widget, false);
+      }
+      fragment.m_widgets.Clear();
+   }
     public static void ShowFragment(ScriptingFragment fragment, bool showIt, bool tabChange)
     {
       for (int i = 0; i < fragment.m_widgets.Count; i++) {
@@ -121,13 +142,6 @@ namespace scripting.Droid
         widget.ShowView(showIt);
         ShowView(view, showIt, tabChange);
       }
-      /*for (int i = 0; i < fragment.m_views.Count; i++) {
-        var view = fragment.m_views[i];
-        ShowView(view, showIt, tabChange);
-      }
-      foreach (View view in fragment.m_views) {
-        ShowView(view, showIt, tabChange);
-      }*/
     }
     public static void ShowView(View view, bool showIt, bool tabChange)
     {

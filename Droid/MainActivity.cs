@@ -39,6 +39,8 @@ namespace scripting.Droid
     public static Action<int> TabSelectedDelegate;
     public static Action OnEnterBackgroundDelegate;
 
+    public static bool KeyboardVisible;
+
     bool m_scriptRun = false;
 
     protected override void OnCreate(Bundle savedInstanceState)
@@ -181,9 +183,9 @@ namespace scripting.Droid
       }
       return false;
     }
-    public static void AddTab(string text, string imageName, string selectedImageName = null)
+    public static void AddTab(string text, string selectedImageName, string notSelectedImageName = null)
     {
-      ScriptingFragment fragment = ScriptingFragment.AddFragment(text, imageName, selectedImageName);
+      ScriptingFragment fragment = ScriptingFragment.AddFragment(text, selectedImageName, notSelectedImageName);
       ActionBar.Tab tab = MainActivity.TheView.AddTabToActionBar(fragment, ScriptingFragment.Count() == 1);
 
       m_actionBars.Add(tab);
@@ -234,6 +236,10 @@ namespace scripting.Droid
     {
       ScriptingFragment.RemoveAll();
     }
+    public static void RemoveTabViews(int tabId)
+    {
+      ScriptingFragment.RemoveTabViews(tabId);
+    }
 
     public static void AddView(DroidVariable widget, bool alreadyExists)
     {
@@ -264,17 +270,6 @@ namespace scripting.Droid
     {
       if (viewVar == null || viewVar.ViewX == null) {
         return;
-      }
-      var parent = viewVar.Location?.ParentView as DroidVariable;
-
-      ViewGroup parentView = parent != null ? parent.ViewLayout : MainActivity.TheLayout;
-      View viewToRemove = viewVar.ViewX;
-
-      parentView.RemoveView(viewToRemove);
-
-      parentView = viewToRemove.Parent as ViewGroup;
-      if (parentView != null && parentView.Parent != null) {
-        parentView.RemoveView(viewToRemove);
       }
       ScriptingFragment.RemoveView(viewVar);
     }
@@ -318,9 +313,8 @@ namespace scripting.Droid
     public static void ShowView(View view, bool showIt)
     {
       ScriptingFragment.ShowView(view, showIt, false);
-      if (view is TextView) {
-        TextView textView = view as TextView;
-        TheView.ShowHideKeybord(textView, showIt);
+      if (view is TextView || view is EditText) {
+        TheView.ShowHideKeyboard(view, showIt);
       }
     }
     public static string ProcessClick(string arg)
@@ -341,7 +335,7 @@ namespace scripting.Droid
       return resourceID;
     }
 
-    public void ShowHideKeybord(View widget, bool show)
+    public void ShowHideKeyboard(View widget, bool show)
     {
       InputMethodManager imm = (InputMethodManager)GetSystemService(Context.InputMethodService);
       if (!show) { // Hide!
@@ -349,10 +343,25 @@ namespace scripting.Droid
       } else { // Show!
         if (widget is TextView) {
           ((TextView)widget).SetCursorVisible(show);
+        } else if (widget is EditText) {
+          ((EditText)widget).SetCursorVisible(show);
         }
         widget.RequestFocus();
         imm.ShowSoftInput(widget, ShowFlags.Implicit);
       }
+    }
+
+    static bool m_keyboardVisible;
+    public bool IsKeyboardVisible(View widget)
+    {
+      InputMethodManager imm = (InputMethodManager)GetSystemService(Context.InputMethodService);
+
+      bool keyboardMaybePresent = imm.IsActive || imm.IsAcceptingText;
+      if (keyboardMaybePresent) { // if it's true doesn't mean much...
+        keyboardMaybePresent = !m_keyboardVisible;
+      }
+      m_keyboardVisible = keyboardMaybePresent;
+      return m_keyboardVisible;
     }
     void InitTTS()
     {
@@ -387,15 +396,33 @@ namespace scripting.Droid
     }
   }
 
-public class LayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
-{
-  public void OnGlobalLayout()
+  public class LayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
   {
-    var vto = MainActivity.TheLayout.ViewTreeObserver;
-    vto.RemoveOnGlobalLayoutListener(this);
+    bool m_scriptRun;
+    public void OnGlobalLayout()
+    {
+      //var vto = MainActivity.TheLayout.ViewTreeObserver;
+      //vto.RemoveOnGlobalLayoutListener(this);
 
-    CustomInit.InitAndRunScript();
-    MainActivity.TheView.HideBarIfNeeded();
+      if (!m_scriptRun) {
+        CustomInit.InitAndRunScript();
+        m_scriptRun = true;
+        MainActivity.TheView.HideBarIfNeeded();
+        return;
+      }
+      MainActivity.KeyboardVisible = KeyboardPresent();
+    }
+    bool KeyboardPresent()
+    {
+      Rect r = new Rect();
+      MainActivity.TheLayout.GetWindowVisibleDisplayFrame(r);
+      int screenHeight = MainActivity.TheLayout.RootView.Height;
+
+      // r.bottom is the position above soft keypad or device button.
+      // if keypad is shown, the r.bottom is smaller than that before.
+      int keypadHeight = screenHeight - r.Bottom;
+
+      return keypadHeight > screenHeight * 0.15;
+    }
   }
-}
 }

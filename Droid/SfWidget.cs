@@ -581,7 +581,7 @@ namespace scripting.Droid
 
       LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent,
                                                                              ViewGroup.LayoutParams.MatchParent);
-      int delta = AutoScaleFunction.TransformSize(20, UtilsDroid.GetScreenSize().Width);
+      int delta = (int)AutoScaleFunction.TransformSize(20, AutoScaleFunction.GetRealScreenSize());
       layoutParams.TopMargin = (int)m_grid.GetY();
       layoutParams.LeftMargin = (int)(m_grid.GetX() + delta);
       optionView.LayoutParameters = layoutParams;
@@ -701,7 +701,7 @@ namespace scripting.Droid
 
     void StepperCallback(object sender, ValueChangedEventArgs e) {
       ActionDelegate?.Invoke(WidgetName, e.Value.ToString());
-      MainActivity.TheView.ShowHideKeybord(m_stepper, false);
+      MainActivity.TheView.ShowHideKeyboard(m_stepper, false);
     }
 
     void CreateDigitalGauge()
@@ -954,7 +954,7 @@ namespace scripting.Droid
         //m_stepper.ValueChanged += StepperCallback;
         CreateStepper();
         m_stepper.FontSize = fontSize;
-        MainActivity.TheView.ShowHideKeybord(m_stepper, false);
+        MainActivity.TheView.ShowHideKeyboard(m_stepper, false);
       }
 
       ViewX.LayoutParameters = LayoutParams;
@@ -1352,7 +1352,7 @@ namespace scripting.Droid
         location.RefViewY = this.Location.RefViewY;
         location.ViewY = ((DroidVariable)this.Location).ViewY;
         location.ViewY.GetLocationOnScreen(loc);
-        int delta = AutoScaleFunction.TransformSize(16, screenSize.Width);
+        int delta = (int)AutoScaleFunction.TransformSize(16, screenSize.Width);
         ExtraY = ((DroidVariable)location.RefViewY).ExtraY + location.RefViewY.Height - delta;
         location.TranslationY += ExtraY;
         location.IsAdjustedY = true;
@@ -1360,7 +1360,7 @@ namespace scripting.Droid
       }
 
       if (isX && location.RuleX == "CENTER" && location.ViewX == null) {
-        int delta = AutoScaleFunction.TransformSize(14, screenSize.Width);
+        int delta = (int)AutoScaleFunction.TransformSize(14, screenSize.Width);
         location.TranslationX -= delta;
       }
       /*if (ViewX.LayoutParameters != null) {

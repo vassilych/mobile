@@ -64,6 +64,7 @@ namespace scripting.Droid
     public int  ExtraY      { get; set; }
     public bool IsAdjustedX { get; set; }
     public bool IsAdjustedY { get; set; }
+    public bool KeyboardVisible { get; set; }
 
     public string FontName  { get; set; }
     bool m_bold;
@@ -97,7 +98,8 @@ namespace scripting.Droid
           widget = new TextView(MainActivity.TheView);
           ((TextView)widget).SetTextColor(Color.Black);
           ((TextView)widget).Text = initArg;
-          ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
+          ((TextView)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
+          ((TextView)widget).TextAlignment = TextAlignment.TextStart;
           ((TextView)widget).MovementMethod = new ScrollingMovementMethod();
           ((TextView)widget).VerticalScrollBarEnabled = true;
           ((TextView)widget).HorizontalScrollBarEnabled = true;
@@ -117,6 +119,17 @@ namespace scripting.Droid
           widget = new EditText(MainActivity.TheView);
           ((EditText)widget).SetTextColor(Color.Black);
           ((EditText)widget).Hint = initArg;
+          break;
+        case "TextEditView":
+          type = UIVariable.UIType.EDIT_VIEW;
+          widget = new EditText(MainActivity.TheView);
+          ((EditText)widget).SetTextColor(Color.Black);
+          ((EditText)widget).Hint = initArg;
+          ((EditText)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
+          ((EditText)widget).TextAlignment = TextAlignment.TextStart;
+          ((EditText)widget).MovementMethod = new ScrollingMovementMethod();
+          ((EditText)widget).VerticalScrollBarEnabled = true;
+          ((EditText)widget).HorizontalScrollBarEnabled = true;
           break;
         case "ImageView":
           type = UIVariable.UIType.IMAGE_VIEW;
@@ -177,7 +190,7 @@ namespace scripting.Droid
       int offset = 0;
       ScreenSize screenSize = UtilsDroid.GetScreenSize();
       if (isX && sameWidget && ViewX is Switch) {
-        offset = AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
+        offset = (int)AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
         if (screenSize.Width <= AutoScaleFunction.BASE_WIDTH) {
           offset = UtilsDroid.SWITCH_MARGIN; // from -45, 480
         }
@@ -255,8 +268,8 @@ namespace scripting.Droid
         ((TextView)ViewX).Gravity = al.Item1;
         ((TextView)ViewX).TextAlignment = al.Item2;
       } else if (ViewX is EditText) {
-        ((TextView)ViewX).Gravity = al.Item1;
-        ((TextView)ViewX).TextAlignment = al.Item2;
+        ((EditText)ViewX).Gravity = al.Item1;
+        ((EditText)ViewX).TextAlignment = al.Item2;
       } else {
         return false;
       }
@@ -328,19 +341,23 @@ namespace scripting.Droid
 
     public virtual void AddText(string text, string colorStr, double alpha = 1.0)
     {
-      if (!(m_viewX is TextView)) {
-        return;
-      }
       var color = UtilsDroid.String2Color(colorStr);
-      var textView = m_viewX as TextView;
       SpannableString newText = new SpannableString(text);
-
-      newText.SetSpan(new ForegroundColorSpan(color), 0, text.Length, SpanTypes.InclusiveExclusive);
-
-      if (textView.Text.Length > 0) {
-        textView.Append("\n");
+      newText.SetSpan(new ForegroundColorSpan(color), 0, text.Length,
+                      SpanTypes.InclusiveExclusive);
+      if (m_viewX is EditText) {
+        var editTextView = m_viewX as EditText;
+        if (editTextView.Text.Length > 0) {
+          editTextView.Append("\n");
+        }
+        editTextView.Append(newText);
+      } else if (m_viewX is TextView) {
+        var textView = m_viewX as TextView;
+        if (textView.Text.Length > 0) {
+          textView.Append("\n");
+        }
+        textView.Append(newText);
       }
-      textView.Append(newText);
     }
 
     public virtual bool SetValue(string arg1, string arg2 = "")
@@ -560,7 +577,7 @@ namespace scripting.Droid
     public void ProcessTranslationY(DroidVariable location)
     {
       if (location.RuleY == "CENTER" && WidgetType == UIType.LABEL) {
-        int deltaY = AutoScaleFunction.TransformSize(20, UtilsDroid.GetScreenSize().Width); ;
+        int deltaY = (int)AutoScaleFunction.TransformSize(20, UtilsDroid.GetScreenSize().Width); ;
         location.TranslationY += deltaY;
       }
 
@@ -569,7 +586,7 @@ namespace scripting.Droid
       } else if (location.ViewY is Spinner) {
         if (location.LayoutRuleY == LayoutRules.AlignParentBottom ||
             location.LayoutRuleY == LayoutRules.Below) {
-          location.ExtraY = AutoScaleFunction.TransformSize(10, UtilsDroid.GetScreenSize().Width);
+          location.ExtraY = (int)AutoScaleFunction.TransformSize(10, UtilsDroid.GetScreenSize().Width);
           location.TranslationY -= location.ExtraY;
         }
       }

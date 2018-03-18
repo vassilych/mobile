@@ -29,7 +29,7 @@ namespace scripting.Droid
     {
       int offset = 0;
       if (widgetFunc.ViewX is Switch) {
-        offset = AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
+        offset = (int)AutoScaleFunction.TransformSize(UtilsDroid.SWITCH_MARGIN, screenSize.Width, 3);
         if (screenSize.Width <= AutoScaleFunction.BASE_WIDTH) {
           offset = SWITCH_MARGIN; // from -45, 480
         }
@@ -287,6 +287,7 @@ namespace scripting.Droid
     }
     public static Color String2Color(string colorStr)
     {
+      colorStr = colorStr.ToLower();
       switch (colorStr) {
         case "black": return Color.Black;
         case "blue": return Color.Blue;
@@ -342,6 +343,24 @@ namespace scripting.Droid
         contents = sr.ReadToEnd();
       }
       return contents;
+    }
+  }
+
+  public class KeyboardListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+  {
+    DroidVariable m_widget;
+    public void OnGlobalLayout()
+    {
+      var vto = MainActivity.TheLayout.ViewTreeObserver;
+      Rect r = new Rect();
+      m_widget.ViewX.GetWindowVisibleDisplayFrame(r);
+      int screenHeight = MainActivity.TheLayout.RootView.Height;
+
+      // r.bottom is the position above soft keypad or device button.
+      // if keypad is shown, the r.bottom is smaller than that before.
+      int keypadHeight = screenHeight - r.Bottom;
+
+      m_widget.KeyboardVisible = keypadHeight > screenHeight * 0.15;
     }
   }
 }

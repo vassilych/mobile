@@ -80,18 +80,26 @@ namespace scripting.Droid
     public static string AdjustVoiceString(string voice)
     {
       if (voice.Length == 2) {
-        if (voice == "en") {
+        if (voice == "ar") {
+          voice = "ar_SA";
+        } else if (voice == "en") {
           voice = "en_US";
         } else if (voice == "es") {
           voice = "es_MX";
-        } else if (voice == "zh") {
-          voice = "zh_CN";
+        } else if (voice == "he") {
+          voice = "he_IL";
+        } else if (voice == "hi") {
+          voice = "hi_IN";
         } else if (voice == "ja") {
           voice = "ja_JP";
+        } else if (voice == "ko") {
+          voice = "ko_KR";
         } else if (voice == "pt") {
           voice = "pt_BR";
-        } else if (voice == "ar") {
-          voice = "ar_SA";
+        } else if (voice == "sv") {
+          voice = "sv_SE";
+        } else if (voice == "zh") {
+          voice = "zh_CN";
         } else {
           voice = voice + "_" + voice.ToUpper();
         }
@@ -128,15 +136,16 @@ namespace scripting.Droid
       if (string.IsNullOrWhiteSpace(voice)) {
         voice = VoiceFromLocale(conf.Locale);
       }
+      string adjustedVoice = AdjustVoiceString(voice);
 
-      Locale newLocale = LocaleFromString(voice);
+      Locale newLocale = LocaleFromString(adjustedVoice);
       conf.Locale = newLocale;
       if (newLocale == null) {
         return false;
       }
       CurrentCode = voice;
 
-      Console.WriteLine("SetUILanguage {0} from {1}", conf.Locale, voice);
+      Console.WriteLine("SetUILanguage {0} from {1}, {2}", conf.Locale, voice, adjustedVoice);
 
       MainActivity.TheView.Resources.UpdateConfiguration(conf,
                    MainActivity.TheView.Resources.DisplayMetrics);
