@@ -115,7 +115,6 @@ namespace scripting.iOS
       iOSApp.AddView(widgetFunc);
       RegisterWidget(widgetFunc);
 
-      ParserFunction.AddGlobal(varName, new GetVarFunction(widgetFunc));
       return widgetFunc;
     }
 
@@ -149,8 +148,8 @@ namespace scripting.iOS
       int tabId = iOSApp.Instance.SelectedTab;
       UIUtils.Rect rect = new UIUtils.Rect(location.X, location.Y, location.Width, location.Height);
 
-      UIUtils.RegisterWidget(widget.WidgetName, rect, parentName, tabId);
-    }
+      UIUtils.RegisterWidget(widget, rect, parentName, tabId);
+     }
 
     string m_widgetType;
     string m_extras;
@@ -164,15 +163,12 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
       Utils.CheckNotNull(data, m_name);
       Utils.CheckNotNull(data.Tuple, m_name);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
 
       List<string> types = new List<string>(data.Tuple.Count);
       for (int i = 0; i < data.Tuple.Count; i++) {
@@ -182,8 +178,8 @@ namespace scripting.iOS
       string strAction = Utils.GetSafeString(args, 2);
       string extra = Utils.GetSafeString(args, 3);
 
-      viewVar.AddData(types, varName, strAction, extra);
-      ParserFunction.UpdateFunction(viewVar);
+      widget.AddData(types, widget.Name, strAction, extra);
+      ParserFunction.UpdateFunction(widget);
 
       return Variable.EmptyInstance;
     }
@@ -196,15 +192,12 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
       Utils.CheckNotNull(data, m_name);
       Utils.CheckNotNull(data.Tuple, m_name);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
 
       List<UIImage> images = new List<UIImage>(data.Tuple.Count);
       for (int i = 0; i < data.Tuple.Count; i++) {
@@ -213,8 +206,7 @@ namespace scripting.iOS
       }
 
       string strAction = Utils.GetSafeString(args, 2);
-
-      viewVar.AddImages(images, varName, strAction);
+      widget.AddImages(images, widget.Name, strAction);
 
       return Variable.EmptyInstance;
     }
@@ -232,10 +224,8 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 3, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
@@ -247,7 +237,7 @@ namespace scripting.iOS
                      (int)UtilsiOS.GetRealScreenWidth(), multiplier);
       }
 
-      UIView view = viewVar.ViewX;
+      UIView view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
 
       CGRect frame = view.Frame;
@@ -277,15 +267,13 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 3, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      UIView view = viewVar.ViewX;
+      UIView view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
 
       int coord = 0;
@@ -307,15 +295,13 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string strTitle = args[1].AsString();
       string alignment = Utils.GetSafeString(args, 2);
 
-      bool isSet = viewVar.SetText(strTitle, alignment);
+      bool isSet = widget.SetText(strTitle, alignment);
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -329,13 +315,14 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(iosVar, m_name);
+      string varName = args[0].AsString();
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      return new Variable(iosVar.GetText());
+      return new Variable(widget.GetText());
     }
     public static string GetText(iOSVariable iosVar)
     {
@@ -350,13 +337,13 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
       Variable arg1 = Utils.GetSafeVariable(args, 1);
       Variable arg2 = Utils.GetSafeVariable(args, 2);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(iosVar, m_name);
-
-      bool isSet = iosVar.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
+      bool isSet = widget.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -365,13 +352,14 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(iosVar, m_name);
+      string varName = args[0].AsString();
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      double result = GetValue(iosVar);
+      double result = GetValue(widget);
 
       return new Variable(result);
     }
@@ -384,17 +372,19 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(iosVar, m_name);
-      UIView view = iosVar.ViewX;
+      string varName = args[0].AsString();
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
+      UIView view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
 
-      string alignment = Utils.GetItem(script).AsString();
-      bool isSet = iosVar.AlignText(alignment);
-      iosVar.SetText(GetTextFunction.GetText(iosVar), alignment);
+      string alignment = args[1].AsString();
+      bool isSet = widget.AlignText(alignment);
+      widget.SetText(GetTextFunction.GetText(widget), alignment);
 
       return new Variable(isSet);
     }
@@ -412,17 +402,14 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 1, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       bool  show     = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
+      iOSApp.ShowView(widget, show, false);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-
-      //AppDelegate.ShowView(view, show);
-      iOSApp.ShowView(iosVar, show, false);
-
-      if (iosVar.ViewX is UITextField) {
-        UITextField findText = iosVar.ViewX as UITextField;
+      if (widget.ViewX is UITextField) {
+        UITextField findText = widget.ViewX as UITextField;
         findText.EndEditing(!m_show);
         if (show) {
           findText.BecomeFirstResponder();
@@ -438,16 +425,15 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      string varName = Utils.GetSafeString(args, 0);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      //RemoveView(viewVar);
-      iOSApp.RemoveView(viewVar);
+      iOSApp.RemoveView(widget);
+      UIUtils.DeregisterWidget(varName);
 
       return Variable.EmptyInstance;
     }
@@ -463,21 +449,84 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      iOSApp.RemoveAll();
+      List<Variable> args = script.GetFunctionArgs();
+
+      int tabId = Utils.GetSafeInt(args, 0, -1);
+      if (tabId >= 0) {
+        iOSApp.RemoveTabViews(tabId);
+        UIUtils.DeregisterTab(tabId);
+      } else {
+        iOSApp.RemoveAll();
+        UIUtils.DeregisterAll();
+      }
 
       return Variable.EmptyInstance;
     }
   }
 
+  public class ShowHideKeyboardFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string varName    = Utils.GetSafeString(args, 0);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
+      bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
+
+      if (widget.ViewX is UITextView) {
+        if (showKeyboard) {
+          ((UITextView)widget.ViewX).BecomeFirstResponder();
+        } else {
+          ((UITextView)widget.ViewX).ResignFirstResponder();
+        }
+      } else if (widget.ViewX is UITextField) {
+        if (showKeyboard) {
+          ((UITextField)widget.ViewX).BecomeFirstResponder();
+        } else {
+          ((UITextField)widget.ViewX).ResignFirstResponder();
+        }
+      } else if (!showKeyboard) {
+        widget.ViewX.EndEditing(true);
+      }
+
+      return Variable.EmptyInstance;
+    }
+  }
+  public class IsKeyboardFunction : ParserFunction
+  {
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      string varName = Utils.GetSafeString(args, 0);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
+      bool result = false;
+
+      if (widget.ViewX is UITextView) {
+        result = ((UITextView)widget.ViewX).IsFirstResponder;
+      } else if (widget.ViewX is UITextField) {
+        result = ((UITextField)widget.ViewX).IsFirstResponder;
+      }
+
+      return new Variable(result);
+    }
+  }
   public class SetImageFunction : ParserFunction
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable imageNameVar = Utils.GetItem(script);
-      string imageStr = imageNameVar.AsString();
+      string varName  = args[0].AsString();
+      string imageStr = args[1].AsString();
 
       string imageName = UIUtils.String2ImageName(imageStr);
 
@@ -517,12 +566,10 @@ namespace scripting.iOS
         return Variable.EmptyInstance;
       }
 
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      viewVar.SetBackgroundColor(strColor, alpha);
+      widget.SetBackgroundColor(strColor, alpha);
       return Variable.EmptyInstance;
     }
   }
@@ -530,9 +577,10 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      Variable imgVar = Utils.GetItem(script);
-      string imageName = imgVar.AsString();
-      Utils.CheckNotEmpty(script, imageName, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string imageName = args[0].AsString();
 
       UIImage img = UtilsiOS.LoadImage(imageName);
 
@@ -552,8 +600,11 @@ namespace scripting.iOS
       string strAction = Utils.GetSafeString(args, 1);
       string argument  = Utils.GetSafeString(args, 2);
 
-      iOSVariable iosVar = Utils.GetVariable(varName, script) as iOSVariable;
-      iosVar.AddAction(varName, strAction, argument);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+      //iOSVariable widget = args[0] as iOSVariable;
+      widget.AddAction(widget.Name, strAction, argument);
+      ParserFunction.AddGlobal(widget.Name, new GetVarFunction(widget));
 
       return Variable.EmptyInstance;
     }
@@ -563,16 +614,14 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      //string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-      string varName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, varName, m_name);
-      script.MoveForwardIf(Constants.NEXT_ARG);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 2, m_name);
 
-      Variable actionValue = Utils.GetItem(script);
-      string strAction = actionValue.AsString();
-      script.MoveForwardIf(Constants.NEXT_ARG);
+      string varName   = args[0].AsString();
+      string strAction = args[1].AsString();
 
       UIView view = iOSVariable.GetView(varName, script);
+      Utils.CheckNotNull(view, m_name);
 
       var gr = new UILongPressGestureRecognizer();
       gr.AddTarget(() => this.ButtonLongPressed(gr, strAction, varName));
@@ -640,14 +689,14 @@ namespace scripting.iOS
       ParserFunction func = ParserFunction.GetFunction(varName);
       Utils.CheckNotNull(func, varName);
 
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       UIPanGestureRecognizer gesture = new UIPanGestureRecognizer();
-      DragHandler handler = new DragHandler(viewVar, strAction);
+      DragHandler handler = new DragHandler(widget, strAction);
       // Wire up the event handler (have to use a selector)
       gesture.AddTarget(() => handler.HandleDrag(gesture));
-      viewVar.ViewX.AddGestureRecognizer(gesture);
+      widget.ViewX.AddGestureRecognizer(gesture);
 
       return Variable.EmptyInstance;
     }
@@ -715,8 +764,9 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      iOSVariable viewVar = args[0] as iOSVariable;
-      UIView view = viewVar.ViewX;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+      UIView view = widget.ViewX;
 
       Utils.CheckNotNull(view, m_name);
 
@@ -748,16 +798,12 @@ namespace scripting.iOS
     }
     protected override Variable Evaluate(ParsingScript script)
     {
-      string text = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
 
-      string selectedImageName = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, text, m_name);
-
-      string notSelectedImageName = null;
-      if (script.Current == Constants.NEXT_ARG) {
-        notSelectedImageName = Utils.GetItem(script).AsString();
-      }
+      string text = Utils.GetSafeString(args, 0);
+      string selectedImageName = Utils.GetSafeString(args, 1);
+      string notSelectedImageName = Utils.GetSafeString(args, 2, selectedImageName);
 
       if (!m_forceCreate && iOSApp.SelectTab(text)) {
         return Variable.EmptyInstance;
@@ -781,7 +827,10 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      int tabId = Utils.GetItem(script).AsInt();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      int tabId = Utils.GetSafeInt(args, 0);
       iOSApp.SelectTab(tabId);
       //iOSApp controller = AppDelegate.GetCurrentController() as iOSApp;
       //controller.SelectedIndex = tabId;
@@ -792,8 +841,10 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string action = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, action, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string action = args[0].AsString();
 
       iOSApp.TabSelectedDelegate += (tab) => {
         UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
@@ -922,10 +973,10 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      iOSVariable viewVar = args[0] as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      UIView view = viewVar.ViewX;
+      UIView view = widget.ViewX;
 
       string option = args[1].AsString().ToLower();
       switch (option) {
@@ -933,7 +984,7 @@ namespace scripting.iOS
           SetMultiline(view);
           break;
       }
-      return viewVar;
+      return widget;
     }
     public static void SetMultiline(UIView view, bool multiline = true)
     {
@@ -959,13 +1010,8 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
 
@@ -975,7 +1021,7 @@ namespace scripting.iOS
                                                      (int)UtilsiOS.GetRealScreenWidth());
       }
 
-      bool isSet = viewVar.SetFontSize(fontSize);
+      bool isSet = widget.SetFontSize(fontSize);
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -1017,26 +1063,21 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
 
       bool isSet = false;
       switch(m_fontType) {
         case FontType.NORMAL:
-          isSet = viewVar.SetNormalFont(fontSize);
+          isSet = widget.SetNormalFont(fontSize);
           break;
         case FontType.BOLD:
-          isSet = viewVar.SetBold(fontSize);
+          isSet = widget.SetBold(fontSize);
           break;
         case FontType.ITALIC:
-          isSet = viewVar.SetItalic(fontSize);
+          isSet = widget.SetItalic(fontSize);
           break;
       }
 
@@ -1048,17 +1089,14 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string colorStr = args[1].AsString();
-      viewVar.SetFontColor(colorStr);
+      widget.SetFontColor(colorStr);
 
       return Variable.EmptyInstance;
     }
@@ -1072,16 +1110,13 @@ namespace scripting.iOS
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string varName = args[0].AsString();
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
+      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
-
-      string text     = args[1].AsString();
+      string text     = Utils.ProcessString(args[1].AsString());
       string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
       double alpha    = Utils.GetSafeDouble(args, 3, 1.0);
-      viewVar.AddText(text, colorStr, alpha);
+      widget.AddText(text, colorStr, alpha);
 
       return Variable.EmptyInstance;
     }
@@ -1182,9 +1217,10 @@ namespace scripting.iOS
     static UIDeviceOrientation m_currentOrientation = UIDeviceOrientation.Unknown;
     protected override Variable Evaluate(ParsingScript script)
     {
-      Variable actionValue = Utils.GetItem(script);
-      m_action = actionValue.AsString();
-      Utils.CheckNotEmpty(script, m_action, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
+
+      m_action = args[0].AsString();
 
       UIDevice.CurrentDevice.BeginGeneratingDeviceOrientationNotifications();
       NSNotificationCenter.DefaultCenter.AddObserver(
@@ -1239,7 +1275,7 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
       string strAction = args[0].AsString();
 
@@ -1286,7 +1322,7 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       TTS.Init();
 
@@ -1448,7 +1484,7 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name);
+      Utils.CheckArgs(args.Count, 2, m_name, true);
 
       string strAction = args[0].AsString();
       string productId = args[1].AsString();
@@ -1472,7 +1508,7 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name);
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
       string productId = args[0].AsString();
 
@@ -1483,11 +1519,24 @@ namespace scripting.iOS
   }
   public class ReadFileFunction : ParserFunction
   {
+    bool m_asString;
+    public ReadFileFunction(bool asString = false)
+    {
+      m_asString = asString;
+    }
     protected override Variable Evaluate(ParsingScript script)
     {
-      string filename = Utils.GetStringOrVarValue(script);
-      string[] lines  = Utils.GetFileLines(filename);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name);
 
+      string filename = args[0].AsString();
+
+      if (m_asString) {
+        string text = Utils.GetFileText(filename);
+        return new Variable(text);
+      }
+
+      string[] lines  = Utils.GetFileLines(filename);
       List<Variable> results = Utils.ConvertToResults(lines);
       return new Variable(results);
     }
@@ -1496,22 +1545,15 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string filename = Utils.GetItem(script).AsString();
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string[] lines = Utils.GetFileLines(filename);
-      string includeFile = string.Join(Environment.NewLine, lines);
+      string filename = args[0].AsString();
 
-      Dictionary<int, int> char2Line;
-      string includeScript = Utils.ConvertToScript(includeFile, out char2Line);
-      ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
-      tempScript.Filename = filename;
-      tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+      string fileContents = Utils.GetFileText(filename);
 
-      while (tempScript.Pointer < includeScript.Length) {
-        tempScript.ExecuteTo();
-        tempScript.GoToNextStatement();
-      }
-      return Variable.EmptyInstance;
+      Variable result = RunScriptFunction.Execute(fileContents, filename);
+      return result;
     }
   }
   public class PauseFunction : ParserFunction
@@ -1581,8 +1623,10 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string code = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, code, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string code = args[0].AsString();
 
       bool found = Localization.SetProgramLanguageCode(code);
 
@@ -1593,8 +1637,10 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      string urlStr = Utils.GetItem(script).AsString();
-      Utils.CheckNotEmpty(script, urlStr, m_name);
+      List<Variable> args = script.GetFunctionArgs();
+      Utils.CheckArgs(args.Count, 1, m_name, true);
+
+      string urlStr = args[0].AsString();
 
       if (!urlStr.StartsWith("http") && !urlStr.StartsWith("itms")) {
         urlStr = "http://" + urlStr;

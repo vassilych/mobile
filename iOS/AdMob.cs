@@ -147,6 +147,7 @@ namespace scripting.iOS
   }
   public class InitAds : ParserFunction
   {
+    static bool m_initDone;
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList = false;
@@ -158,7 +159,10 @@ namespace scripting.iOS
       string interstId = Utils.GetSafeString(args, 1);
       string bannerId = Utils.GetSafeString(args, 1);
 
-      AdMob.Init(appId, interstId, bannerId);
+      if (!m_initDone) {
+        AdMob.Init(appId, interstId, bannerId);
+        m_initDone = true;
+      }
 
       return Variable.EmptyInstance;
     }

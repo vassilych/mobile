@@ -249,6 +249,13 @@ namespace scripting.iOS
       view.ViewX?.RemoveFromSuperview();
       m_nonTabViews.Remove(view);
     }
+    public static void RemoveTabViews(int tabId)
+    {
+      if (m_tabs.Count <= tabId || tabId < 0) {
+        throw new ArgumentException("Tab " + tabId + " doesn't exist.");
+      }
+      m_tabs[tabId].RemoveAll();
+    }
     public static void RemoveAll()
     {
       RemoveAllNonTabViews();

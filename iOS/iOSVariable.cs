@@ -72,10 +72,17 @@ namespace scripting.iOS
           ((UITextField)widget).Placeholder = initArg;
           MakeBottomBorder(widget, (int)rect.Width, (int)rect.Height);
           break;
+        case "TextEditView":
+          type = UIVariable.UIType.TEXT_VIEW;
+          widget = new UITextView(rect);
+          ((UITextView)widget).TextColor = UIColor.Black;
+          AddBorderFunction.AddBorder(widget);
+          break;
         case "TextView":
           type = UIVariable.UIType.TEXT_VIEW;
           widget = new UITextView(rect);
           ((UITextView)widget).TextColor = UIColor.Black;
+          ((UITextView)widget).Editable = false;
           AddBorderFunction.AddBorder(widget);
           break;
         case "ImageView":
@@ -206,6 +213,9 @@ namespace scripting.iOS
         result = ((TypePickerViewModel)(((UIPickerView)m_viewX).Model)).SelectedRow;
       } else if (m_viewX is UISegmentedControl) {
         result = ((UISegmentedControl)m_viewX).SelectedSegment;
+      } else if (WidgetType == UIType.COMBOBOX) {
+        TypePickerViewModel model = m_picker.Model as TypePickerViewModel;
+        result = model.SelectedRow;
       } else {
         result = CurrVal;
       }
@@ -901,7 +911,7 @@ namespace scripting.iOS
             m_button2.SetTitle(arg2 + "\t", UIControlState.Normal);
             break;
         }
-        if (string.IsNullOrEmpty(arg1)) {
+        if (string.IsNullOrEmpty(arg1) || arg1 == "value") {
           SetComboboxText("", (int)val);
         }
       } else if (m_viewX is UISwitch) {

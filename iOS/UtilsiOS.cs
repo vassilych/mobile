@@ -303,13 +303,17 @@ namespace scripting.iOS
     public static UIColor UIColorFromHex(string hexString, double alpha = 1.0)
     {
       //int rgbValue = (int)new System.ComponentModel.Int32Converter().ConvertFromString(hexString);
-      hexString = hexString.Replace("#", "");
-      nfloat red = Convert.ToInt32(hexString.Substring(0, 2), 16) / 255f;
-      nfloat green = Convert.ToInt32(hexString.Substring(2, 2), 16) / 255f;
-      nfloat blue = Convert.ToInt32(hexString.Substring(4, 2), 16) / 255f;
+      try {
+        hexString = hexString.Replace("#", "");
+        nfloat red = Convert.ToInt32(hexString.Substring(0, 2), 16) / 255f;
+        nfloat green = Convert.ToInt32(hexString.Substring(2, 2), 16) / 255f;
+        nfloat blue = Convert.ToInt32(hexString.Substring(4, 2), 16) / 255f;
 
-      UIColor uicolor = new UIColor(red, green, blue, (nfloat)alpha);
-      return uicolor;
+        UIColor uicolor = new UIColor(red, green, blue, (nfloat)alpha);
+        return uicolor;
+      } catch (Exception exc) {
+        throw new ArgumentException("Couldn't parse color [" + hexString + "]");
+      }
     }
     public static UIColor String2Color(string colorStr, double alpha)
     {
@@ -324,6 +328,7 @@ namespace scripting.iOS
     }
     public static UIColor String2Color(string colorStr)
     {
+      colorStr = colorStr.ToLower();
       switch (colorStr) {
         case "black": return UIColor.Black;
         case "blue": return UIColor.Blue;

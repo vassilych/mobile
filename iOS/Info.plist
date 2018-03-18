@@ -2,12 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>iLanguage</string>
 	<key>CFBundleIdentifier</key>
-	<string>ch.iLanguage.vk</string>
-	<key>CFBundleShortVersionString</key>
-	<string>4.3</string>
+	<string>ch.cscs.vk</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
@@ -49,22 +45,16 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleLocalizations</key>
-	<array>
-		<string>de</string>
-		<string>es</string>
-		<string>pt</string>
-		<string>it</string>
-		<string>fr</string>
-		<string>ru</string>
-		<string>ar</string>
-		<string>zh-Hans</string>
-		<string>ja</string>
-	</array>
+	<array/>
 	<key>XSLaunchImageAssets</key>
 	<string>Assets.xcassets/LaunchImage.launchimage</string>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/AppIcon.appiconset</string>
+	<key>CFBundleName</key>
+	<string>CSCS</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>4.3.1</string>
+	<string>1.0.3</string>
 </dict>
 </plist>
