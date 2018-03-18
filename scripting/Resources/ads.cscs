@@ -2,9 +2,9 @@
 SetBackgroundColor("gainsboro");
 
 if (_IOS_) {
-  appId           = "ca-app-pub-5365456490909700~2128563695";
-  interstitialId  = "ca-app-pub-5365456490909700/7192496494";
-  bannerId        = "ca-app-pub-5365456490909700/3326095292";
+  appId           = "ca-app-pub-5365456490909700~4384833658";
+  interstitialId  = "ca-app-pub-5365456490909700/7112861353";
+  bannerId        = "ca-app-pub-5365456490909700/2229922530";
 } elif (_ANDROID_) {
   appId           = "ca-app-pub-5365456490909700~8197798895";
   interstitialId  = "ca-app-pub-5365456490909700/2151265291";
@@ -12,11 +12,12 @@ if (_IOS_) {
 }
 
 // Ids for testing. Comment them out when going Prod:
+appId             = "ca-app-pub-3940256099942544~1458002511";
 bannerId          = "ca-app-pub-3940256099942544/6300978111";
 interstitialId    = "ca-app-pub-3940256099942544/1033173712";
 
-InitAds(appId, interstitialId, bannerId);
 
+InitAds(appId, interstitialId, bannerId);
 
 locClickme = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 0);
 AddButton(locClickme, "buttonClickme", "Interstitial", 200, 80);

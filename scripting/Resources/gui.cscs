@@ -124,7 +124,8 @@ function on_portrait(sender, arg) {
   AddLabel(locQuizWordsLabel, "labelQuizWords", "Quiz Words:", 240, 80);
 
   locQuizWords = GetLocation("ROOT", "CENTER", labelQuizWords, "CENTER", 70, 0);
-  AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+  //AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+  AddSfStepper(locQuizWords, "stepQuizMode", "5:3:50:1", 250, 70);
 
   locQuzRec = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -120);
   AddButton(locQuzRec, "buttonQuizRec", "", 300, 300);
@@ -308,7 +309,8 @@ function on_landscape(sender, arg) {
   AddLabel(locQuizWordsLabel, "labelQuizWords", "Quiz Words:", 240, 80);
 
   locQuizWords = GetLocation(btnQuizType, "CENTER", labelQuizWords, "CENTER", 0, 0);
-  AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+  //AddStepperRight(locQuizWords, "stepQuizMode", "5:3:50:1", 240, 70);
+  AddSfStepper(locQuizWords, "stepQuizMode", "5:3:50:1", 250, 70);
 
   locQuzRec = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -40);
   AddButton(locQuzRec, "buttonQuizRec", "", 100, 100);

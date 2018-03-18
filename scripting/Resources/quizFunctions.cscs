@@ -255,7 +255,8 @@ function quiz_type(sender, arg) {
   get_quiz_records();
 }
 function quiz_mode_changed(sender, arg) {
-  quizTotalWords = GetValue(stepQuizMode);
+  quizTotalWords = arg;
+  WriteConsole("quiz_mode_changed ", quizTotalWords);
   get_quiz_records();
   SetSetting("quizTotalWords", quizTotalWords, "int");
 }

@@ -1,0 +1,79 @@
+﻿h = 200;
+w = 200;
+delta = 3;
+locSFWidget1 = GetLocation("ROOT", "LEFT", "ROOT", "TOP", delta, 12);
+AddSfBusyIndicator(locSFWidget1, "BusyIndicator1", "ball", h, w);
+
+locSFWidget2 = GetLocation(BusyIndicator1, "RIGHT",
+                           BusyIndicator1, "CENTER", delta);
+AddSfBusyIndicator(locSFWidget2, "BusyIndicator2", "battery", h, w);
+
+locSFWidget3 = GetLocation(BusyIndicator2, "RIGHT",
+                           BusyIndicator2, "CENTER", delta);
+AddSfBusyIndicator(locSFWidget3, "BusyIndicator3", "box", h, w);
+
+locSFWidget4 = GetLocation(BusyIndicator1, "CENTER",
+                           BusyIndicator1, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget4, "BusyIndicator4", "doublecircle", h, w);
+
+locSFWidget5 = GetLocation(BusyIndicator2, "CENTER",
+                           BusyIndicator2, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget5, "BusyIndicator5", "ecg", h, w);
+
+locSFWidget6 = GetLocation(BusyIndicator3, "CENTER",
+                           BusyIndicator3, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget6, "BusyIndicator6", "gear", h, w);
+
+locSFWidget7 = GetLocation(BusyIndicator4, "CENTER",
+                           BusyIndicator4, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget7, "BusyIndicator7", "globe", h, w);
+
+locSFWidget8 = GetLocation(BusyIndicator5, "CENTER",
+                           BusyIndicator5, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget8, "BusyIndicator8", "pulsing", h, w);
+
+locSFWidget9 = GetLocation(BusyIndicator6, "CENTER",
+                           BusyIndicator6, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget9, "BusyIndicator9", "movie", h, w);
+
+locSFWidget10 = GetLocation(BusyIndicator7, "CENTER",
+                            BusyIndicator7, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget10, "BusyIndicator10", "print", h, w);
+
+locSFWidget11 = GetLocation(BusyIndicator8, "CENTER",
+                            BusyIndicator8, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget11, "BusyIndicator11", "rectangle", h, w);
+
+locSFWidget12 = GetLocation(BusyIndicator9, "CENTER",
+                            BusyIndicator9, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget12, "BusyIndicator12", "rollingball", h, w);
+
+locSFWidget13 = GetLocation(BusyIndicator10, "CENTER",
+                            BusyIndicator10, "BOTTOM",  0, delta);
+AddSfBusyIndicator(locSFWidget13, "BusyIndicator13", "singlecircle", h, w);
+
+locSFWidget14 = GetLocation(BusyIndicator11, "CENTER",
+                            BusyIndicator11, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget14, "BusyIndicator14", "slicedcircle", h, w);
+
+locSFWidget15 = GetLocation(BusyIndicator12, "CENTER",
+                            BusyIndicator12, "BOTTOM", delta, delta);
+AddSfBusyIndicator(locSFWidget15, "BusyIndicator15", "zooming", h, w);
+
+SetValue(BusyIndicator1,  "color", "green");
+SetValue(BusyIndicator2,  "color", "sky_blue");
+SetValue(BusyIndicator3,  "color", "brown");
+SetValue(BusyIndicator4,  "color", "black");
+SetValue(BusyIndicator5,  "color", "pink");
+SetValue(BusyIndicator6,  "color", "dark_gray");
+SetValue(BusyIndicator7,  "color", "light_blue");
+SetValue(BusyIndicator8,  "color", "deep_sky_blue");
+SetValue(BusyIndicator9,  "color", "blue");
+SetValue(BusyIndicator10, "color", "red");
+SetValue(BusyIndicator11, "color", "silver");
+SetValue(BusyIndicator12, "color", "blue");
+SetValue(BusyIndicator13, "color", "blue");
+SetValue(BusyIndicator14, "color", "yellow");
+SetValue(BusyIndicator15, "color", "gray");
+SetValue(BusyIndicator9,  "secondary_color", "red");
+SetValue(BusyIndicator12, "secondary_color", "red");

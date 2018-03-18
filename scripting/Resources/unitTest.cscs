@@ -1,0 +1,88 @@
+﻿SetBackgroundColor("snow");
+locTestView = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10);
+AddTextView(locTestView, "textView", "", DisplayWidth - Relative(40), DisplayHeight - Relative(200), 0);
+
+function test(x, expected) {
+  if (x == expected) {
+    AddText(textView, string(x) + " as expected. OK", "green");
+    return;
+  } 
+  if (type(expected) != "NUMBER") {
+    AddText(textView, "[" + x + "] but expected [" + expected + "]. ERROR", "red");
+    return;
+  }
+
+  epsilon = 0.000001;
+  if ((expected == 0 && abs(x) <= epsilon) ||
+       abs((x - expected) / expected) <= epsilon) {
+    AddText(textView, "[" + x + "] within epsilon to [" + expected + "]. almost OK", "gray");
+    //WriteConsole("x=", x, ", epsilon=", epsilon, ", abs((x - expected) / expected)=", abs((x - expected) / expected));
+  } else {
+    diff = expected - x;
+    AddText(textView, "[" + x + "] but expected [" + expected + "]. diff=" + diff + ". ERROR", "red");
+  }
+}
+
+// Start of Tests for the Syncfusion Book
+AddText(textView, "Testing strings...");
+
+txt = "lu";
+txt += txt + Substring(txt, 0, 1) + "_" + 1;
+test(txt, "lulul_1");  
+
+bb = "abc_blah;";
+c = Substring(bb, 4, 3);
+test(c, "bla");
+ind = StrIndexOf(bb, "bla");
+test(ind, 4);
+
+between = StrBetween(bb, "_", ";");
+test(between, "bla");
+between = StrUpper(StrReplace(between, "a", "aa"));
+test(between, "BLAAH");
+
+AddText(textView, "Testing numbers...");
+a=(-3+2*9)-(10-15);
+test(a, 20);
+test((a++)-(--a)-a--, -20);
+test(a, 19);
+
+test(((16-3)-3)+15/2*5, 47.5);
+test(1-2-3-(4-(5-(6-7)))-pow(2,3*exp(14-7*2)), -10);
+test(sin(pi/2), 1);
+
+x = 2.0E+15 + 3e+15 - 1.0e15;
+test(x, 4e+15);
+
+a=1; c=0; b=5;
+test(a||c, 1);
+test(c&&b, 0);
+
+AddText(textView, "Testing arrays and maps...");
+a[1][2]=22;
+a[5][3]=15;
+a[1][2]-=100;
+a[5][3]+=100;
+test(a[1][2], -78);
+test(a[5][3], 115);
+
+arr[2] = 10; arr[1] = "str";
+test(type(arr),    "ARRAY");
+test(type(arr[0]), "NONE");
+test(type(arr[1]), "STRING");
+test(type(arr[2]), "NUMBER");
+
+x["bla"]["blu"]=113;
+test(contains (x["bla"], "blu"), 1);
+test(contains (x["bla"], "bla"), 0);
+x["blabla"]["blablu"]=125;
+test(--x["bla"]["blu"] + x["blabla"]["blablu"]--, 237);
+
+b[5][3][5][3]=15;
+b[5][3][5][3]*=1000;
+test(b[5][3][5][3], 15000);
+test(size(b), 6);
+test(size(b[5]), 4);
+test(size(b[5][3]), 6);
+test(size(b[5][3][5]), 4);
+test(size(b[5][3][5][3]), 5);

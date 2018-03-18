@@ -93,7 +93,7 @@ function on_portrait(sender, arg) {
 
   locCurrency = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 80);
   AddSfPicker(locCurrency,     "cbCurrency", "75", 200, 380);
-  //SetBackgroundColor(cbCurrency, "white", 0);
+  SetBackgroundColor(cbCurrency, "white", 0);
   SetFontColor(cbCurrency, "black");
 
   locCurrency2 = GetLocation("ROOT", "RIGHT", cbCurrency, "CENTER", -20);

@@ -378,17 +378,16 @@ function set_defaults() {
   SetText(cbLangTo, languageNative);
   SetValue(slider, 100 * speechRate);
   SetValue(soundSw, soundOn);
-  setup_sound();
+  SetupSpeech("speechRate", speechRate);
   SetValue(pickerCategory, pickerRow);
   SetValue(stepQuizMode, quizTotalWords);
-
   SetValue(segQuizMode, quizWordOptions == 6 ? 0 : 1);
 
+  setup_sound();
   set_quiz_type();
   set_pictures_phrases(buttonLearnType, false);
 
   SelectTab(tabToSelect);
-  //WriteConsole(" DEFAULTS SelectTab ", tabToSelect);
 }
 
 function language_set(sender, arg) {
@@ -405,7 +404,7 @@ function language_set(sender, arg) {
     pic = countryImages[arg];
   }
   SetBackground(pic);
-  WriteConsole("Orientation=", orientation, ", language_set voice=", voice, ", voiceIndex=", voiceIndex, ", bg: ", countryImages[arg], ", arg=", arg);
+  //WriteConsole("Orientation=", orientation, ", language_set voice=", voice, ", voiceIndex=", voiceIndex, ", bg: ", countryImages[arg], ", arg=", arg);
   get_quiz_records();
   SetSetting("voice", voice);
   SetSetting("language", language);

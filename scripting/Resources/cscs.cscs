@@ -1,0 +1,65 @@
+﻿AutoScale();
+
+AddOrSelectTab("Create", "test.png", "test2.png");
+
+__locComboFiles = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -80, 10);
+AddCombobox(__locComboFiles, "__comboFiles", "center:white:clear", 350, 60);
+__optionsComboFiles = {"Init", "Hello, World!", "Ads", "Busy Indicators", "Unit Tests"};
+
+widgets[0] = __comboFiles;
+
+AddWidgetData(widgets[0], __optionsComboFiles, "", "center");
+SetFontSize(widgets[0], 13);
+SetValue(widgets[0], "text2", "Done");
+SetValue(widgets[0], "alignment", "center");
+AddAction(widgets[0], "comboFilesChanged");
+
+__locRemoveKeyboard = GetLocation(__comboFiles, "RIGHT", __comboFiles, "CENTER", 10);
+AddButton(__locRemoveKeyboard, "__buttonKeyboard", "Keyboard", 150, 60);
+SetFontSize(__buttonKeyboard, 12);
+AddAction(__buttonKeyboard, "hideKeyboard");
+
+__locScriptView = GetLocation("ROOT", "CENTER", __comboFiles, "BOTTOM", 0, 10);
+AddTextEditView(__locScriptView, "__textView", "", DisplayWidth - Relative(40), DisplayHeight - Relative(210), 0);
+SetFontSize(__textView, 14);
+
+AddOrSelectTab("Run", "learn.png", "run_icon.png");
+
+
+function hideKeyboard(sender, arg) {
+  ShowHideKeyboard(__textView, !IsKeyboard(__textView));
+}
+function comboFilesChanged(sender, arg) {
+  row = GetValue(sender);
+  WriteConsole("Combo row=", row);
+  text = "";
+  if (row == 1) {
+    text = ReadFileAsString("sfhello.cscs");
+  } elif (row == 2) {
+    text = ReadFileAsString("ads.cscs");
+  } elif (row == 3) {
+    text = ReadFileAsString("busyIndicators.cscs");
+  } elif (row == 4) {
+    text = ReadFileAsString("unitTests.cscs");
+  }
+  SetText(__textView, text);
+}
+
+function tabSelected(sender, arg) {
+  tabId = int(arg);
+  if (tabId != 1) {
+    return;
+  }
+
+  script = GetText(__textView);
+  RemoveTabViews(1);
+  try {
+    Run(script);
+  } catch(exc) {
+    AlertDialog("CSCS", exc);
+    WriteConsole(exc);
+  }
+}
+
+OnTabSelected("tabSelected");
+SelectTab(0);
