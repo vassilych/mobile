@@ -212,8 +212,9 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      DroidVariable viewVar = args[0] as DroidVariable;
-      View view = viewVar.ViewX;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+      View view = widget.ViewX;
 
       Utils.CheckNotNull(view, m_name);
 
@@ -234,8 +235,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
       Utils.CheckNotNull(data, m_name);
@@ -249,7 +250,7 @@ namespace scripting.Droid
       string strAction = Utils.GetSafeString(args, 2);
       string extra = Utils.GetSafeString(args, 3);
 
-      widget.AddData(types, varName, strAction, extra);
+      widget.AddData(types, widget.Name, strAction, extra);
 
       return Variable.EmptyInstance;
     }
@@ -261,8 +262,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
       Utils.CheckNotNull(data, m_name);
@@ -274,7 +275,7 @@ namespace scripting.Droid
       }
 
       string strAction = Utils.GetSafeString(args, 2);
-      widget.AddImages(images, varName, strAction);
+      widget.AddImages(images, widget.Name, strAction);
 
       return Variable.EmptyInstance;
     }
@@ -291,8 +292,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
@@ -335,8 +336,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       View view = widget.ViewX;
       Utils.CheckNotNull(view, m_name);
@@ -363,19 +364,19 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       bool show = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
 
       // Special dealing if the user tries to show/hide the layout:
-      View view = widget.ViewX;
+      View view = widget?.ViewX;
       if (view == null) {
         // Otherwise it's a a Main Root view.
         view = MainActivity.TheLayout.RootView;
       }
 
-      widget.ShowView(show);
+      widget?.ShowView(show);
       MainActivity.ShowView(view, show);
 
       return Variable.EmptyInstance;
@@ -388,11 +389,11 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       MainActivity.RemoveView(widget);
-      UIUtils.DeregisterWidget(varName);
+      UIUtils.DeregisterWidget(widget.Name);
 
       return Variable.EmptyInstance;
     }
@@ -519,12 +520,12 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
       bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
 
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-
-      MainActivity.TheView.ShowHideKeyboard(droidVar.ViewX, showKeyboard);
+      MainActivity.TheView.ShowHideKeyboard(widget.ViewX, showKeyboard);
       return Variable.EmptyInstance;
     }
   }
@@ -535,11 +536,9 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      DroidVariable droidVar = Utils.GetVariable(varName, script) as DroidVariable;
-      Utils.CheckNotNull(droidVar, varName);
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      //bool result = MainActivity.TheView.IsKeyboardVisible(droidVar.ViewX);
       bool result = MainActivity.KeyboardVisible;
 
       return new Variable(result);
@@ -589,17 +588,17 @@ namespace scripting.Droid
         return Variable.EmptyInstance;
       }
 
-      string varName = Utils.GetSafeString(args, 0);
+      string varName  = args[0].AsString();
       string strColor = Utils.GetSafeString(args, 1);
-      double alpha = Utils.GetSafeDouble(args, 2, 1.0);
+      double alpha    = Utils.GetSafeDouble(args, 2, 1.0);
 
       if (varName.Equals("ROOT")) {
         MainActivity.TheLayout.RootView.SetBackgroundColor(UtilsDroid.String2Color(strColor));
-        return Variable.EmptyInstance;
+      } else {
+        DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+        Utils.CheckNotNull(widget, m_name, 0);
+        widget.SetBackgroundColor(strColor, alpha);
       }
-
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
-      widget.SetBackgroundColor(strColor, alpha);
 
       return Variable.EmptyInstance;
     }
@@ -635,12 +634,13 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
       string strAction = Utils.GetSafeString(args, 1);
       string argument = Utils.GetSafeString(args, 2);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
-      widget.AddAction(varName, strAction, argument);
+      widget.AddAction(widget.Name, strAction, argument);
 
       return Variable.EmptyInstance;
     }
@@ -753,10 +753,10 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      string strAction = Utils.GetSafeString(args, 1);
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      string strAction = Utils.GetSafeString(args, 1);
 
       OnTouchListener listener = new OnTouchListener(widget, strAction, script);
       widget.ViewX.Touch += listener.OnTouch;
@@ -779,11 +779,12 @@ namespace scripting.Droid
       List<string> all = UIUtils.FindWidgets(rect, parentName, tabId, null);
       foreach (string widgetName in all) {
         ParserFunction func = ParserFunction.GetFunction(widgetName);
-        DroidVariable viewVar = func.GetValue(script) as DroidVariable;
-        View view = viewVar.ViewX;
+        DroidVariable widget = func.GetValue(script) as DroidVariable;
+        Utils.CheckNotNull(widget, widgetName);
+        View view = widget.ViewX;
         rect = new UIUtils.Rect((int)view.GetX(), (int)view.GetY(),
                                 view.Width, view.Height);
-        UIUtils.RegisterWidget(viewVar.WidgetName, rect, parentName, tabId);
+        UIUtils.RegisterWidget(widget.WidgetName, rect, parentName, tabId);
       }
     }
     protected class OnTouchListener
@@ -907,8 +908,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string strTitle = args[1].AsString();
       string alignment = Utils.GetSafeString(args, 2, "left");
@@ -925,8 +926,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string text = widget.GetText();
 
@@ -940,11 +941,12 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
       Variable arg1 = Utils.GetSafeVariable(args, 1);
       Variable arg2 = Utils.GetSafeVariable(args, 2);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
       bool isSet = widget.SetValue(arg1.AsString(), arg2 == null ? "" : arg2.AsString());
 
       return new Variable(isSet ? 1 : 0);
@@ -957,11 +959,10 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
       double result = widget.GetValue();
-
       return new Variable(result);
     }
   }
@@ -973,9 +974,9 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      string varName = args[0].AsString();
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
       string alignment = args[1].AsString();
       bool aligned = widget.AlignText(alignment);
 
@@ -999,10 +1000,10 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      float fontSize = (float)args[1].AsDouble();
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      float fontSize = (float)args[1].AsDouble();
 
       bool autoResize = Utils.GetSafeInt(args, 2, 1) == 1;
       if (autoResize) {
@@ -1021,8 +1022,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string fontName = args[1].AsString();
       double fontSize = Utils.GetSafeDouble(args, 2);
@@ -1045,8 +1046,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
 
@@ -1074,8 +1075,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string colorStr = args[1].AsString();
       widget.SetFontColor(colorStr);
@@ -1091,8 +1092,8 @@ namespace scripting.Droid
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      DroidVariable widget = Utils.GetVariable(varName, script) as DroidVariable;
+      DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string text = Utils.ProcessString(args[1].AsString());
       string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
