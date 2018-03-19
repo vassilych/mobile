@@ -12,21 +12,21 @@ namespace SplitAndMerge
       script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
       Utils.CheckNotEnd(script);
 
-      Variable value = new Variable();
       bool inQuotes = script.Current == Constants.QUOTE;
 
       if (script.Current == Constants.START_GROUP) {
         // We are extracting a list between curly braces.
         script.Forward(); // Skip the first brace.
         bool isList = true;
+        Variable value = new Variable();
         value.Tuple = GetArgs(script,
               Constants.START_GROUP, Constants.END_GROUP, out isList);
         return value;
-      } else {
-        // A variable, a function, or a number.
-        Variable var = script.Execute(Constants.NEXT_OR_END_ARRAY);
-        value = var.Clone();
       }
+
+      // A variable, a function, or a number.
+      Variable var = script.Execute(Constants.NEXT_OR_END_ARRAY);
+      //value = var.Clone();
 
       if (inQuotes) {
         script.MoveForwardIf(Constants.QUOTE);
@@ -34,7 +34,7 @@ namespace SplitAndMerge
       if (eatLast) {
         script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
       }
-      return value;
+      return var;
     }
 
     public static string GetToken(ParsingScript script, char[] to)
