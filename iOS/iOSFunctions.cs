@@ -162,8 +162,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
@@ -191,8 +190,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
@@ -223,8 +221,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 3, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       int deltaX = args[1].AsInt();
@@ -269,8 +266,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       UIView view = widget.ViewX;
@@ -294,8 +290,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       string strTitle = args[1].AsString();
@@ -318,8 +313,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       return new Variable(widget.GetText());
@@ -336,8 +330,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       Variable arg1 = Utils.GetSafeVariable(args, 1);
@@ -355,8 +348,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       double result = GetValue(widget);
@@ -375,8 +367,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       UIView view = widget.ViewX;
@@ -401,8 +392,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       bool  show     = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
@@ -428,12 +418,11 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       iOSApp.RemoveView(widget);
-      UIUtils.DeregisterWidget(varName);
+      UIUtils.DeregisterWidget(widget.Name);
 
       return Variable.EmptyInstance;
     }
@@ -471,8 +460,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName    = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
@@ -503,8 +491,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       bool result = false;
@@ -557,19 +544,18 @@ namespace scripting.iOS
         return Variable.EmptyInstance;
       }
 
-      string varName  = Utils.GetSafeString(args, 0);
+      string varName  = args[0].AsString();
       string strColor = Utils.GetSafeString(args, 1);
       double alpha    = Utils.GetSafeDouble(args, 2, 1.0);
 
       if (varName.Equals("ROOT")) {
         AppDelegate.SetBgColor(strColor, alpha);
-        return Variable.EmptyInstance;
+      } else {
+        iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+        Utils.CheckNotNull(widget, m_name, 0);
+        widget.SetBackgroundColor(strColor, alpha);
       }
 
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
-
-      widget.SetBackgroundColor(strColor, alpha);
       return Variable.EmptyInstance;
     }
   }
@@ -596,13 +582,12 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName   = Utils.GetSafeString(args, 0);
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
+
       string strAction = Utils.GetSafeString(args, 1);
       string argument  = Utils.GetSafeString(args, 2);
 
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
-      //iOSVariable widget = args[0] as iOSVariable;
       widget.AddAction(widget.Name, strAction, argument);
       ParserFunction.AddGlobal(widget.Name, new GetVarFunction(widget));
 
@@ -683,14 +668,10 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 1, m_name);
 
-      string varName   = Utils.GetSafeString(args, 0);
-      string strAction = Utils.GetSafeString(args, 1);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
+
+      string strAction = Utils.GetSafeString(args, 1);
 
       UIPanGestureRecognizer gesture = new UIPanGestureRecognizer();
       DragHandler handler = new DragHandler(widget, strAction);
@@ -1009,8 +990,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
@@ -1033,19 +1013,13 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      Utils.CheckNotEmpty(script, varName, m_name);
-
-      ParserFunction func = ParserFunction.GetFunction(varName);
-      Utils.CheckNotNull(func, varName);
-
-      iOSVariable viewVar = func.GetValue(script) as iOSVariable;
-      Utils.CheckNotNull(viewVar, m_name);
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+      Utils.CheckNotNull(widget, m_name, 0);
 
       string fontName = args[1].AsString();
       double fontSize = Utils.GetSafeDouble(args, 2);
 
-      bool isSet = viewVar.SetFont(fontName, fontSize);
+      bool isSet = widget.SetFont(fontName, fontSize);
 
       return new Variable(isSet ? 1 : 0);
     }
@@ -1062,8 +1036,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = Utils.GetSafeString(args, 0);
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
@@ -1091,8 +1064,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       string colorStr = args[1].AsString();
@@ -1109,8 +1081,7 @@ namespace scripting.iOS
       List<Variable> args = script.GetFunctionArgs();
       Utils.CheckArgs(args.Count, 2, m_name);
 
-      string varName = args[0].AsString();
-      iOSVariable widget = Utils.GetVariable(varName, script) as iOSVariable;
+      iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
       Utils.CheckNotNull(widget, m_name, 0);
 
       string text     = Utils.ProcessString(args[1].AsString());
