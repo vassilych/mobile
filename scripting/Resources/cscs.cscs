@@ -6,13 +6,11 @@ __locComboFiles = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -80, 10);
 AddCombobox(__locComboFiles, "__comboFiles", "center:white:clear", 350, 60);
 __optionsComboFiles = {"Init", "Hello, World!", "Ads", "Busy Indicators", "Unit Tests"};
 
-widgets[0] = __comboFiles;
-
-AddWidgetData(widgets[0], __optionsComboFiles, "", "center");
-SetFontSize(widgets[0], 13);
-SetValue(widgets[0], "text2", "Done");
-SetValue(widgets[0], "alignment", "center");
-AddAction(widgets[0], "comboFilesChanged");
+AddWidgetData(__comboFiles, __optionsComboFiles, "", "center");
+SetFontSize(__comboFiles, 13);
+SetValue(__comboFiles, "text2", "Done");
+SetValue(__comboFiles, "alignment", "center");
+AddAction(__comboFiles, "comboFilesChanged");
 
 __locRemoveKeyboard = GetLocation(__comboFiles, "RIGHT", __comboFiles, "CENTER", 10);
 AddButton(__locRemoveKeyboard, "__buttonKeyboard", "Keyboard", 150, 60);

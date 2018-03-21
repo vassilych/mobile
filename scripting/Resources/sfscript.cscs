@@ -39,7 +39,7 @@ AddSfPicker(locSFWidget,        "Picker", "80:Select Currency", 250, 350);
 
 sfWidgets     = {"CircularGauge", "DigitalGauge", "QRBarcode", "Code39Barcode", "BusyIndicator",
                  "SplineGraph", "DoughnutGraph", "SemiDoughnutGraph", "DataGrid", "Picker",
-                 "Excel", "Open Excel", "Pdf", "Open Pdf", "Word"};
+                 "Excel", "Pdf", "Word"};
 optionsGauge  = {"color_needle", "color_knob", "color_labels", "color_range1", "color_range2",
                 "color_minorticks", "color_majorticks"};
 optionsColor = {"black", "blue", "brown", "cyan", "dark_gray", "gray", "green",
@@ -480,9 +480,27 @@ function show_widget() {
     SetValue(stepper, "value",  1.00);
     SetValue(stepper, "step",   0.1);
   } elif (widgetName == "CircularGauge") {
-    SetValue(stepper, "min",    1.00);
-    SetValue(stepper, "value",  50.00);
-    SetValue(stepper, "step",   5.00);
+    SetValue(CircularGauge, "from",               0);
+    SetValue(CircularGauge, "to",                 160);
+    SetValue(CircularGauge, "step",               10);
+    SetValue(CircularGauge, "value",              90);
+    SetValue(CircularGauge, "start_angle",        30);
+    SetValue(CircularGauge, "sweep_angle",        330);
+    SetValue(CircularGauge, "start_range2",       120);
+    SetValue(CircularGauge, "radius_knob",        12);
+    SetValue(CircularGauge, "color_needle",       "blue");
+    SetValue(CircularGauge, "color_knob",         "rose");
+    SetValue(CircularGauge, "color_labels",       "black");
+    SetValue(CircularGauge, "color_range1",       "green");
+    SetValue(CircularGauge, "color_range2",       "red");
+    SetValue(CircularGauge, "color_minorticks",   "gray");
+    SetValue(CircularGauge, "color_majorticks",   "black");
+    SetValue(CircularGauge, "scale2_from",        0);
+    SetValue(CircularGauge, "scale2_to",          100);
+    SetValue(CircularGauge, "scale2_interval",    5);
+    SetValue(CircularGauge, "scale2_rimcolor",    "yellow");
+    SetValue(CircularGauge, "scale2_labelcolor",  "black");
+    SetText(CircularGauge,  "km, mi/h");
     SetText(textEdit, "Gauge");
   } elif (widgetName == "DigitalGauge") {
     SetValue(DigitalGauge, "value", Now("HH:mm:ss"));
@@ -515,7 +533,6 @@ function hide_all() {
 }
 
 hide_all();
-widgetName = "Picker";
-//widgetName = "SplineGraph";
+widgetName = "SplineGraph";
 SetText(comboWidgets, widgetName);
 WriteConsole("--> Script init done. Show widget: " + widgetName);
