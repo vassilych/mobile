@@ -218,6 +218,15 @@
     <Reference Include="cloudrail-si-xamarin-ios-sdk">
       <HintPath>..\packages\Xamarin.CloudRail.iOS.1.2.11\lib\Xamarin.iOS10\cloudrail-si-xamarin-ios-sdk.dll</HintPath>
     </Reference>
+    <Reference Include="Syncfusion.Pdf.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.Pdf.16.1.0.26\lib\Xamarin.iOS10\Syncfusion.Pdf.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.XlsIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.XlsIO.16.1.0.26\lib\Xamarin.iOS10\Syncfusion.XlsIO.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.DocIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.DocIO.16.1.0.26\lib\Xamarin.iOS10\Syncfusion.DocIO.Portable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
