@@ -201,6 +201,15 @@
     <Reference Include="Xamarin.GooglePlayServices.Ads.Lite">
       <HintPath>..\packages\Xamarin.GooglePlayServices.Ads.Lite.60.1142.1\lib\MonoAndroid80\Xamarin.GooglePlayServices.Ads.Lite.dll</HintPath>
     </Reference>
+    <Reference Include="Syncfusion.DocIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.DocIO.16.1.0.26\lib\MonoAndroid10\Syncfusion.DocIO.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.XlsIO.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.XlsIO.16.1.0.26\lib\MonoAndroid10\Syncfusion.XlsIO.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Pdf.Portable">
+      <HintPath>..\packages\Syncfusion.Xamarin.Pdf.16.1.0.26\lib\MonoAndroid10\Syncfusion.Pdf.Portable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
