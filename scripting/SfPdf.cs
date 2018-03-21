@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Syncfusion.Drawing;
-/*using Syncfusion.Pdf;
+using Syncfusion.Pdf;
 using Syncfusion.Pdf.Barcode;
 using Syncfusion.Pdf.Graphics;
 using Syncfusion.Pdf.Parsing;
@@ -343,4 +343,3 @@ namespace scripting
     }
   }
 }
-*/
