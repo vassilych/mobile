@@ -272,9 +272,11 @@ namespace SplitAndMerge
       string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
       string[] args = argStr.Split(Constants.NEXT_ARG_ARRAY);
 
+      var result = args.Select(element => element.Trim()).ToArray();
+
       script.Pointer = endArgs + 1;
 
-      return args;
+      return result;
     }
 
     public static bool EndsWithFunction(string buffer, List<string> functions)
@@ -296,8 +298,8 @@ namespace SplitAndMerge
     public static bool SpaceNotNeeded(char next)
     {
       return (next == Constants.SPACE || next == Constants.START_ARG ||
-  next == Constants.START_GROUP || next == Constants.START_ARRAY ||
-  next == Constants.EMPTY);
+              next == Constants.START_GROUP || next == Constants.START_ARRAY ||
+              next == Constants.EMPTY);
     }
 
     public static bool KeepSpace(StringBuilder sb, char next)
