@@ -3,13 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Net;
+using System.Net.Sockets;
 
 
 namespace SplitAndMerge
 {
-    public class Program
-    {
-        private static string EXT = "cscs";
+	public class Program
+	{
+	  const string EXT = "cscs";
 
     enum NEXT_CMD {
       NONE = 0,
@@ -18,7 +20,7 @@ namespace SplitAndMerge
       TAB  = 2
     };
 
-    static void Main2(string[] args)
+    static void Main(string[] args)
     {
       Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -27,16 +29,21 @@ namespace SplitAndMerge
         Console.WriteLine("Goodbye! ¡Adiós! Ciao! Adieu! Adeus! Tschüss! Пока! 再见 さようなら הֱיה שלום وداعا");
       };
 
-      ClearLine ();
+      ClearLine();
 
       // Subscribe to the printing events from the interpreter.
       // A printing event will be triggered after each successful statement
       // execution. On error an exception will be thrown.
       Interpreter.Instance.GetOutput += Print;
 
-      ProcessScript("include(\"scripts/functions.cscs\");");
-      string script = null;
-      //script = GetFileContents("/Users/vk/Documents/github/cscscpp/bin/Debug/scripts/temp.cscs");
+      //ProcessScript("include(\"scripts/functions.cscs\");");
+
+      if (args.Length < 1 || args[1] == "debugger") {
+        DebuggerServer.StartServer();
+        return;
+      }
+
+      string script = Utils.GetFileContents("scripts/temp.cscs");
 
       if (args.Length >= 3) {
         Translation.TranslateScript(args);
@@ -46,7 +53,7 @@ namespace SplitAndMerge
         if (args[0].EndsWith(EXT)) {
           string filename = args[0];
           Console.WriteLine("Reading script from " + filename);
-          script = GetFileContents(filename);
+          script = Utils.GetFileContents(filename);
         } else {
           script = args[0];
         }
@@ -89,16 +96,16 @@ namespace SplitAndMerge
 
     private static void RunLoop()
     {
-        List<string> commands = new List<string>();
-        StringBuilder sb = new StringBuilder();
+    	List<string> commands = new List<string>();
+    	StringBuilder sb = new StringBuilder();
       int cmdPtr = 0;
       int tabFileIndex = 0;
       bool arrowMode = false;
       string start = "", baseCmd = "", startsWith = "", init = "", script;
       string previous = "";
 
-        while (true) {
-            sb.Clear();
+    	while (true) {
+    		sb.Clear();
 
         NEXT_CMD nextCmd = NEXT_CMD.NONE;
         script = previous + GetConsoleLine(ref nextCmd, init).Trim();
@@ -130,23 +137,23 @@ namespace SplitAndMerge
         tabFileIndex = 0;
         arrowMode = false;
 
-            if (string.IsNullOrWhiteSpace(script)) {
-                continue;
-            }
+    		if (string.IsNullOrWhiteSpace(script)) {
+    			continue;
+    		}
 
-            if (commands.Count == 0 || !commands[commands.Count - 1].Equals(script)) {
-                commands.Add(script);
-            }
+    		if (commands.Count == 0 || !commands[commands.Count - 1].Equals(script)) {
+    			commands.Add(script);
+    		}
         if (!script.EndsWith(Constants.END_STATEMENT.ToString())) {
           script += Constants.END_STATEMENT;
         }
 
-            ProcessScript(script);
+    		ProcessScript(script);
         cmdPtr = commands.Count - 1;
-        }
+    	}
     }
 
-    private static string GetConsoleLine(ref NEXT_CMD cmd, string init = "",
+    static string GetConsoleLine(ref NEXT_CMD cmd, string init = "",
                                          bool enhancedMode = true)
     {
       //string line = init;
@@ -220,47 +227,47 @@ namespace SplitAndMerge
       }
     }
 
-        private static void ProcessScript(string script)
-        {
+		private static void ProcessScript(string script)
+		{
       s_PrintingCompleted = false;
-            string errorMsg = null;
-            Variable result = null;
+			string errorMsg = null;
+			Variable result = null;
 
-            try    {
-                result = Interpreter.Instance.Process(script);
-            }    catch(Exception exc)    {
-                errorMsg = exc.Message;
-                ParserFunction.InvalidateStacksAfterLevel(0);
-            }
+			try	{
+				result = Interpreter.Instance.Process(script);
+			}	catch(Exception exc)	{
+				errorMsg = exc.Message;
+				ParserFunction.InvalidateStacksAfterLevel(0);
+			}
 
-            if (!s_PrintingCompleted) {
-                string output = Interpreter.Instance.Output;
-                if (!string.IsNullOrWhiteSpace (output)) {
-                    Console.WriteLine (output);
+			if (!s_PrintingCompleted) {
+				string output = Interpreter.Instance.Output;
+				if (!string.IsNullOrWhiteSpace (output)) {
+					Console.WriteLine (output);
         } else if (result != null){
           output = result.AsString(false, false);
-                    if (!string.IsNullOrWhiteSpace (output)) {
-                        Console.WriteLine (output);
-                    }
-                }
-            }
+					if (!string.IsNullOrWhiteSpace (output)) {
+						Console.WriteLine (output);
+					}
+				}
+			}
 
-            if (!string.IsNullOrWhiteSpace(errorMsg)) {
+			if (!string.IsNullOrWhiteSpace(errorMsg)) {
         Utils.PrintColor(errorMsg + Environment.NewLine, ConsoleColor.Red);
-                errorMsg = string.Empty;
-            }
-        }
+				errorMsg = string.Empty;
+			}
+		}
 
-        private static string GetPrompt()
-        {
-            const int MAX_SIZE = 30;
-            string path = Directory.GetCurrentDirectory();
-            if (path.Length > MAX_SIZE) {
-                path = "..." + path.Substring (path.Length - MAX_SIZE);
-            }
+		private static string GetPrompt()
+		{
+			const int MAX_SIZE = 30;
+			string path = Directory.GetCurrentDirectory();
+			if (path.Length > MAX_SIZE) {
+				path = "..." + path.Substring (path.Length - MAX_SIZE);
+			}
 
-            return string.Format ("{0}>>", path);
-        }
+			return string.Format ("{0}>>", path);
+		}
 
     private static void ClearLine(string part1 = "", string part2 = "")
     {
@@ -275,24 +282,12 @@ namespace SplitAndMerge
         prompt, line, prompt, line.Substring(0, pos));
     }
 
-    private static string GetFileContents(string filename)
-        {
-      try {
-        string[] readText = Utils.GetFileLines(filename);
-        return string.Join ("\n", readText);
-      } catch(ArgumentException exc) {
-        Console.WriteLine(exc.Message);
-        Environment.Exit(1);
-        return "";
-      }
-        }
-
-        static void Print(object sender, OutputAvailableEventArgs e)
-        {
-            Console.Write(e.Output);
-            s_PrintingCompleted = true;
-        }
-        static bool s_PrintingCompleted = false;
-    }
+		static void Print(object sender, OutputAvailableEventArgs e)
+		{
+			Console.Write(e.Output);
+			s_PrintingCompleted = true;
+		}
+		static bool s_PrintingCompleted = false;
+	}
 
 }

@@ -68,7 +68,7 @@ namespace SplitAndMerge
       string arrayName = name;
 
       int delta = 0;
-      List<Variable> arrayIndices = Utils.GetArrayIndices(ref arrayName, ref delta);
+      List<Variable> arrayIndices = Utils.GetArrayIndices(script, ref arrayName, ref delta);
 
       if (arrayIndices.Count == 0) {
         return null;
@@ -178,7 +178,43 @@ namespace SplitAndMerge
       }
     }
 
-    static bool LocalNameExists(string name)
+    static string CreateVariableEntry(ParserFunction variable, bool isLocal = false)
+    {
+      if (!(variable is GetVarFunction)) {
+        return null;
+      }
+      GetVarFunction gvf = variable as GetVarFunction;
+      string value = gvf.Value.AsString();
+      string localGlobal = isLocal ? "0" : "1";
+      string varData = variable.Name + ":" + localGlobal + ":" + 
+                       Constants.TypeToString(gvf.Value.Type).ToLower() + ":" + value;
+      return varData.Trim();
+    }
+    public static string GetVariables()
+    {
+      StringBuilder sb = new StringBuilder ();
+      // First all globals:
+      foreach (var entry in s_functions.Values.ToList()) {
+        string varData = CreateVariableEntry(entry);
+        if (!string.IsNullOrWhiteSpace (varData)) {
+          sb.AppendLine(varData);
+        }
+      }
+      // Now locals, if any:
+      if (s_locals.Count > 0) {
+        Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
+        foreach (var variable in local.Values.ToList()) {
+          string varData = CreateVariableEntry(variable, true);
+          if (!string.IsNullOrWhiteSpace(varData)) {
+            sb.AppendLine(varData);
+          }
+        }
+      }
+
+      return sb.ToString().Trim();
+   }
+
+   static bool LocalNameExists(string name)
     {
       if (s_locals.Count <= StackLevelDelta) {
         return false;
@@ -293,6 +329,13 @@ namespace SplitAndMerge
       return this;
     }
 
+    public static void CleanUp()
+    {
+      s_functions.Clear ();
+      s_actions.Clear ();
+      s_locals.Clear ();
+    }
+
     protected string m_name;
     public string Name { get { return m_name; } set { m_name = value; } }
 
@@ -305,9 +348,6 @@ namespace SplitAndMerge
     ParserFunction m_impl;
     // Global functions and variables:
     static Dictionary<string, ParserFunction> s_functions = new Dictionary<string, ParserFunction>();
-
-    // Global variables:
-    //private static Dictionary<string, ParserFunction> s_globals = new Dictionary<string, ParserFunction> ();
 
     // Global actions - function:
     static Dictionary<string, ActionFunction> s_actions = new Dictionary<string, ActionFunction>();
