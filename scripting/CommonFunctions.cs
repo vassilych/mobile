@@ -127,6 +127,7 @@ namespace scripting
 
       ParserFunction.RegisterFunction("Run", new RunScriptFunction());
       ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
+      ParserFunction.RegisterFunction("StartDebugger", new DebuggerFunction());
     }
     public static void RunScript(string fileName)
     {
@@ -571,6 +572,36 @@ namespace scripting
         return string.Compare(part1, part2);
       }
       return part1.Length < part2.Length ? -1 : 1;
+    }
+  }
+  class DebuggerFunction : ParserFunction
+  {
+    public bool DebuggerAttached { private set; get; }
+
+    protected override Variable Evaluate(ParsingScript script)
+    {
+      List<Variable> args = script.GetFunctionArgs();
+      int port = Utils.GetSafeInt(args, 0, 13337);
+      DebuggerServer.StartServer(port);
+
+      DebuggerServer.OnRequest += ProcessRequest;
+      DebuggerAttached = true;
+
+      return Variable.EmptyInstance;
+    }
+    public void ProcessRequest(Debugger debugger, string request)
+    {
+#if __ANDROID__
+      MainActivity.TheView.RunOnUiThread(() => {
+        debugger.ProcessClientCommands(request);
+      });
+#elif __IOS__
+      AppDelegate.GetCurrentController().InvokeOnMainThread(() => {
+        debugger.ProcessClientCommands(request);
+      });
+#else
+      debugger.ProcessClientCommands(request);
+#endif
     }
   }
 }
