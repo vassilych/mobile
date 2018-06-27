@@ -97,6 +97,7 @@ namespace SplitAndMerge
         while ((i = m_stream.Read (bytes, 0, bytes.Length)) != 0) {
           data = System.Text.Encoding.UTF8.GetString (bytes, 0, i);
           m_queue.Add(data);
+          //ThreadPool.QueueUserWorkItem(ThreadPoolCallback, data);
         }
       } catch (Exception exc) {
         Console.Write ("Client disconnected: {0}", exc.Message);
@@ -109,6 +110,10 @@ namespace SplitAndMerge
       m_client.Close();
     }
 
+    static void ThreadPoolCallback(Object threadContext)  
+    {
+      m_debugger.ProcessClientCommands((string)threadContext);
+    }
     static void SendBack (string str)
     {
       byte [] msg = System.Text.Encoding.UTF8.GetBytes (str);

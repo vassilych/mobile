@@ -14,7 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Functions.Math.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Functions.OS.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interpreter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Main.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Parser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ParserFunction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ParsingScript.cs" />
@@ -34,6 +33,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SfExcel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SfWord.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InAppBilling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Precompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DebuggerServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Debugger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />
