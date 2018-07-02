@@ -576,8 +576,6 @@ namespace scripting
   }
   class DebuggerFunction : ParserFunction
   {
-    public bool DebuggerAttached { private set; get; }
-
     protected override Variable Evaluate(ParsingScript script)
     {
       List<Variable> args = script.GetFunctionArgs();
@@ -585,8 +583,6 @@ namespace scripting
       DebuggerServer.StartServer(port);
 
       DebuggerServer.OnRequest += ProcessRequest;
-      DebuggerAttached = true;
-
       return Variable.EmptyInstance;
     }
     public void ProcessRequest(Debugger debugger, string request)

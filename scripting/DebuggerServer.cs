@@ -12,6 +12,7 @@ namespace SplitAndMerge
   public class DebuggerServer
   {
     public static Action<Debugger, string> OnRequest;
+    public static bool DebuggerAttached { set; get; }
 
     static Debugger m_debugger;
     static TcpClient m_client;
@@ -27,10 +28,12 @@ namespace SplitAndMerge
     public static void StartServerBlocked(Object threadContext)
     {
       int port = (int)threadContext;
+
       IPAddress localAddr = IPAddress.Parse("127.0.0.1");
 
       TcpListener server = new TcpListener(localAddr, port);
       server.Start();
+      DebuggerAttached = true;
 
       while (true) {
         Console.Write("Waiting for a connection on {0}... ", port);
@@ -114,12 +117,12 @@ namespace SplitAndMerge
     {
       m_debugger.ProcessClientCommands((string)threadContext);
     }
-    static void SendBack (string str)
+    static void SendBack(string str)
     {
-      byte [] msg = System.Text.Encoding.UTF8.GetBytes (str);
+      byte [] msg = System.Text.Encoding.UTF8.GetBytes(str);
       try {
-        m_stream.Write (msg, 0, msg.Length);
-        m_stream.Flush ();
+        m_stream.Write(msg, 0, msg.Length);
+        m_stream.Flush();
       } catch (Exception exc) {
         Console.Write ("Client disconnected: {0}", exc.Message);
         return;
