@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Precompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DebuggerServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debugger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Breakpoints.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />

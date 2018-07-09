@@ -9,124 +9,159 @@ using System.Collections.Concurrent;
 
 namespace SplitAndMerge
 {
-  public class DebuggerServer
-  {
-    public static Action<Debugger, string> OnRequest;
-    public static bool DebuggerAttached { set; get; }
-
-    static Debugger m_debugger;
-    static TcpClient m_client;
-    static NetworkStream m_stream;
-
-    static BlockingCollection<string> m_queue = new BlockingCollection<string>();
-
-    public static void StartServer(int port = 13337)
+    public class DebuggerServer
     {
-      ThreadPool.QueueUserWorkItem(StartServerBlocked, port);
-    }
+        public static Action<Debugger, string> OnRequest;
+        public static bool DebuggerAttached { set; get; }
 
-    public static void StartServerBlocked(Object threadContext)
-    {
-      int port = (int)threadContext;
+        static Debugger m_debugger;
+        static TcpClient m_client;
+        static NetworkStream m_stream;
 
-      IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+        static BlockingCollection<string> m_queue = new BlockingCollection<string>();
 
-      TcpListener server = new TcpListener(localAddr, port);
-      server.Start();
-      DebuggerAttached = true;
+        public static void StartServer(int port = 13337)
+        {
+            ThreadPool.QueueUserWorkItem(StartServerBlocked, port);
+        }
 
-      while (true) {
-        Console.Write("Waiting for a connection on {0}... ", port);
+        public static void StartServerBlocked(Object threadContext)
+        {
+            int port = (int)threadContext;
 
-        // Perform a blocking call to accept requests.
-        m_client = server.AcceptTcpClient();
-        m_stream = m_client.GetStream();
+            IPAddress localAddr = IPAddress.Parse("127.0.0.1");
 
-        RunClient();
-      }
-    }
+            TcpListener server = new TcpListener(localAddr, port);
+            server.Start();
+            DebuggerAttached = true;
 
-    static void StartProcessing(Object threadContext)
-    {
+            while (true)
+            {
+                Console.Write("Waiting for a connection on {0}... ", port);
 
-#if UNITY_EDITOR
+                // Perform a blocking call to accept requests.
+                m_client = server.AcceptTcpClient();
+                m_stream = m_client.GetStream();
+
+                ThreadPool.QueueUserWorkItem(RunClient);
+                Thread.Sleep(1000);
+            }
+        }
+
+        static void StartProcessing(Object threadContext)
+        {
+
+#if UNITY_EDITOR || UNITY_STANDALONE
       // Do nothing: ProcessQueue() will be called from the Unity Main Thread
-# else
-      try 
-      {
-          ProcessQueue();
-      } catch(Exception exc) {
-        Console.Write ("Connection is dead: {0}", exc.Message);
-      }
+#else
+            try
+            {
+                ProcessQueue();
+            }
+            catch (Exception exc)
+            {
+                Console.Write("Connection is dead: {0}", exc.Message);
+            }
 #endif
-    }
+        }
 
-    public static void ProcessQueue()
-    {
-      string data;
-#if UNITY_EDITOR
+        public static void ProcessQueueOld()
+        {
+            string data;
+#if UNITY_EDITOR || UNITY_STANDALONE
       while(m_queue.TryTake(out data))
       { // Exit as soon as done processing.
 #else
-      while (true)
-      { // A blocking call.
-        data = m_queue.Take();
+            while (true)
+            { // A blocking call.
+                data = m_queue.Take();
 #endif
-        if (OnRequest != null) {
-          OnRequest?.Invoke(m_debugger, data);
-        } else {
-          m_debugger.ProcessClientCommands(data);
+                if (OnRequest != null)
+                {
+                    OnRequest?.Invoke(m_debugger, data);
+                }
+                else
+                {
+                    m_debugger.ProcessClientCommands(data);
+                }
+            }
         }
-      }
-    }
-
-    static void RunClient()
-    {
-      Byte [] bytes = new Byte [256];
-      string data = null;
-      Console.WriteLine ("Starting client {0}", m_client.Client.RemoteEndPoint);
-
-      ThreadPool.QueueUserWorkItem(StartProcessing, null);
-
-      #if UNITY_EDITOR == false && __ANDROID__ == false && __IOS__ == false
-      Interpreter.Instance.Init();
-      #endif
-
-      m_debugger = new Debugger ();
-      Debugger.OnResult += SendBack;
-
-      int i;
-      try {
-        while ((i = m_stream.Read (bytes, 0, bytes.Length)) != 0) {
-          data = System.Text.Encoding.UTF8.GetString (bytes, 0, i);
-          m_queue.Add(data);
-          //ThreadPool.QueueUserWorkItem(ThreadPoolCallback, data);
+        public static void ProcessQueue()
+        {
+            string data;
+#if UNITY_EDITOR || UNITY_STANDALONE
+            while(m_queue.TryTake(out data))
+            { // Exit as soon as done processing.
+                m_debugger.ProcessClientCommands(data);
+#else
+            while (true)
+            { // A blocking call.
+                data = m_queue.Take();
+                ThreadPool.QueueUserWorkItem(RunQueueRequestBlocked, data);
+#endif
+            }
         }
-      } catch (Exception exc) {
-        Console.Write ("Client disconnected: {0}", exc.Message);
-      }
 
-      Debugger.OnResult -= SendBack;
+        static void RunQueueRequestBlocked(Object threadContext)
+        {
+            string data = (string)threadContext;
+            m_debugger.ProcessClientCommands(data);
+        }
 
-      // Shutdown and end connection
-      Console.Write ("Closed connection.");
-      m_client.Close();
-    }
+        static void RunClient(Object threadContext)
+        {
+            Byte[] bytes = new Byte[2048];
+            string data = null;
+            Console.WriteLine("Starting client {0}", m_client.Client.RemoteEndPoint);
 
-    static void ThreadPoolCallback(Object threadContext)  
-    {
-      m_debugger.ProcessClientCommands((string)threadContext);
+            ThreadPool.QueueUserWorkItem(StartProcessing, null);
+
+#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
+            Interpreter.Instance.Init();
+#endif
+
+            m_debugger = new Debugger();
+            Debugger.OnResult += SendBack;
+
+            int i;
+            try
+            {
+                while ((i = m_stream.Read(bytes, 0, bytes.Length)) != 0)
+                {
+                    data = System.Text.Encoding.UTF8.GetString(bytes, 0, i);
+                    m_queue.Add(data);
+                    //
+                }
+            }
+            catch (Exception exc)
+            {
+                Console.Write("Client disconnected: {0}", exc.Message);
+            }
+
+            Debugger.OnResult -= SendBack;
+
+            // Shutdown and end connection
+            Console.Write("Closed connection.");
+            m_client.Close();
+        }
+
+        static void ThreadPoolCallback(Object threadContext)
+        {
+            m_debugger.ProcessClientCommands((string)threadContext);
+        }
+        static void SendBack(string str)
+        {
+            byte[] msg = System.Text.Encoding.UTF8.GetBytes(str);
+            try
+            {
+                m_stream.Write(msg, 0, msg.Length);
+                m_stream.Flush();
+            }
+            catch (Exception exc)
+            {
+                Console.Write("Client disconnected: {0}", exc.Message);
+                return;
+            }
+        }
     }
-    static void SendBack(string str)
-    {
-      byte [] msg = System.Text.Encoding.UTF8.GetBytes(str);
-      try {
-        m_stream.Write(msg, 0, msg.Length);
-        m_stream.Flush();
-      } catch (Exception exc) {
-        Console.Write ("Client disconnected: {0}", exc.Message);
-        return;
-      }
-    }
-  }
 }

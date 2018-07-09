@@ -69,7 +69,7 @@ namespace SplitAndMerge
 #if __ANDROID__ == false && __IOS__ == false
             ParserFunction.RegisterFunction(Constants.START_DEBUGGER, new DebuggerFunction());
 #endif
-#if UNITY_EDITOR == false && __ANDROID__ == false && __IOS__ == false
+#if UNITY_EDITOR == false && UNITY_STANDALONE== false && __ANDROID__ == false && __IOS__ == false
             ParserFunction.CleanUp();
             ParserFunction.RegisterFunction(Constants.START_DEBUGGER, new DebuggerFunction());
             ParserFunction.RegisterFunction(Constants.APPEND, new AppendFunction());
@@ -208,7 +208,7 @@ namespace SplitAndMerge
         private void ReadConfig()
         {
             MAX_LOOPS = ReadConfig("maxLoops", 256000);
-#if UNITY_EDITOR == false && __ANDROID__ == false && __IOS__ == false
+#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
             if (ConfigurationManager.GetSection("Languages") == null)
             {
                 return;
@@ -355,7 +355,7 @@ namespace SplitAndMerge
         public int ReadConfig(string configName, int defaultValue = 0)
         {
             int value = defaultValue;
-#if UNITY_EDITOR == false && __ANDROID__ == false && __IOS__ == false
+#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
             string config = ConfigurationManager.AppSettings[configName];
             if (string.IsNullOrWhiteSpace(config) || !Int32.TryParse(config, out value))
             {
