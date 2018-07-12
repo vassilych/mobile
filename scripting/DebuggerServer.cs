@@ -1,4 +1,4 @@
-﻿#define UNITY_EDITOR
+﻿//#define MAIN_THREAD_CHECK
 
 using System;
 using System.Threading;
@@ -52,7 +52,8 @@ namespace SplitAndMerge
 
         static void StartProcessing(Object threadContext)
         {
-            System.Timers.Timer runTimer = new System.Timers.Timer(0.5*1000);
+#if MAIN_THREAD_CHECK
+            System.Timers.Timer runTimer = new System.Timers.Timer(0.25*1000);
             bool processing = false;
             runTimer.Elapsed += (sender, e) => 
             {
@@ -67,7 +68,7 @@ namespace SplitAndMerge
                 processing = false;
             };
             runTimer.Start();
-/*#if UNITY_EDITOR || UNITY_STANDALONE
+#elif UNITY_EDITOR || UNITY_STANDALONE
       // Do nothing: ProcessQueue() will be called from the Unity Main Thread
 #else
             try
@@ -78,13 +79,13 @@ namespace SplitAndMerge
             {
                 Console.Write("Connection is dead: {0}", exc.Message);
             }
-#endif */
+#endif
         }
 
         public static void ProcessQueue()
         {
             string data;
-#if UNITY_EDITOR || UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
             while(m_queue.TryTake(out data))
             { // Exit as soon as done processing.
                 Console.WriteLine("STARTED " + data);
@@ -94,6 +95,12 @@ namespace SplitAndMerge
             while (true)
             { // A blocking call.
                 data = m_queue.Take();
+
+                if (Debugger.IsPureReplRequest(data))
+                {
+                    m_debugger.ProcessClientCommands(data);
+                    return;
+                }
                 ThreadPool.QueueUserWorkItem(RunRequestBlocked, data);
 #endif
             }

@@ -597,6 +597,8 @@ namespace SplitAndMerge
 
             Variable result = null;
 
+            bool alreadyInTryBlock = script.InTryBlock;
+            script.InTryBlock = true;
             try
             {
                 result = ProcessBlock(script);
@@ -604,6 +606,10 @@ namespace SplitAndMerge
             catch (Exception exc)
             {
                 exception = exc;
+            }
+            finally
+            {
+                script.InTryBlock = alreadyInTryBlock;
             }
 
             if (exception != null || result.IsReturn ||
@@ -708,16 +714,16 @@ namespace SplitAndMerge
             while (script.StillValid())
             {
                 int endGroupRead = script.GoToNextStatement();
-                if (endGroupRead > 0)
+                if (endGroupRead > 0 || !script.StillValid())
                 {
                     return result != null ? result : new Variable();
                 }
 
-                if (!script.StillValid())
+                /*if (!script.StillValid())
                 {
                     throw new ArgumentException("Couldn't process block [" +
                     script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]");
-                }
+                }*/
                 result = script.ExecuteTo();
 
                 if (result.IsReturn ||

@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define MAIN_THREAD_CHECK
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -97,7 +99,7 @@ namespace SplitAndMerge
 
             CheckBreakpointsNeeded = cmd == "continue" || cmd == "stepout";
             Trace("REQUEST: " + data);
-            if (cmd == "repl")
+            if (cmd == "repl" || cmd == "_repl")
             {
                 result = ProcessRepl(data.Substring(cmd.Length + 1));
                 SendBack(result);
@@ -275,6 +277,15 @@ namespace SplitAndMerge
             return filename;
         }
 
+        public static bool IsPureReplRequest(string data)
+        {
+            if (data.StartsWith("repl|"))
+            {
+                return true;
+            }
+            return false;
+        }
+
         string ProcessRepl(string repl)
         {
             ReplMode = true;
@@ -292,7 +303,8 @@ namespace SplitAndMerge
                 while (tempScript.Pointer < script.Length)
                 {
                     Trace("REPL Starting Exec");
-                    result = tempScript.__Execute();
+                    //result = tempScript.__Execute();
+                    result = Execute(tempScript);
                     Trace("REPL Finished Exec");
                     tempScript.GoToNextStatement();
                 }
@@ -334,34 +346,6 @@ namespace SplitAndMerge
 
             ExecuteNext(out processed);
             return LastResult;
-            /*try
-            {
-                if (m_mainInstance.m_steppingIns.Count > 0)
-                {
-                    Debugger stepIn = m_mainInstance.m_steppingIns.Peek();
-                    stepIn.m_completedStepIn.Set();
-                    return null;
-                }
-
-                ExecuteNext(out processed);
-                return LastResult;
-            }
-            catch (ParsingException exc)
-            {
-                string stack = exc.ExceptionStack;
-                string vars = GetVariables();
-                int varsCount = vars.Split('\n').Length;
-
-                string result = "exc\n" + exc.Message + "\n";
-                result += varsCount + "\n";
-                result += vars + "\n";
-                result += stack + "\n";
-
-                SendBack(result);
-
-                ParserFunction.InvalidateStacksAfterLevel(0);
-                return null;
-            }*/
         }
         public bool ExecuteNext(out string processed)
         {
@@ -392,41 +376,67 @@ namespace SplitAndMerge
                 return true;
             }
 
-            Trace("Starting Exec");
             Executing = true;
             try
             {
-                LastResult = m_debugging.__Execute();
+                //LastResult = m_debugging.__Execute();
+                LastResult = Execute(m_debugging);
             }
             catch (ParsingException exc)
             {
-                string stack = exc.ExceptionStack;
-                string vars = GetVariables();
-                int varsCount = vars.Split('\n').Length;
-
-                string result = "exc\n" + exc.Message + "\n";
-                result += varsCount + "\n";
-                result += vars + "\n";
-                result += stack + "\n";
-
-                SendBack(result);
-
-                ParserFunction.InvalidateStacksAfterLevel(0);
-                LastResult = null;
+                ProcessException(m_debugging, exc);
                 return true;
             }
+            finally
+            {
+                Executing = false;
+            }
 
-            Executing = false;
-            Trace("Finished Exec");
             m_debugging.GoToNextStatement();
 
-            int endPointer = m_debugging.Pointer;
-            processed = m_debugging.Substr(startPointer, endPointer - startPointer);
+            //int endPointer = m_debugging.Pointer;
+            //processed = m_debugging.Substr(startPointer, endPointer - startPointer);
 
             return done || Completed(m_debugging);
         }
 
-        public static void ThrowException(ParsingScript script, ParsingException exc)
+        public Variable Execute(ParsingScript script)
+        {
+            char[] toArray = Constants.END_PARSE_ARRAY;
+            Variable result = null;
+            Exception exception = null;
+#if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
+            // Do nothing: already on the main thread
+#elif __ANDROID__
+            scripting.Droid.MainActivity.TheView.RunOnUiThread(() => {
+#elif __IOS__
+            scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+            {
+#else
+#endif
+            try
+            {
+                result = script.Execute(toArray);
+            }
+            catch (ParsingException exc)
+            {
+                exception = exc;
+            }
+
+#if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
+            // Do nothing: already on the main thread
+#elif __ANDROID__ || __IOS__
+            });
+#endif
+
+            if (exception != null)
+            {
+                throw exception;
+            }
+            return result;
+        }
+
+        public static void ProcessException(ParsingScript script, ParsingException exc)
         {
             Debugger debugger = script.Debugger != null ? script.Debugger : m_mainInstance;
 

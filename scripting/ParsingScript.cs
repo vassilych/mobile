@@ -321,7 +321,7 @@ namespace SplitAndMerge
             Variable result = null;
 
             bool handleByDebugger = DebuggerServer.DebuggerAttached && !Debugger.Executing;
-            if (handleByDebugger)
+            if (DebuggerServer.DebuggerAttached)
             {
                 result = Debugger.CheckBreakpoints(this);
                 if (result != null)
@@ -344,7 +344,7 @@ namespace SplitAndMerge
                 {
                     if (handleByDebugger)
                     {
-                        Debugger.ThrowException(this, parseExc);
+                        Debugger.ProcessException(this, parseExc);
                     }
                     throw;
                 }
@@ -353,7 +353,7 @@ namespace SplitAndMerge
                     ParsingException parseExc = new ParsingException(exc.Message, this, exc);
                     if (handleByDebugger)
                     {
-                        Debugger.ThrowException(this, parseExc);
+                        Debugger.ProcessException(this, parseExc);
                     }
                     throw parseExc;
                 }
@@ -366,9 +366,11 @@ namespace SplitAndMerge
             char[] toArray = Constants.END_PARSE_ARRAY;
             Variable result = null;
             Exception exception = null;
-#if __ANDROID2__
+#if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
+            // Do nothing: already on the main thread
+#elif __ANDROID__
             scripting.Droid.MainActivity.TheView.RunOnUiThread(() => {
-#elif __IOS2__
+#elif __IOS__
             scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
             {
 #else
@@ -389,7 +391,9 @@ namespace SplitAndMerge
                     }
                     exception = new ParsingException(exc.Message, this, exc);
                 }
-#if __ANDROID2__ || __IOS2__
+#if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
+            // Do nothing: already on the main thread
+#elif __ANDROID__ || __IOS__
             });
 #endif
 
