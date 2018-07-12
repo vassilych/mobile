@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define UNITY_EDITOR
+
+using System;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
@@ -50,8 +52,22 @@ namespace SplitAndMerge
 
         static void StartProcessing(Object threadContext)
         {
-
-#if UNITY_EDITOR || UNITY_STANDALONE
+            System.Timers.Timer runTimer = new System.Timers.Timer(0.5*1000);
+            bool processing = false;
+            runTimer.Elapsed += (sender, e) => 
+            {
+                if (processing) {
+                    return;
+                }
+                processing = true;
+                scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+                {
+                    ProcessQueue();
+                });
+                processing = false;
+            };
+            runTimer.Start();
+/*#if UNITY_EDITOR || UNITY_STANDALONE
       // Do nothing: ProcessQueue() will be called from the Unity Main Thread
 #else
             try
@@ -62,47 +78,28 @@ namespace SplitAndMerge
             {
                 Console.Write("Connection is dead: {0}", exc.Message);
             }
-#endif
+#endif */
         }
 
-        public static void ProcessQueueOld()
-        {
-            string data;
-#if UNITY_EDITOR || UNITY_STANDALONE
-      while(m_queue.TryTake(out data))
-      { // Exit as soon as done processing.
-#else
-            while (true)
-            { // A blocking call.
-                data = m_queue.Take();
-#endif
-                if (OnRequest != null)
-                {
-                    OnRequest?.Invoke(m_debugger, data);
-                }
-                else
-                {
-                    m_debugger.ProcessClientCommands(data);
-                }
-            }
-        }
         public static void ProcessQueue()
         {
             string data;
 #if UNITY_EDITOR || UNITY_STANDALONE
             while(m_queue.TryTake(out data))
             { // Exit as soon as done processing.
+                Console.WriteLine("STARTED " + data);
                 m_debugger.ProcessClientCommands(data);
+                Console.WriteLine("DONE " + data);
 #else
             while (true)
             { // A blocking call.
                 data = m_queue.Take();
-                ThreadPool.QueueUserWorkItem(RunQueueRequestBlocked, data);
+                ThreadPool.QueueUserWorkItem(RunRequestBlocked, data);
 #endif
             }
         }
 
-        static void RunQueueRequestBlocked(Object threadContext)
+        static void RunRequestBlocked(Object threadContext)
         {
             string data = (string)threadContext;
             m_debugger.ProcessClientCommands(data);
@@ -129,8 +126,18 @@ namespace SplitAndMerge
                 while ((i = m_stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
                     data = System.Text.Encoding.UTF8.GetString(bytes, 0, i);
-                    m_queue.Add(data);
-                    //
+                    if (data.StartsWith("bye|"))
+                    {
+                        break;
+                    }
+                    else if (m_debugger.CanProcess(data))
+                    {
+                        ThreadPool.QueueUserWorkItem(RunRequestBlocked, data);
+                    }
+                    else
+                    {
+                        m_queue.Add(data);
+                    }
                 }
             }
             catch (Exception exc)
@@ -145,10 +152,6 @@ namespace SplitAndMerge
             m_client.Close();
         }
 
-        static void ThreadPoolCallback(Object threadContext)
-        {
-            m_debugger.ProcessClientCommands((string)threadContext);
-        }
         static void SendBack(string str)
         {
             byte[] msg = System.Text.Encoding.UTF8.GetBytes(str);

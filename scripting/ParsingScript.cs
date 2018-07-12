@@ -310,6 +310,7 @@ namespace SplitAndMerge
                                           to.ToString().ToCharArray();
             return Execute(toArray);
         }
+
         public Variable Execute(char[] toArray)
         {
             if (!m_data.EndsWith(Constants.END_STATEMENT.ToString()))
@@ -318,7 +319,9 @@ namespace SplitAndMerge
             }
 
             Variable result = null;
-            if (DebuggerServer.DebuggerAttached)
+
+            bool handleByDebugger = DebuggerServer.DebuggerAttached && !Debugger.Executing;
+            if (handleByDebugger)
             {
                 result = Debugger.CheckBreakpoints(this);
                 if (result != null)
@@ -326,8 +329,6 @@ namespace SplitAndMerge
                     return result;
                 }
             }
-
-            //Variable result = __Execute(toArray);
 
             if (InTryBlock)
             {
@@ -339,13 +340,21 @@ namespace SplitAndMerge
                 {
                     result = Parser.SplitAndMerge(this, toArray);
                 }
-                catch (ParsingException)
+                catch (ParsingException parseExc)
                 {
+                    if (handleByDebugger)
+                    {
+                        Debugger.ThrowException(this, parseExc);
+                    }
                     throw;
                 }
                 catch (Exception exc)
                 {
                     ParsingException parseExc = new ParsingException(exc.Message, this, exc);
+                    if (handleByDebugger)
+                    {
+                        Debugger.ThrowException(this, parseExc);
+                    }
                     throw parseExc;
                 }
             }
@@ -357,29 +366,30 @@ namespace SplitAndMerge
             char[] toArray = Constants.END_PARSE_ARRAY;
             Variable result = null;
             Exception exception = null;
-#if __ANDROID__
-            MainActivity.TheView.RunOnUiThread(() => {
-#elif __IOS__
-           scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() => {
+#if __ANDROID2__
+            scripting.Droid.MainActivity.TheView.RunOnUiThread(() => {
+#elif __IOS2__
+            scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+            {
 #else
 #endif
-           try
-           {
-               result = Parser.SplitAndMerge(this, toArray);
-           }
-           catch (ParsingException exc)
-           {
-               exception = exc;
-           }
-           catch (Exception exc)
-           {
-               if (InTryBlock)
-               {
-                   exception = exc;
-               }
-               exception = new ParsingException(exc.Message, this, exc);
-           }
-#if __ANDROID__ || __IOS__
+                try
+                {
+                    result = Parser.SplitAndMerge(this, toArray);
+                }
+                catch (ParsingException exc)
+                {
+                    exception = exc;
+                }
+                catch (Exception exc)
+                {
+                    if (InTryBlock)
+                    {
+                        exception = exc;
+                    }
+                    exception = new ParsingException(exc.Message, this, exc);
+                }
+#if __ANDROID2__ || __IOS2__
             });
 #endif
 

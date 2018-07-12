@@ -24,6 +24,7 @@ namespace SplitAndMerge
         public static bool Continue { get; private set; }
         public static bool SteppingIn { get; private set; }
         public static bool SteppingOut { get; private set; }
+        public static bool Executing { get; private set; }
         public static Breakpoints TheBreakpoints { get { return m_mainInstance.m_breakpoints; } }
 
         ParsingScript m_debugging;
@@ -62,9 +63,16 @@ namespace SplitAndMerge
             {
                 //msg = msg.Substring(0, 50);
             }
-            Console.WriteLine("==> {0}: In={1} Out={2} Cont={3} PB={4} SB={5} Stack={6} End={7} [{8}] {9}",
-                              Id, SteppingIn, SteppingOut, Continue, ProcessingBlock, SendBackResult,
-                              m_steppingIns.Count, End, output, msg);
+            try
+            {
+                Console.WriteLine("==> {0}: In={1} Out={2} Cont={3} PB={4} SB={5} Stack={6} End={7} [{8}] {9}",
+                                  Id, SteppingIn, SteppingOut, Continue, ProcessingBlock, SendBackResult,
+                                  m_steppingIns.Count, End, output, msg);
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine(exc);
+            }
         }
 
         public void ProcessClientCommands(string data)
@@ -283,13 +291,19 @@ namespace SplitAndMerge
             {
                 while (tempScript.Pointer < script.Length)
                 {
+                    Trace("REPL Starting Exec");
                     result = tempScript.__Execute();
+                    Trace("REPL Finished Exec");
                     tempScript.GoToNextStatement();
                 }
             }
             catch (Exception exc)
             {
                 return "Exception thrown: " + exc.Message;
+            }
+            finally
+            {
+                ReplMode = false;
             }
 
             string stringRes = Output + "\n";
@@ -298,10 +312,29 @@ namespace SplitAndMerge
             return stringRes;
         }
 
+        public bool CanProcess(string data)
+        {
+            if (m_mainInstance.m_steppingIns.Count == 0 ||
+                data.StartsWith("repl|"))
+            {
+                return false;
+            }
+            return true;
+        }
+
         Variable ProcessNext(out string processed)
         {
             processed = "";
-            try
+            if (m_mainInstance.m_steppingIns.Count > 0)
+            {
+                Debugger stepIn = m_mainInstance.m_steppingIns.Peek();
+                stepIn.m_completedStepIn.Set();
+                return null;
+            }
+
+            ExecuteNext(out processed);
+            return LastResult;
+            /*try
             {
                 if (m_mainInstance.m_steppingIns.Count > 0)
                 {
@@ -328,11 +361,10 @@ namespace SplitAndMerge
 
                 ParserFunction.InvalidateStacksAfterLevel(0);
                 return null;
-            }
+            }*/
         }
         public bool ExecuteNext(out string processed)
         {
-            string rest = m_debugging.Rest;
             processed = Output = "";
 
             if (m_debugging.Pointer >= m_script.Length - 1)
@@ -355,18 +387,62 @@ namespace SplitAndMerge
                 int endGroupRead = m_debugging.GoToNextStatement();
                 done = endGroupRead > 0;
             }
-            if (!done)
+            if (done)
             {
-                //CheckBreakpointsNeeded = false;
-                LastResult = m_debugging.__Execute();
-                CheckBreakpointsNeeded = true;
-                m_debugging.GoToNextStatement();
+                return true;
             }
+
+            Trace("Starting Exec");
+            Executing = true;
+            try
+            {
+                LastResult = m_debugging.__Execute();
+            }
+            catch (ParsingException exc)
+            {
+                string stack = exc.ExceptionStack;
+                string vars = GetVariables();
+                int varsCount = vars.Split('\n').Length;
+
+                string result = "exc\n" + exc.Message + "\n";
+                result += varsCount + "\n";
+                result += vars + "\n";
+                result += stack + "\n";
+
+                SendBack(result);
+
+                ParserFunction.InvalidateStacksAfterLevel(0);
+                LastResult = null;
+                return true;
+            }
+
+            Executing = false;
+            Trace("Finished Exec");
+            m_debugging.GoToNextStatement();
 
             int endPointer = m_debugging.Pointer;
             processed = m_debugging.Substr(startPointer, endPointer - startPointer);
 
             return done || Completed(m_debugging);
+        }
+
+        public static void ThrowException(ParsingScript script, ParsingException exc)
+        {
+            Debugger debugger = script.Debugger != null ? script.Debugger : m_mainInstance;
+
+            string stack = exc.ExceptionStack;
+            string vars = debugger.GetVariables();
+            int varsCount = vars.Split('\n').Length;
+
+            string result = "exc\n" + exc.Message + "\n";
+            result += varsCount + "\n";
+            result += vars + "\n";
+            result += stack + "\n";
+
+            debugger.SendBack(result);
+            debugger.LastResult = null;
+
+            ParserFunction.InvalidateStacksAfterLevel(0);
         }
 
         bool Completed(ParsingScript debugging)
@@ -489,9 +565,6 @@ namespace SplitAndMerge
 
             m_mainInstance.m_steppingIns.Push(stepIn);
 
-            int origLineNumber = stepInScript.GetOriginalLineNumber();
-            string filename = Path.GetFullPath(stepInScript.Filename);
-
             stepIn.Trace("Started StepIn, this: " + Id);
             CreateResultAndSendBack("next", Output, stepInScript);
 
@@ -508,6 +581,11 @@ namespace SplitAndMerge
                 }
                 stepIn.Output = "";
                 done = stepIn.ExecuteNext(out processed);
+
+                if (stepIn.LastResult == null)
+                {
+                    continue;
+                }
 
                 LastResult = stepIn.LastResult;
                 Output = stepIn.Output;
