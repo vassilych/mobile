@@ -15,7 +15,7 @@ namespace SplitAndMerge
     {
         public enum Action { NONE, FILE, NEXT, CONTINUE, STEP_IN, STEP_OUT, SET_BP, UNSET_BP };
 
-        static Debugger m_mainInstance;
+        public static Debugger MainInstance { get; set;  }
         public static Action<string> OnResult;
 
         static int m_id;
@@ -27,7 +27,7 @@ namespace SplitAndMerge
         public static bool SteppingIn { get; private set; }
         public static bool SteppingOut { get; private set; }
         public static bool Executing { get; private set; }
-        public static Breakpoints TheBreakpoints { get { return m_mainInstance.m_breakpoints; } }
+        public static Breakpoints TheBreakpoints { get { return MainInstance.m_breakpoints; } }
 
         ParsingScript m_debugging;
         string m_script;
@@ -51,7 +51,7 @@ namespace SplitAndMerge
 
         public Debugger()
         {
-            m_mainInstance = m_mainInstance == null ? this : m_mainInstance;
+            MainInstance = MainInstance == null ? this : MainInstance;
             Id = m_id++;
         }
 
@@ -112,15 +112,10 @@ namespace SplitAndMerge
             }
  
             Action action = StringToAction(cmd);
-            /*bool breakPointWaiting = TheBreakpoints.ProcessIfWaiting(action);
-            if (breakPointWaiting)
-            {
-                return;
-            }*/
 
             if (cmd == "file")
             {
-                m_mainInstance = this;
+                MainInstance = this;
                 string filename = data.Substring(cmd.Length + 1);
                 string rawScript = Utils.GetFileContents(filename);
 
@@ -326,8 +321,7 @@ namespace SplitAndMerge
 
         public bool CanProcess(string data)
         {
-            if (m_mainInstance.m_steppingIns.Count == 0 ||
-                data.StartsWith("repl|"))
+            if (MainInstance == null || MainInstance.m_steppingIns.Count == 0)
             {
                 return false;
             }
@@ -337,9 +331,9 @@ namespace SplitAndMerge
         Variable ProcessNext(out string processed)
         {
             processed = "";
-            if (m_mainInstance.m_steppingIns.Count > 0)
+            if (MainInstance != null && MainInstance.m_steppingIns.Count > 0)
             {
-                Debugger stepIn = m_mainInstance.m_steppingIns.Peek();
+                Debugger stepIn = MainInstance.m_steppingIns.Peek();
                 stepIn.m_completedStepIn.Set();
                 return null;
             }
@@ -438,7 +432,10 @@ namespace SplitAndMerge
 
         public static void ProcessException(ParsingScript script, ParsingException exc)
         {
-            Debugger debugger = script.Debugger != null ? script.Debugger : m_mainInstance;
+            Debugger debugger = script.Debugger != null ? script.Debugger : MainInstance;
+            if (debugger == null) {
+                return;
+            }
 
             string stack = exc.ExceptionStack;
             string vars = debugger.GetVariables();
@@ -463,7 +460,11 @@ namespace SplitAndMerge
 
         public static Variable CheckBreakpoints(ParsingScript stepInScript)
         {
-            var debugger = stepInScript.Debugger != null ? stepInScript.Debugger : m_mainInstance;
+            var debugger = stepInScript.Debugger != null ? stepInScript.Debugger : MainInstance;
+            if (debugger == null)
+            {
+                return null;
+            }
             return debugger.StepInBreakpointIfNeeded(stepInScript);
         }
 
@@ -573,7 +574,7 @@ namespace SplitAndMerge
             stepIn.ProcessingBlock = ProcessingBlock;
             stepInScript.Debugger = stepIn;
 
-            m_mainInstance.m_steppingIns.Push(stepIn);
+            MainInstance?.m_steppingIns.Push(stepIn);
 
             stepIn.Trace("Started StepIn, this: " + Id);
             CreateResultAndSendBack("next", Output, stepInScript);
@@ -610,7 +611,7 @@ namespace SplitAndMerge
             m_startFilename = stepIn.m_debugging.Filename;
             m_startLine = stepIn.m_debugging.OriginalLineNumber;
 
-            m_mainInstance.m_steppingIns.Pop();
+            MainInstance?.m_steppingIns.Pop();
             stepIn.Trace("Finished StepIn, this: " + Id);
         }
 
