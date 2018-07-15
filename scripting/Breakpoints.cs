@@ -38,7 +38,7 @@ namespace SplitAndMerge
             {
                 return;
             }
-            string filename = Path.GetFullPath(parts[1]);
+            string filename = Path.GetFileName(parts[1]);
 
             HashSet<int> bps = new HashSet<int>();
             int lineNr;
@@ -82,7 +82,7 @@ namespace SplitAndMerge
                 return false;
             }
 
-            string filename = Path.GetFullPath(script.Filename);
+            string filename = Path.GetFileName(script.Filename);
            
             HashSet<int> bps;
             if (!m_breakpoints.TryGetValue(filename, out bps))
