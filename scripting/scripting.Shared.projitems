@@ -37,6 +37,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DebuggerServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debugger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Breakpoints.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interpreter.Standalone.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />
@@ -1597,6 +1598,8 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\busyIndicators.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\unitTests.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\Launch2208.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\utilities.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\one_function.cscs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

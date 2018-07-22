@@ -128,26 +128,22 @@ namespace scripting
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
             ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
         }
+
         public static void RunScript(string fileName)
         {
             RegisterFunctions();
 
 #if __ANDROID__
-      UIVariable.WidgetTypes.Add(new DroidVariable());
+            UIVariable.WidgetTypes.Add(new DroidVariable());
 #elif __IOS__
             UIVariable.WidgetTypes.Add(new iOSVariable());
 #endif
 
             string script = FileToString(fileName);
-            Run(script);
-        }
-
-        public static Variable Run(string script)
-        {
             Variable result = null;
             try
             {
-                result = Interpreter.Instance.Process(script);
+                result = Interpreter.Instance.Process(script, fileName);
             }
             catch (Exception exc)
             {
@@ -156,8 +152,8 @@ namespace scripting
                 ParserFunction.InvalidateStacksAfterLevel(0);
                 throw;
             }
-            return result;
         }
+
         public static string FileToString(string filename)
         {
             string contents = "";
