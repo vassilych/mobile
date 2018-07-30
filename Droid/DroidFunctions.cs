@@ -193,7 +193,7 @@ namespace scripting.Droid
     }
     public static DroidVariable ExistingWidget(ParsingScript script, string varName)
     {
-      ParserFunction func = ParserFunction.GetFunction(varName);
+      ParserFunction func = ParserFunction.GetFunction(varName, script);
       if (func == null) {
         return null;
       }
@@ -778,7 +778,7 @@ namespace scripting.Droid
       string parentName = "";
       List<string> all = UIUtils.FindWidgets(rect, parentName, tabId, null);
       foreach (string widgetName in all) {
-        ParserFunction func = ParserFunction.GetFunction(widgetName);
+        ParserFunction func = ParserFunction.GetFunction(widgetName, script);
         DroidVariable widget = func.GetValue(script) as DroidVariable;
         Utils.CheckNotNull(widget, widgetName);
         View view = widget.ViewX;
