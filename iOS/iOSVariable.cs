@@ -952,7 +952,7 @@ namespace scripting.iOS
       if (viewName.Equals("root", StringComparison.OrdinalIgnoreCase)) {
         return null;
       }
-      ParserFunction func = ParserFunction.GetFunction(viewName);
+      ParserFunction func = ParserFunction.GetFunction(viewName, script);
       Utils.CheckNotNull(viewName, func);
       Variable viewValue = func.GetValue(script);
       iOSVariable viewVar = viewValue as iOSVariable;

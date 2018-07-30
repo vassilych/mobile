@@ -131,7 +131,7 @@ namespace scripting.iOS
     }
     public static iOSVariable ExistingWidget(ParsingScript script, string varName)
     {
-      ParserFunction func = ParserFunction.GetFunction(varName);
+      ParserFunction func = ParserFunction.GetFunction(varName, script);
       if (func == null) {
         return null;
       }
