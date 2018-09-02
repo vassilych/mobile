@@ -85,31 +85,9 @@ namespace SplitAndMerge
             Utils.CheckNotNull(funcName, custFunc);
 
             string body = Utils.BeautifyScript(custFunc.Body, custFunc.Header);
-            Translation.PrintScript(body, script);
+            Utils.PrintScript(body, script);
 
             return new Variable(body);
-        }
-    }
-
-    class TranslateFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name, true);
-
-            string language = args[0].AsString();
-            string funcName = args[1].AsString();
-
-            ParserFunction function = ParserFunction.GetFunction(funcName, script);
-            CustomFunction custFunc = function as CustomFunction;
-            Utils.CheckNotNull(funcName, custFunc);
-
-            string body = Utils.BeautifyScript(custFunc.Body, custFunc.Header);
-            string translated = Translation.TranslateScript(body, language, script);
-            Translation.PrintScript(translated, script);
-
-            return new Variable(translated);
         }
     }
 
@@ -220,6 +198,10 @@ namespace SplitAndMerge
         public ParsingScript ParentScript { set { m_parentScript = value; } }
         public int ParentOffset { set { m_parentOffset = value; } }
         public string Body { get { return m_body; } }
+
+        public int ArgumentCount { get { return m_args.Length; } }
+        public string Argument(int nIndex) { return m_args[nIndex]; }
+
         public string Header
         {
             get
@@ -234,138 +216,6 @@ namespace SplitAndMerge
         protected string[] m_args;
         protected ParsingScript m_parentScript = null;
         protected int m_parentOffset = 0;
-    }
-
-    class CompiledFunctionCreator : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string funcReturn, funcName;
-            Utils.GetCompiledArgs(script, out funcReturn, out funcName);
-
-            Precompiler.RegisterReturnType(funcName, funcReturn);
-
-            Dictionary<string, Variable> argsMap;
-            string[] args = Utils.GetCompiledFunctionSignature(script, out argsMap);
-
-            script.MoveForwardIf(Constants.START_GROUP, Constants.SPACE);
-            int parentOffset = script.Pointer;
-
-            string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
-
-            Precompiler precompiler = new Precompiler(funcName, args, argsMap, body, script);
-            precompiler.Compile();
-
-            CustomCompiledFunction customFunc = new CustomCompiledFunction(funcName, body, args, precompiler, argsMap);
-            customFunc.ParentScript = script;
-            customFunc.ParentOffset = parentOffset;
-
-            ParserFunction.RegisterFunction(funcName, customFunc, false /* not native */);
-
-            return new Variable(funcName);
-        }
-    }
-    class CustomCompiledFunction : CustomFunction
-    {
-        internal CustomCompiledFunction(string funcName,
-                                        string body, string[] args,
-                                        Precompiler precompiler,
-                                        Dictionary<string, Variable> argsMap)
-          : base(funcName, body, args)
-        {
-            m_precompiler = precompiler;
-            m_argsMap = argsMap;
-        }
-
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            script.MoveBackIf(Constants.START_GROUP);
-
-            if (args.Count != m_args.Length)
-            {
-                throw new ArgumentException("Function [" + m_name + "] arguments mismatch: " +
-                                    m_args.Length + " declared, " + args.Count + " supplied");
-            }
-
-            Variable result = Run(args);
-            return result;
-        }
-
-        public Variable Run(List<Variable> args)
-        {
-            RegisterArguments(args);
-
-            List<string> argsStr = new List<string>();
-            List<double> argsNum = new List<double>();
-            List<List<string>> argsArrStr = new List<List<string>>();
-            List<List<double>> argsArrNum = new List<List<double>>();
-            List<Dictionary<string, string>> argsMapStr = new List<Dictionary<string, string>>();
-            List<Dictionary<string, double>> argsMapNum = new List<Dictionary<string, double>>();
-
-            for (int i = 0; i < m_args.Length; i++)
-            {
-                Variable typeVar = m_argsMap[m_args[i]];
-                if (typeVar.Type == Variable.VarType.STRING)
-                {
-                    argsStr.Add(args[i].AsString());
-                }
-                else if (typeVar.Type == Variable.VarType.NUMBER)
-                {
-                    argsNum.Add(args[i].AsDouble());
-                }
-                else if (typeVar.Type == Variable.VarType.ARRAY_STR)
-                {
-                    List<string> subArrayStr = new List<string>();
-                    var tuple = args[i].Tuple;
-                    for (int j = 0; j < tuple.Count; j++)
-                    {
-                        subArrayStr.Add(tuple[j].AsString());
-                    }
-                    argsArrStr.Add(subArrayStr);
-                }
-                else if (typeVar.Type == Variable.VarType.ARRAY_NUM)
-                {
-                    List<double> subArrayNum = new List<double>();
-                    var tuple = args[i].Tuple;
-                    for (int j = 0; j < tuple.Count; j++)
-                    {
-                        subArrayNum.Add(tuple[j].AsDouble());
-                    }
-                    argsArrNum.Add(subArrayNum);
-                }
-                else if (typeVar.Type == Variable.VarType.MAP_STR)
-                {
-                    Dictionary<string, string> subMapStr = new Dictionary<string, string>();
-                    var tuple = args[i].Tuple;
-                    var keys = args[i].GetKeys();
-                    for (int j = 0; j < tuple.Count; j++)
-                    {
-                        subMapStr.Add(keys[j], tuple[j].AsString());
-                    }
-                    argsMapStr.Add(subMapStr);
-                }
-                else if (typeVar.Type == Variable.VarType.MAP_NUM)
-                {
-                    Dictionary<string, double> subMapNum = new Dictionary<string, double>();
-                    var tuple = args[i].Tuple;
-                    var keys = args[i].GetKeys();
-                    for (int j = 0; j < tuple.Count; j++)
-                    {
-                        subMapNum.Add(keys[j], tuple[j].AsDouble());
-                    }
-                    argsMapNum.Add(subMapNum);
-                }
-            }
-
-            Variable result = m_precompiler.Run(argsStr, argsNum, argsArrStr, argsArrNum, argsMapStr, argsMapNum, false);
-            ParserFunction.PopLocalVariables();
-
-            return result;
-        }
-
-        Precompiler m_precompiler;
-        Dictionary<string, Variable> m_argsMap;
     }
 
     class StringOrNumberFunction : ParserFunction
@@ -670,6 +520,16 @@ namespace SplitAndMerge
                 return result;
             }
 
+            // Now check that this is an object:
+            if (!string.IsNullOrWhiteSpace(m_propName))
+            {
+                Variable propValue = m_value.GetProperty(m_propName, script);
+                string temp = m_propName;
+                m_propName = null; // Need this trick in case the below statement throws
+                Utils.CheckNotNull(propValue, temp);
+                return propValue;
+            }
+
             // Otherwise just return the stored value.
             return m_value;
         }
@@ -686,10 +546,15 @@ namespace SplitAndMerge
         {
             set { m_arrayIndices = value; }
         }
+        public string PropertyName
+        {
+            set { m_propName = value; }
+        }
 
-        private Variable m_value;
-        private int m_delta = 0;
-        private List<Variable> m_arrayIndices = null;
+        Variable m_value;
+        int m_delta = 0;
+        List<Variable> m_arrayIndices = null;
+        string m_propName;
     }
     class IncrementDecrementFunction : ActionFunction, INumericFunction
     {
@@ -852,6 +717,12 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             Variable varValue = Utils.GetItem(script);
+            // First try processing as an object (with a dot notation):
+            Variable result = ProcessObject(script, varValue);
+            if (result != null)
+            {
+                return result;
+            }
 
             // Check if the variable to be set has the form of x[a][b]...,
             // meaning that this is an array element.
@@ -879,6 +750,24 @@ namespace SplitAndMerge
 
             ParserFunction.AddGlobalOrLocalVariable(m_name, new GetVarFunction(array));
             return array;
+        }
+
+        Variable ProcessObject(ParsingScript script, Variable varValue)
+        {
+            int ind = m_name.IndexOf(".");
+            if (ind <= 0)
+            {
+                return null;
+            }
+            string name = m_name.Substring(0, ind);
+            string prop = m_name.Substring(ind + 1);
+
+            ParserFunction existing = ParserFunction.GetFunction(name, script);
+            Variable baseValue = existing != null ? existing.GetValue(script) : new Variable(Variable.VarType.ARRAY);
+            baseValue.SetProperty(prop, varValue);
+
+            ParserFunction.AddGlobalOrLocalVariable(name, new GetVarFunction(baseValue));
+            return varValue.DeepClone();
         }
 
         override public ParserFunction NewInstance()
@@ -965,7 +854,10 @@ namespace SplitAndMerge
             for (int counter = fromLine; counter < lines.Tuple.Count; counter++)
             {
                 Variable lineVar = lines.Tuple[counter];
+#pragma warning disable 219
+                // bugbug - the toAdd has side effects
                 Variable toAdd = new Variable(counter - fromLine);
+#pragma warning restore 219
                 string line = lineVar.AsString();
                 var tokens = line.Split(sep);
                 Variable tokensVar = new Variable(Variable.VarType.ARRAY);
@@ -1101,47 +993,9 @@ namespace SplitAndMerge
 
             ParserFunction.AddGlobalOrLocalVariable(varName,
                                                 new GetVarFunction(mapVar));
+            // Script - Need to enable the warnings
+#pragma warning restore 219
             return mapVar;
-        }
-    }
-    class GetColumnFunction : ParserFunction, IArrayFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
-
-            Variable arrayVar = Utils.GetSafeVariable(args, 0);
-            int col = Utils.GetSafeInt(args, 1);
-            int fromCol = Utils.GetSafeInt(args, 2, 0);
-
-            var tuple = arrayVar.Tuple;
-
-            List<Variable> result = new List<Variable>(tuple.Count);
-            for (int i = fromCol; i < tuple.Count; i++)
-            {
-                Variable current = tuple[i];
-                if (current.Tuple == null || current.Tuple.Count <= col)
-                {
-                    throw new ArgumentException(m_name + ": Index [" + col + "] doesn't exist in column " +
-                                                i + "/" + (tuple.Count - 1));
-                }
-                result.Add(current.Tuple[col]);
-            }
-
-            return new Variable(result);
-        }
-    }
-    class GetAllKeysFunction : ParserFunction, IArrayFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Variable varName = Utils.GetItem(script);
-            Utils.CheckNotNull(varName, m_name);
-
-            List<Variable> results = varName.GetAllKeys();
-
-            return new Variable(results);
         }
     }
 
@@ -1169,7 +1023,7 @@ namespace SplitAndMerge
             }
 
             // 3. Convert type to string.
-            string type = Constants.TypeToString(element.Type);
+            string type = element.GetTypeString();
             script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
 
             Variable newValue = new Variable(type);
@@ -1234,6 +1088,81 @@ namespace SplitAndMerge
                                                  new GetVarFunction(currentValue));
 
             return currentValue;
+        }
+    }
+
+    class GetPropertiesFunction : ParserFunction, IArrayFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name, true);
+
+            Variable baseValue = args[0];
+            List<Variable> props = baseValue.GetProperties();
+            return new Variable(props);
+        }
+    }
+
+    class GetPropertyFunction : ParserFunction, IArrayFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name, true);
+
+            Variable baseValue = args[0];
+            string propName = Utils.GetSafeString(args, 1);
+
+            Variable propValue = baseValue.GetProperty(propName, script);
+            Utils.CheckNotNull(propValue, propName);
+
+            return new Variable(propValue);
+        }
+        public static Variable GetProperty(ParsingScript script, string sPropertyName)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, "GetProperty", true);
+
+            Variable baseValue = args[0];
+
+            Variable propValue = baseValue.GetProperty(sPropertyName, script);
+            Utils.CheckNotNull(propValue, sPropertyName);
+
+            return new Variable(propValue);
+        }
+    }
+
+    class SetPropertyFunction : ParserFunction, IArrayFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 3, m_name, true);
+
+            Variable baseValue = args[0];
+            string propName    = Utils.GetSafeString(args, 1);
+            Variable propValue = Utils.GetSafeVariable(args, 2);
+
+            Variable result = baseValue.SetProperty(propName, propValue);
+
+            ParserFunction.AddGlobalOrLocalVariable(baseValue.ParsingToken,
+                                                    new GetVarFunction(baseValue));
+            return result;
+        }
+        public static Variable SetProperty(ParsingScript script, string sPropertyName)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, "SetProperty", true);
+
+            Variable baseValue = args[0];
+            Variable propValue = Utils.GetSafeVariable(args, 1);
+
+            Variable result = baseValue.SetProperty(sPropertyName, propValue);
+
+            ParserFunction.AddGlobalOrLocalVariable(baseValue.ParsingToken,
+                                                    new GetVarFunction(baseValue));
+            return result;
         }
     }
 }
