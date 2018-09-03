@@ -24,6 +24,8 @@ using Xamarin.Forms;
 
 using SplitAndMerge;
 
+// IMPORTANT - it works with Syncfusion 16.1.0.26.
+// No garanties for other versions!!!
 namespace scripting.iOS
 {
   public class SfWidget : iOSVariable
