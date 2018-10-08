@@ -25,7 +25,8 @@ namespace SplitAndMerge
         public static bool SteppingOut { get; private set; }
         public static bool Executing { get; private set; }
         public static bool ProcessingClientRequest { get; private set; }
-        public static Breakpoints TheBreakpoints { get { return MainInstance.m_breakpoints; } }
+        public static Breakpoints TheBreakpoints
+        { get { return (MainInstance == null ? Breakpoints.Instance : MainInstance.m_breakpoints); } }
 
         public bool InInclude { get; private set; }
         public int Id { get; private set; }
@@ -119,7 +120,7 @@ namespace SplitAndMerge
                 m_script = Utils.ConvertToScript(rawScript, out m_char2Line);
                 m_debugging = new ParsingScript(m_script, 0, m_char2Line);
                 m_debugging.Filename = filename;
-                m_debugging.OriginalScript = m_script;
+                m_debugging.OriginalScript = rawScript; //m_script;
                 m_debugging.Debugger = this;
             }
             else if (action == DebuggerUtils.DebugAction.VARS)
@@ -417,7 +418,7 @@ namespace SplitAndMerge
         public static Variable CheckBreakpoints(ParsingScript stepInScript)
         {
             var debugger = stepInScript.Debugger != null ? stepInScript.Debugger : MainInstance;
-            if (debugger == null)
+            if (debugger == null || stepInScript.DisableBreakpoints)
             {
                 return null;
             }
@@ -447,7 +448,7 @@ namespace SplitAndMerge
             ParsingScript tempScript = new ParsingScript(stepInScript.String, stepInScript.Pointer);
             tempScript.ParentScript = stepInScript;
             tempScript.InTryBlock = stepInScript.InTryBlock;
-            string body = Utils.GetBodyBetween(tempScript, Constants.START_GROUP, Constants.END_GROUP);
+            /* string body = */ Utils.GetBodyBetween(tempScript, Constants.START_GROUP, Constants.END_GROUP);
 
             Trace("Started ProcessBlock");
             StepIn(stepInScript);

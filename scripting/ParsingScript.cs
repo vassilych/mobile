@@ -14,6 +14,7 @@ namespace SplitAndMerge
         private string m_originalScript;// original raw script
         private int m_scriptOffset = 0; // used in functions defined in bigger scripts
         private Dictionary<int, int> m_char2Line = null; // pointers to the original lines
+        private string m_currentAssign; // current variable name being assigned a value
 
         public int Pointer
         {
@@ -39,6 +40,7 @@ namespace SplitAndMerge
         }
         public int ScriptOffset
         {
+            get { return m_scriptOffset; }
             set { m_scriptOffset = value; }
         }
         public string Filename
@@ -51,10 +53,19 @@ namespace SplitAndMerge
             get { return m_originalScript; }
             set { m_originalScript = value; }
         }
+        public string CurrentAssign
+        {
+            get { return m_currentAssign; }
+            set { m_currentAssign = value; }
+        }
 
         public Debugger Debugger;
+        public bool DisableBreakpoints;
         public bool InTryBlock;
         public ParsingScript ParentScript;
+
+        public CSCSClass CurrentClass { get; set; }
+        public CSCSClass.ClassInstance ClassInstance { get; set; }
 
         public ParsingScript(string data, int from = 0,
                              Dictionary<int, int> char2Line = null)
@@ -72,6 +83,7 @@ namespace SplitAndMerge
             m_filename = other.Filename;
             m_originalScript = other.OriginalScript;
             Debugger = other.Debugger;
+            InTryBlock = other.InTryBlock;
         }
 
         public int Size() { return m_data.Length; }

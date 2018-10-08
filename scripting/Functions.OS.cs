@@ -33,7 +33,7 @@ namespace SplitAndMerge
             sb.Append(start);
             foreach (var arg in args)
             {
-                sb.Append(arg.AsString() + (addSpace ? " ": ""));
+                sb.Append(arg.AsString() + (addSpace ? " " : ""));
             }
 
             string output = sb.ToString() + (addLine ? Environment.NewLine : string.Empty);
@@ -76,8 +76,28 @@ namespace SplitAndMerge
             {
                 sep = "\t";
             }
+
+            string[] tokens;
             var sepArray = sep.ToCharArray();
-            string[] tokens = data.Split(sepArray);
+            if (sepArray.Count() == 1)
+            {
+                tokens = data.Split(sepArray);
+            }
+            else
+            {
+                List<string> tokens_ = new List<string>();
+                var rx = new System.Text.RegularExpressions.Regex(sep);
+                tokens = rx.Split(data);
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(tokens[i]) || sep.Contains(tokens[i]))
+                    {
+                        continue;
+                    }
+                    tokens_.Add(tokens[i]);
+                }
+                tokens = tokens_.ToArray();
+            }
 
             var option = Utils.GetSafeString(args, 2);
 
@@ -394,18 +414,26 @@ namespace SplitAndMerge
     }
     class DebuggerFunction : ParserFunction
     {
+        bool m_start = true;
+        public DebuggerFunction(bool start = true)
+        {
+            m_start = start;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
+            string res = "OK";
             List<Variable> args = script.GetFunctionArgs();
-            int port = Utils.GetSafeInt(args, 0, 13337);
-            DebuggerServer.StartServer(port);
+            if (m_start)
+            {
+                int port = Utils.GetSafeInt(args, 0, 13337);
+                res = DebuggerServer.StartServer(port);
+            }
+            else
+            {
+                DebuggerServer.StopServer();
+            }
 
-            DebuggerServer.OnRequest += ProcessRequest;
-            return Variable.EmptyInstance;
-        }
-        public void ProcessRequest(Debugger debugger, string request)
-        {
-            debugger.ProcessClientCommands(request);
+            return new Variable(res);
         }
     }
 }

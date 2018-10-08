@@ -70,6 +70,8 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.FOR, new ForStatement());
             ParserFunction.RegisterFunction(Constants.BREAK, new BreakStatement());
             ParserFunction.RegisterFunction(Constants.CONTINUE, new ContinueStatement());
+            ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
+            ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
@@ -89,12 +91,14 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
             ParserFunction.RegisterFunction(Constants.ASIN, new AsinFunction());
             ParserFunction.RegisterFunction(Constants.CEIL, new CeilFunction());
+            ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
             ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
             ParserFunction.RegisterFunction(Constants.COS, new CosFunction());
             ParserFunction.RegisterFunction(Constants.DEEP_COPY, new DeepCopyFunction());
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
             ParserFunction.RegisterFunction(Constants.EXIT, new ExitFunction());
             ParserFunction.RegisterFunction(Constants.EXP, new ExpFunction());
+            ParserFunction.RegisterFunction(Constants.FIND_INDEX, new FindIndexFunction());
             ParserFunction.RegisterFunction(Constants.FLOOR, new FloorFunction());
             ParserFunction.RegisterFunction(Constants.INDEX_OF, new IndexOfFunction());
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
@@ -113,7 +117,8 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.SIZE, new SizeFunction());
             ParserFunction.RegisterFunction(Constants.SLEEP, new SleepFunction());
             ParserFunction.RegisterFunction(Constants.SQRT, new SqrtFunction());
-            ParserFunction.RegisterFunction(Constants.START_DEBUGGER, new DebuggerFunction());
+            ParserFunction.RegisterFunction(Constants.START_DEBUGGER, new DebuggerFunction(true));
+            ParserFunction.RegisterFunction(Constants.STOP_DEBUGGER, new DebuggerFunction(false));
             ParserFunction.RegisterFunction(Constants.STR_CONTAINS, new StringManipulationFunction(StringManipulationFunction.Mode.CONTAINS));
             ParserFunction.RegisterFunction(Constants.STR_LOWER, new StringManipulationFunction(StringManipulationFunction.Mode.LOWER));
             ParserFunction.RegisterFunction(Constants.STR_ENDS_WITH, new StringManipulationFunction(StringManipulationFunction.Mode.ENDS_WITH));

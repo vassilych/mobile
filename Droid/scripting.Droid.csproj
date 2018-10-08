@@ -190,6 +190,10 @@
     <Reference Include="Syncfusion.SfImageEditor.Android">
       <HintPath>..\packages\Syncfusion.Xamarin.SfImageEditor.Android.15.4.0.20\lib\MonoAndroid10\Syncfusion.SfImageEditor.Android.dll</HintPath>
     </Reference>
+    <Reference Include="Java.Interop" />
+    <Reference Include="Java.Interop.Export">
+      <HintPath>..\..\..\..\..\..\Library\Frameworks\Xamarin.Android.framework\Versions\9.0.0-20\lib\xamarin.android\xbuild\Xamarin\Android\Java.Interop.Export.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />

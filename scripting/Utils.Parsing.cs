@@ -272,6 +272,13 @@ namespace SplitAndMerge
             tempScript.ParentScript = script;
             tempScript.InTryBlock = script.InTryBlock;
 
+            if (script.Current != start && script.TryPrev() != start &&
+               (script.Current == ' ' || script.TryPrev() == ' '))
+            { // Allow functions with space separated arguments
+                start = ' ';
+                end = Constants.END_STATEMENT;
+            }
+
             // ScriptingEngine - body is unsed (used in Debugging) but GetBodyBetween has sideeffects			
 #pragma warning disable 219
             string body = Utils.GetBodyBetween(tempScript, start, end);
@@ -305,6 +312,18 @@ namespace SplitAndMerge
             return args;
         }
 
+        public static List<Variable> GetFunctionArgsAsStrings(ParsingScript script)
+        {
+            string[] signature = GetFunctionSignature(script);
+            List<Variable> args = new List<Variable>(signature.Length);
+            for (int i = 0; i < signature.Length; i++)
+            {
+                args.Add(new Variable(signature[i]));
+            }
+
+            return args;
+        }
+    
         public static string[] GetFunctionSignature(ParsingScript script)
         {
             script.MoveForwardIf(Constants.START_ARG, Constants.SPACE);
@@ -312,7 +331,35 @@ namespace SplitAndMerge
             int endArgs = script.FindFirstOf(Constants.END_ARG.ToString());
             if (endArgs < 0)
             {
+                endArgs = script.FindFirstOf(Constants.END_STATEMENT.ToString());
+            }
+
+            if (endArgs < 0)
+            {
                 throw new ArgumentException("Couldn't extract function signature");
+            }
+
+            string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
+            string[] args = argStr.Split(Constants.NEXT_ARG_ARRAY, StringSplitOptions.RemoveEmptyEntries);
+
+            args = args.Select(element => element.Trim()).ToArray();
+            script.Pointer = endArgs + 1;
+
+            return args;
+        }
+
+        public static string[] GetBaseClasses(ParsingScript script)
+        {
+            if (script.Current != ':')
+            {
+                return new string[0];
+            }
+            script.Forward();
+
+            int endArgs = script.FindFirstOf(Constants.START_GROUP.ToString());
+            if (endArgs < 0)
+            {
+                throw new ArgumentException("Couldn't extract base classes");
             }
 
             string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
@@ -465,9 +512,11 @@ namespace SplitAndMerge
             int lineNumber = 0;
             int lastScriptLength = 0;
 
+            //string result = "";
             for (int i = 0; i < source.Length; i++)
             {
                 char ch = source[i];
+                //char prev = i - 1 >= 0 ? source[i - 1] : Constants.EMPTY;
                 char next = i + 1 < source.Length ? source[i + 1] : Constants.EMPTY;
 
                 if (ch == '\n')
@@ -476,6 +525,9 @@ namespace SplitAndMerge
                     {
                         char2Line[sb.Length - 1] = lineNumber;
                         lastScriptLength = sb.Length;
+
+                        //result += lineNumber + ": " + (sb.Length - 1) + " " +
+                        //          source.Substring(i - Math.Min(i, 6), Math.Min(i, 6)) + "\n";
                     }
                     lineNumber++;
                 }
@@ -588,6 +640,10 @@ namespace SplitAndMerge
             {
                 char2Line[sb.Length - 1] = lineNumber;
                 lastScriptLength = sb.Length;
+
+                //result += lineNumber + ": " + (sb.Length - 1) + " " +
+                //  source.Substring(source.Length - Math.Min(source.Length, 40), Math.Min(source.Length, 40)) + "\n";
+
             }
             return sb.ToString();
         }

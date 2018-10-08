@@ -44,6 +44,7 @@ namespace SplitAndMerge
 
         public const string BREAK = "break";
         public const string CATCH = "catch";
+        public const string CANCEL = "cancel_operation";
         public const string COMMENT = "//";
         public const string CONTAINS = "contains";
         public const string CONTINUE = "continue";
@@ -51,9 +52,11 @@ namespace SplitAndMerge
         public const string ELSE_IF = "elif";
         public const string FOR = "for";
         public const string FUNCTION = "function";
+        public const string CLASS = "class";
         public const string COMPILED_FUNCTION = "cfunction";
         public const string IF = "if";
         public const string INCLUDE = "include";
+        public const string NEW = "new";
         public const string RETURN = "return";
         public const string THROW = "throw";
         public const string TRY = "try";
@@ -76,11 +79,14 @@ namespace SplitAndMerge
         public const string ENV = "env";
         public const string EXIT = "exit";
         public const string EXP = "exp";
+        public const string FIND_INDEX = "find_index";
         public const string FLOOR = "floor";
         public const string GET_PROPERTIES = "GetPropertyStrings";
         public const string GET_PROPERTY = "GetProperty";
         public const string INDEX_OF = "indexof";
         public const string LOCK = "lock";
+        public const string HELP = "help";
+        public const string LOCAL_IP = "LocalIP";
         public const string LOG = "log";
         public const string NOW = "Now";
         public const string OBJECT_PROPERTIES = "properties";
@@ -127,6 +133,7 @@ namespace SplitAndMerge
         public const string TO_STRING = "string";
 
         public const string START_DEBUGGER = "StartDebugger";
+        public const string STOP_DEBUGGER  = "StopDebugger";
 
         public static string END_ARG_STR = END_ARG.ToString();
         public static string NULL_ACTION = END_ARG.ToString();
@@ -158,14 +165,14 @@ namespace SplitAndMerge
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
-            APPENDLINE, CD, CONNECTSRV, COPY, DELETE, DIR, EXISTS, FINDFILES, FINDSTR,
-            FUNCTION, COMPILED_FUNCTION, MKDIR, MORE, MOVE, PRINT, READFILE, RUN, SHOW, STARTSRV, TAIL,
+            APPENDLINE, CD, CLASS, CONNECTSRV, COPY, DELETE, DIR, EXISTS, FINDFILES, FINDSTR,
+            FUNCTION, COMPILED_FUNCTION, HELP, MKDIR, MORE, MOVE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV, TAIL,
             TRANSLATE, WRITE, WRITELINE, WRITENL
         };
 #else
-       public static List<string> FUNCT_WITH_SPACE = new List<string> {
-            FUNCTION, SHOW
-       };
+        public static List<string> FUNCT_WITH_SPACE = new List<string> {
+            CLASS, FUNCTION, HELP, NEW, SHOW
+        };
 #endif
         // Functions that allow a space separator after them, on top of parentheses but
         // only once, i.e. function arguments are not allowed to have spaces
@@ -184,14 +191,15 @@ namespace SplitAndMerge
 
         public static List<string> RESERVED = new List<string>
         {
-            BREAK, CONTINUE, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE, RETURN, THROW, TRY, CATCH, COMMENT,
+            BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
+            RETURN, THROW, TRY, CATCH, COMMENT,
             ASSIGNMENT, AND, OR, EQUAL, NOT_EQUAL, LESS, LESS_EQ, GREATER, GREATER_EQ,
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
         };
         public static List<string> ARITHMETIC_EXPR = new List<string>
         {
-            "*", "*=" , "-", "-=", "/", "/="
+            "*", "*=" , "+", "+=" , "-", "-=", "/", "/="
         };
 
         public static string STATEMENT_SEPARATOR = ";{}";

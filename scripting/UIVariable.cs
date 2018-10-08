@@ -15,7 +15,7 @@ namespace SplitAndMerge
         public enum UIType
         {
             NONE, LOCATION, VIEW, BUTTON, LABEL, TEXT_FIELD, TEXT_VIEW, EDIT_VIEW, PICKER_VIEW, PICKER_IMAGES,
-            LIST_VIEW, COMBOBOX, IMAGE_VIEW, SWITCH, SLIDER, STEPPER, SEGMENTED, CUSTOM
+            LIST_VIEW, COMBOBOX, IMAGE_VIEW, INDICATOR, SWITCH, SLIDER, STEPPER, SEGMENTED, CUSTOM
         };
         public UIVariable()
         {
