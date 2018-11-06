@@ -75,6 +75,13 @@ namespace scripting.iOS
                     ((UITextField)widget).TextColor = UIColor.Black;
                     ((UITextField)widget).Placeholder = initArg;
                     MakeBottomBorder(widget, (int)rect.Width, (int)rect.Height);
+                    ((UITextField)widget).ShouldReturn = (textField) => {
+                        textField.ResignFirstResponder();
+                        return true;
+                    };
+                    /*var parentView = GetParentView();
+                    var g = new UITapGestureRecognizer(() => parentView.EndEditing(true));
+                    parentView.AddGestureRecognizer(g);*/
                     break;
                 case "TextEditView":
                     type = UIVariable.UIType.TEXT_VIEW;
@@ -228,6 +235,15 @@ namespace scripting.iOS
                 widgetFunc.Step = step;
             }
         }
+        public virtual bool MakeSecure(bool secure)
+        {
+            if (m_viewX is UITextField)
+            {
+                ((UITextField)m_viewX).SecureTextEntry = secure;
+                return true;
+            }
+            return false;
+        }
         public virtual double GetValue()
         {
             double result = 0;
@@ -307,6 +323,41 @@ namespace scripting.iOS
             }
             return true;
         }
+
+        public virtual bool Enable(bool enable)
+        {
+            if (WidgetType == UIType.COMBOBOX)
+            {
+                ViewX.UserInteractionEnabled = enable;
+            }
+            else if (ViewX is UIButton)
+            {
+                ((UIButton)ViewX).Enabled = enable;
+            }
+            else if (ViewX is UILabel)
+            {
+                ((UILabel)ViewX).Enabled = enable;
+            }
+            else if (ViewX is UITextField)
+            {
+                ((UITextField)ViewX).Enabled = enable;
+            }
+            else if (ViewX is UITextView)
+            {
+                ((UITextView)ViewX).UserInteractionEnabled = enable;
+            }
+            else if (ViewX is UIPickerView)
+            {
+                UIPickerView picker = ViewX as UIPickerView;
+                picker.UserInteractionEnabled = enable;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
+
         public virtual bool SetText(string text, string alignment = null, bool tiggered = false)
         {
             m_originalText = text;
@@ -609,16 +660,13 @@ namespace scripting.iOS
             int pickerY = mainHeight - pickerHeight + 20;
 
             m_picker = new UIPickerView();
-            m_button = new UIButton();
             m_button2 = new UIButton();
-
-            m_button.Frame = rect;
 
             m_picker.Frame = new CGRect(0, pickerY, pickerWidth, pickerHeight);
             m_button2.Frame = new CGRect(0, pickerY - 20, pickerWidth, 40);
 
-            string alignment = "", color1 = "", color2 = "", closeLabel = "";
-            Utils.Extract(argument, ref alignment, ref color1, ref color2, ref closeLabel);
+            string alignment = "", color1 = "", color2 = "", closeLabel = "", mode = "view";
+            Utils.Extract(argument, ref alignment, ref color1, ref color2, ref closeLabel, ref mode);
             m_alignment = alignment;
             Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al =
               UtilsiOS.GetAlignment(alignment);
@@ -648,6 +696,8 @@ namespace scripting.iOS
                 m_picker.BackgroundColor = UtilsiOS.String2Color(color2);
             }
 
+            m_button = new UIButton();
+            m_button.Frame = rect;
             //m_button.SetTitle(extraLabel, UIControlState.Normal);
             m_button.BackgroundColor = UIColor.Clear;
             m_button.SetTitleColor(UIColor.Black, UIControlState.Normal);
@@ -696,12 +746,12 @@ namespace scripting.iOS
                 mainView.BecomeFirstResponder();
             };
 
-            mainView.AddSubview(m_button);
+            m_viewX = m_button;
+            mainView.AddSubview(m_viewX);
 
             m_viewY.AddSubview(m_picker);
             m_viewY.AddSubview(m_button2);
 
-            m_viewX = m_button;
             m_viewX.Tag = ++m_currentTag;
         }
 
@@ -1169,6 +1219,7 @@ namespace scripting.iOS
         UIPickerView m_picker;
         UIButton m_button;
         UIButton m_button2;
+        UILabel m_label;
 
         bool m_bold;
         bool m_italic;
