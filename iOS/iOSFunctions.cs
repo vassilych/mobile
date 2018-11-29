@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Threading;
 using CoreAnimation;
 using CoreGraphics;
 using Foundation;
@@ -76,6 +78,7 @@ namespace scripting.iOS
             double screenRatio = UtilsiOS.GetScreenRatio();
 
             string varName = args[start + 1].AsString();
+            varName = varName.Replace("\"", "");
             string config = Utils.GetSafeString(args, start + 2);
             int width = (int)(Utils.GetSafeInt(args, start + 3) / screenRatio);
             int height = (int)(Utils.GetSafeInt(args, start + 4) / screenRatio);
@@ -310,8 +313,17 @@ namespace scripting.iOS
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name);
 
+            bool checkNull = Utils.GetSafeInt(args, 2, 1) == 1;
+
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            if (checkNull)
+            {
+                Utils.CheckNotNull(widget, m_name, 0);
+            }
+            else if (widget == null)
+            {
+                return Variable.EmptyInstance;
+            }
 
             string strTitle = args[1].AsString();
             string alignment = Utils.GetSafeString(args, 2);
@@ -405,7 +417,7 @@ namespace scripting.iOS
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
+            Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             Utils.CheckNotNull(widget, m_name, 0);
@@ -424,7 +436,9 @@ namespace scripting.iOS
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name, true);
+            Utils.CheckArgs(args.Count, 2, m_name);
+
+            bool checkNull = Utils.GetSafeInt(args, 2, 1) == 1;
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             Utils.CheckNotNull(widget, m_name, 0);
@@ -591,12 +605,22 @@ namespace scripting.iOS
 
             string varName = args[0].AsString();
             string imageStr = args[1].AsString();
+            bool useVariable = Utils.GetSafeInt(args, 2, 0) == 1;
 
-            string imageName = UIUtils.String2ImageName(imageStr);
+            UIImage img = null;
+            string imageName = imageStr;
+            if (useVariable)
+            {
+                Variable imageVar = Utils.GetVariable(imageStr, script);
+                img = imageVar == null ? null : imageVar.Object as UIImage;
+            }
+            if (img == null)
+            {
+                imageName = UIUtils.String2ImageName(imageStr);
+                img = UtilsiOS.LoadImage(imageName);
+            }
 
             UIView view = iOSVariable.GetView(varName, script);
-            UIImage img = UtilsiOS.LoadImage(imageName);
-
             if (view is UIButton)
             {
                 ((UIButton)view).SetBackgroundImage(img, UIControlState.Normal);
@@ -613,6 +637,48 @@ namespace scripting.iOS
             return img != null ? new Variable(imageName) : Variable.EmptyInstance;
         }
     }
+
+    public class SaveToPhotosFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name);
+
+            string imageStr = args[0].AsString();
+            string filename = args[1].AsString();
+            bool useVariable = Utils.GetSafeInt(args, 2, 1) == 1;
+
+            UIImage image = null;
+            string imageName = imageStr;
+            if (useVariable)
+            {
+                Variable imageVar = Utils.GetVariable(imageStr, script);
+                image = imageVar == null ? null : imageVar.Object as UIKit.UIImage;
+            }
+            if (image == null)
+            {
+                imageName = UIUtils.String2ImageName(imageStr);
+                image = UtilsiOS.LoadImage(imageName);
+            }
+
+            ManualResetEvent mre = new ManualResetEvent(false);
+            bool saved = true;
+
+            image.SaveToPhotosAlbum((sender, error) => {
+                if (error != null)
+                {
+                    Console.WriteLine("Saving pic error: " + error);
+                }
+                saved = (error == null);
+                mre.Set();
+            });
+
+            mre.WaitOne(100);
+            return new Variable(saved);
+        }
+    }
+
     public class SetBackgroundColorFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -943,7 +1009,7 @@ namespace scripting.iOS
             double screenRatio = UtilsiOS.GetScreenRatio();
             double multiplier = UtilsiOS.WidthMultiplier();
 
-            int width = (int)(Utils.GetSafeInt(args, 4, 560) / screenRatio * multiplier);
+            int width = (int)(Utils.GetSafeInt(args, 4, 540) / screenRatio * multiplier);
             int height = (int)(Utils.GetSafeInt(args, 5, 120) / screenRatio * multiplier);
 
             if (string.IsNullOrEmpty(fgColorStr))
@@ -1070,10 +1136,18 @@ namespace scripting.iOS
             UIView view = widget.ViewX;
 
             string option = args[1].AsString().ToLower();
+            string arg = Utils.GetSafeString(args, 2);
             switch (option)
             {
                 case "multiline":
                     SetMultiline(view);
+                    break;
+                case "ontouch":
+                    SetOnTouch(view, arg);
+                    break;
+                case "ontouchimage":
+                    UIImage img = UtilsiOS.LoadImage(arg); 
+                    SetOnTouch(view, img);
                     break;
             }
             return widget;
@@ -1096,6 +1170,26 @@ namespace scripting.iOS
                 return;
             }
             label.Lines = multiline ? 25 : 1;
+        }
+        public static void SetOnTouch(UIView view, string title)
+        {
+            if (!(view is UIButton))
+            {
+                return;
+            }
+
+            UIButton button = (UIButton)view;
+            button.SetTitle(title, UIControlState.Highlighted);
+        }
+        public static void SetOnTouch(UIView view, UIImage img)
+        {
+            if (!(view is UIButton))
+            {
+                return;
+            }
+
+            UIButton button = (UIButton)view;
+            button.SetImage(img, UIControlState.Highlighted);
         }
     }
     public class SetFontSizeFunction : ParserFunction

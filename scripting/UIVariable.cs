@@ -85,6 +85,44 @@ namespace SplitAndMerge
             return WidgetName;
         }
 
+        public override string GetTypeString()
+        {
+            switch (WidgetType)
+            {
+                case UIVariable.UIType.VIEW:
+                    return "View";
+                case UIVariable.UIType.BUTTON:
+                    return "Button";
+                case UIVariable.UIType.LABEL:
+                    return "Label";
+                case UIVariable.UIType.TEXT_FIELD:
+                    return "TextEdit";
+                case UIVariable.UIType.TEXT_VIEW:
+                    return "TextView";
+                case UIVariable.UIType.IMAGE_VIEW:
+                    return "ImageView";
+                case UIVariable.UIType.COMBOBOX:
+                    return "Combobox";
+                case UIVariable.UIType.INDICATOR:
+                    return "Indicator";
+                case UIVariable.UIType.PICKER_VIEW:
+                    return "TypePicker";
+                case UIVariable.UIType.PICKER_IMAGES:
+                    return "Picker";
+                case UIVariable.UIType.LIST_VIEW:
+                    return "ListView";
+                case UIVariable.UIType.SWITCH:
+                    return "Switch";
+                case UIVariable.UIType.SLIDER:
+                    return "Slider";
+                case UIVariable.UIType.STEPPER:
+                    return "Stepper";
+                case UIVariable.UIType.SEGMENTED:
+                    return "SegmentedControl";
+            }
+            return Constants.TypeToString(Type);
+        }
+
         public static Variable GetAction(string funcName, string senderName, string eventArg)
         {
             if (senderName == "")

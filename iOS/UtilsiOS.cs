@@ -93,10 +93,17 @@ namespace scripting.iOS
             {
                 bgColor = UIColor.Gray;
             }
+
+            if (iOSApp.IsiPhoneX())
+            {
+                width = width / 1.4f;
+            }
+
             CGSize screen = UtilsiOS.GetScreenSize();
             var size = new CGSize(width, height);
             var x = (screen.Width - size.Width) / 2.0;
             var y = screen.Height - size.Height - 120 * WidthMultiplier();
+
             var point = new CGPoint(x, y);
 
             UIView view = AppDelegate.GetCurrentView();
@@ -366,6 +373,7 @@ namespace scripting.iOS
                 case "brown": return UIColor.Brown;
                 case "clear": return UIColor.Clear;
                 case "cyan": return UIColor.Cyan;
+                case "dark_blue": return UIColorFromHex("#00008B");
                 case "dark_gray": return UIColor.DarkGray;
                 case "dark_green": return UIColorFromHex("#006400");
                 case "dark_red": return UIColorFromHex("#8B0000");
