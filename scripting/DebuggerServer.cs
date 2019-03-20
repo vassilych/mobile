@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
@@ -15,6 +16,7 @@ namespace SplitAndMerge
         public static bool DebuggerAttached { set; get; }
 
         static TcpListener s_server;
+        static bool s_serverStarted;
 
         static CancellationTokenSource s_cancelTokenSource = new CancellationTokenSource();
 
@@ -23,10 +25,32 @@ namespace SplitAndMerge
 
         static List<DebuggerClient> m_clients = new List<DebuggerClient>();
 
-        public static string StartServer(int port = 13337)
+        static public string AllowedClients
         {
-            IPAddress localAddr = IPAddress.Parse("127.0.0.1");
-            Console.Write("Starting a server on {0}... ", port);
+            get;
+            set;
+        }
+        static public string BaseDirectory
+        {
+            get;
+            set;
+        }
+
+        public static string StartServer(int port = 13337, bool allowRemoteConnections = false)
+        {
+            if (s_serverStarted)
+            {
+                return "OK";
+            }
+
+            if (allowRemoteConnections && string.IsNullOrWhiteSpace(DebuggerServer.AllowedClients))
+            {
+                Console.Write("AllowedClients property is not set. Cannot allow remote connections.");
+                allowRemoteConnections = false;
+            }
+
+            IPAddress localAddr = allowRemoteConnections ? IPAddress.Any : IPAddress.Parse("127.0.0.1");
+            Console.Write("Starting a server on {0}:{1}... ", localAddr.ToString(), port);
 
             s_server = new TcpListener(localAddr, port);
             try
@@ -57,12 +81,17 @@ namespace SplitAndMerge
             DebuggerAttached = false;
         }
 
-        public static void StartServerBlocked(Object threadContext)
+        static void StartServerBlocked(Object threadContext)
         {
-            s_server.Start();
+            if (s_serverStarted)
+            {
+                return;
+            }
+            s_serverStarted = true;
             DebuggerAttached = true;
 
             Debugger.OnResult += SendBack;
+            Debugger.OnSendFile += SendFile;
             ThreadPool.QueueUserWorkItem(StartProcessing, null);
 
             while (DebuggerAttached)
@@ -86,10 +115,12 @@ namespace SplitAndMerge
 
                 Thread.Sleep(1000);
             }
+
             Console.Write("Stopped listening for requests");
+            s_serverStarted = false;
         }
 
-        static void SendBack(string str)
+        static void SendBack(string str, bool sendLength = true)
         {
             int i = 0;
             while (i < m_clients.Count)
@@ -100,7 +131,22 @@ namespace SplitAndMerge
                     m_clients.RemoveAt(i);
                     continue;
                 }
-                client.SendBack(str);
+                client.SendBack(str, sendLength);
+                i++;
+            }
+        }
+        static void SendFile(string filename, string destination)
+        {
+            int i = 0;
+            while (i < m_clients.Count)
+            {
+                DebuggerClient client = m_clients[i];
+                if (!client.Connected)
+                {
+                    m_clients.RemoveAt(i);
+                    continue;
+                }
+                client.SendFile(filename, destination);
                 i++;
             }
         }
@@ -138,7 +184,7 @@ namespace SplitAndMerge
 #endif
         }
 
-        public static void ProcessQueue()
+        public static async Task ProcessQueue()
         {
             string data;
 #if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
@@ -148,7 +194,7 @@ namespace SplitAndMerge
                 {
                     return;
                 }
-                Debugger.MainInstance?.ProcessClientCommands(data);
+                await Debugger.MainInstance?.ProcessClientCommands(data);
 #else
             while (DebuggerAttached)
             { // A blocking call.
@@ -173,16 +219,29 @@ namespace SplitAndMerge
     public class DebuggerClient
     {
         public bool Connected { private set; get; }
-        bool m_isRepl;
 
         Debugger m_debugger;
         TcpClient m_client;
         NetworkStream m_stream;
 
+        string m_remoteHost;
+
         public void RunClient(Object threadContext)
         {
             m_client = (TcpClient)threadContext;
             m_stream = m_client.GetStream();
+
+            string remoteAddress = m_client.Client.RemoteEndPoint.ToString();
+            var items = remoteAddress.Split(':');
+            m_remoteHost = items[0];
+
+            if (m_remoteHost != "127.0.0.1" && DebuggerServer.AllowedClients != "*" &&
+                !DebuggerServer.AllowedClients.Contains(m_remoteHost))
+            {
+                Console.WriteLine("Host [" + m_remoteHost + "] is not allowed.");
+                return;
+            }
+
             Connected = true;
 
             Byte[] bytes = new Byte[4096];
@@ -208,11 +267,6 @@ namespace SplitAndMerge
                     {
                         break;
                     }
-                    else if (action == DebuggerUtils.DebugAction.REPL)
-                    {
-                        m_isRepl = true;
-                        DebuggerServer.Queue.Add(data);
-                    }
                     else if (m_debugger.CanProcess(action))
                     {
                         ThreadPool.QueueUserWorkItem(DebuggerServer.RunRequestBlocked, data);
@@ -228,11 +282,6 @@ namespace SplitAndMerge
                 Console.Write("Client disconnected: {0}", exc.Message);
             }
 
-            if (m_debugger == Debugger.MainInstance)
-            {
-                Debugger.MainInstance = null;
-            }
-
             // Shutdown and end connection
             Console.Write("Closed connection.");
             Disconnect();
@@ -246,11 +295,16 @@ namespace SplitAndMerge
             m_stream.Dispose();
         }
 
-        public void SendBack(string str)
+        public bool SendBack(string str, bool sendLength = true)
         {
             byte[] msg = System.Text.Encoding.UTF8.GetBytes(str);
             try
             {
+                if (sendLength)
+                {
+                    byte[] lenMsg = System.Text.Encoding.UTF8.GetBytes(msg.Length + "\n");
+                    m_stream.Write(lenMsg, 0, lenMsg.Length);
+                }
                 m_stream.Write(msg, 0, msg.Length);
                 m_stream.Flush();
             }
@@ -258,11 +312,57 @@ namespace SplitAndMerge
             {
                 Console.Write("Client disconnected: {0}", exc.Message);
                 Disconnect();
+                return false;
             }
 
-            if (m_isRepl)
+            return true;
+        }
+
+        public void SendFile(string source, string destination)
+        {
+            if (m_remoteHost.Contains("127.0.0.1"))
             {
-                Disconnect();
+                throw new ArgumentException("Cannot send files to a local host");
+            }
+            if (string.IsNullOrWhiteSpace(DebuggerServer.BaseDirectory))
+            {
+                throw new ArgumentException("Debugger Base Directory is not set.");
+            }
+            if (source.Contains("..") || source.Contains(":"))
+            {
+                throw new ArgumentException("The source file cannot have [..] or [:] characters.");
+            }
+
+            string filename = Path.Combine(DebuggerServer.BaseDirectory, source);
+            if (!File.Exists(filename))
+            {
+                throw new ArgumentException("File [" + filename + "] not found.");
+            }
+
+            byte[] fileBytes = File.ReadAllBytes(filename);
+
+            if (destination.EndsWith("/") || destination.EndsWith("\\"))
+            {
+                destination += Path.GetFileName(source);
+            }
+
+            string result = "send_file\n";
+            result += new FileInfo(filename).Length + "\n";
+            result += destination + "\n";
+
+            byte[] msg = System.Text.Encoding.UTF8.GetBytes(result);
+            try
+            {
+                m_stream.Write(msg, 0, msg.Length);
+                m_stream.Flush();
+
+                m_stream.Write(fileBytes, 0, fileBytes.Length);
+                m_stream.Flush();
+                Thread.Sleep(100); // Let the client get the file.
+            }
+            catch (Exception exc)
+            {
+                Console.Write("Client disconnected while sending data: " + exc.Message);
             }
         }
     }
@@ -270,7 +370,7 @@ namespace SplitAndMerge
     public class DebuggerUtils
     {
         public enum DebugAction { NONE, FILE, NEXT, CONTINUE, STEP_IN, STEP_OUT,
-            SET_BP, VARS, STACK, ALL, REPL, _REPL, END, BYE };
+            SET_BP, VARS, STACK, ALL, GET_FILE, REPL, _REPL, END, BYE };
 
         public static DebugAction StringToAction(string str, ref string rest)
         {
@@ -292,6 +392,7 @@ namespace SplitAndMerge
                 case "vars": return DebugAction.VARS;
                 case "stack": return DebugAction.STACK;
                 case "all": return DebugAction.ALL;
+                case "get_file": return DebugAction.GET_FILE;
                 case "repl": return DebugAction.REPL;
                 case "_repl": return DebugAction._REPL;
                 case "bye": return DebugAction.BYE;
@@ -307,8 +408,8 @@ namespace SplitAndMerge
                 case DebugAction.CONTINUE:
                 case DebugAction.STEP_IN:
                 case DebugAction.STEP_OUT: return "next\n";
-                case DebugAction.REPL: return "";
-                case DebugAction._REPL: return "repl\n";
+                case DebugAction.REPL: return "repl\n";
+                case DebugAction._REPL: return "_repl\n";
                 case DebugAction.FILE: return "file\n";
                 case DebugAction.SET_BP: return "set_bp\n";
                 case DebugAction.END: return "end\n";
@@ -317,7 +418,7 @@ namespace SplitAndMerge
             return "none\n";
         }
 
-        public static Variable Execute(ParsingScript script)
+        public static async Task<Variable> Execute(ParsingScript script)
         {
             char[] toArray = Constants.END_PARSE_ARRAY;
             Variable result = null;
@@ -325,7 +426,8 @@ namespace SplitAndMerge
 #if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
             // Do nothing: already on the main thread
 #elif __ANDROID__
-            scripting.Droid.MainActivity.TheView.RunOnUiThread(() => {
+            scripting.Droid.MainActivity.TheView.RunOnUiThread(() =>
+            {
 #elif __IOS__
             scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
             {
@@ -333,7 +435,11 @@ namespace SplitAndMerge
 #endif
                 try
                 {
+#if __IOS__  || __ANDROID__
                     result = script.Execute(toArray);
+#else
+                    result = await script.ExecuteAsync(toArray);
+#endif
                 }
                 catch (ParsingException exc)
                 {
@@ -341,17 +447,15 @@ namespace SplitAndMerge
                 }
 
 #if UNITY_EDITOR || UNITY_STANDALONE || MAIN_THREAD_CHECK
-            // Do nothing: already on the main thread
+            // Do nothing: already on the main thread or main thread is not required
 #elif __ANDROID__ || __IOS__
             });
 #endif
-
             if (exception != null)
             {
                 throw exception;
             }
             return result;
         }
-
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
@@ -91,15 +93,15 @@ namespace SplitAndMerge
 
         public virtual Variable Clone()
         {
-            //Variable newVar = new Variable();
-            //newVar.Copy(this);
             Variable newVar = (Variable)this.MemberwiseClone();
             return newVar;
         }
+
         public virtual Variable DeepClone()
         {
-            Variable newVar = new Variable();
-            newVar.Copy(this);
+            //Variable newVar = new Variable();
+            //newVar.Copy(this);
+            Variable newVar = (Variable)this.MemberwiseClone();
 
             if (m_tuple != null)
             {
@@ -430,6 +432,11 @@ namespace SplitAndMerge
             return result;
         }
 
+        public override string ToString()
+        {
+            return AsString();
+        }
+
         public virtual string AsString(bool isList = true,
                                        bool sameLine = true,
                                        int maxCount = -1)
@@ -515,12 +522,13 @@ namespace SplitAndMerge
             }
             else
             {
-                sb.Append((m_object != null ? (m_object.ToString() + " ") : "") + Constants.START_GROUP.ToString());
+                sb.Append((m_object != null ? (m_object.ToString() + " ") : "") +
+                           Constants.START_GROUP.ToString());
 
                 List<string> allProps = GetAllProperties();
                 foreach (string prop in allProps)
                 {
-                    if (prop == Constants.OBJECT_PROPERTIES)
+                    if (prop.Equals(Constants.OBJECT_PROPERTIES, StringComparison.OrdinalIgnoreCase))
                     {
                         sb.Append(prop);
                         continue;
@@ -532,7 +540,8 @@ namespace SplitAndMerge
                         value = propValue.AsString();
                         if (!string.IsNullOrEmpty(value))
                         {
-                            if (propValue.Type == VarType.STRING && prop != Constants.OBJECT_TYPE)
+                            if (propValue.Type == VarType.STRING &&
+                               !prop.Equals(Constants.OBJECT_TYPE, StringComparison.OrdinalIgnoreCase))
                             {
                                 value = "\"" + value + "\"";
                             }
@@ -569,7 +578,7 @@ namespace SplitAndMerge
 
         public Variable SetProperty(string propName, Variable value)
         {
-            Variable result = Variable.EmptyInstance;
+            propName = Constants.ConvertName(propName);
 
             int ind = propName.IndexOf(".");
             if (ind > 0)
@@ -577,17 +586,39 @@ namespace SplitAndMerge
                 string varName = propName.Substring(0, ind);
                 string actualPropName = propName.Substring(ind + 1);
                 Variable property = GetProperty(varName);
-                result = property.SetProperty(actualPropName, value);
+                return property.SetProperty(actualPropName, value);
+            }
+            return FinishSetProperty(propName, value);
+        }
+
+        public async Task<Variable> SetPropertyAsync(string propName, Variable value)
+        {
+            Variable result = Variable.EmptyInstance;
+            propName = Constants.ConvertName(propName);
+
+            int ind = propName.IndexOf(".");
+            if (ind > 0)
+            { // The case a.b.c = ... is dealt here recursively
+                string varName = propName.Substring(0, ind);
+                string actualPropName = propName.Substring(ind + 1);
+                Variable property = await GetPropertyAsync(varName);
+                result = await property.SetPropertyAsync(actualPropName, value);
                 return result;
             }
+            return FinishSetProperty(propName, value);
+        }
 
-            m_propertyMap[propName] = value;
+        public Variable FinishSetProperty(string propName, Variable value)
+        {
+            Variable result = Variable.EmptyInstance;
+            string match = GetActualPropertyName(propName, GetAllProperties());
+            m_propertyMap[match] = value;
             Type = VarType.OBJECT;
 
             if (Object is ScriptObject)
             {
                 ScriptObject obj = Object as ScriptObject;
-                result = obj.SetProperty(propName, value);
+                result = obj.SetProperty(match, value).Result;
             }
             return result;
         }
@@ -610,8 +641,8 @@ namespace SplitAndMerge
             if (Object is ScriptObject)
             {
                 ScriptObject obj = Object as ScriptObject;
-                var supported = obj.GetProperties();
-                if (supported.Contains(propName))
+                string match = GetActualPropertyName(propName, obj.GetProperties());
+                if (!string.IsNullOrWhiteSpace(match))
                 {
                     List<Variable> args = null;
                     if (script != null && script.TryPrev() == Constants.START_ARG)
@@ -622,13 +653,61 @@ namespace SplitAndMerge
                     {
                         args = new List<Variable>();
                     }
-                    result = obj.GetProperty(propName, args, script);
+                    result = obj.GetProperty(match, args, script).Result;
                     if (result != null)
                     {
                         return result;
                     }
                 }
             }
+
+            return GetCoreProperty(propName, script);
+        }
+
+        public async Task<Variable> GetPropertyAsync(string propName, ParsingScript script = null)
+        {
+            Variable result = Variable.EmptyInstance;
+
+            int ind = propName.IndexOf(".");
+            if (ind > 0)
+            { // The case x = a.b.c ... is dealt here recursively
+                string varName = propName.Substring(0, ind);
+                string actualPropName = propName.Substring(ind + 1);
+                Variable property = await GetPropertyAsync(varName, script);
+                result = string.IsNullOrEmpty(actualPropName) ? property :
+                               await property.GetPropertyAsync(actualPropName, script);
+                return result;
+            }
+
+            if (Object is ScriptObject)
+            {
+                ScriptObject obj = Object as ScriptObject;
+                string match = GetActualPropertyName(propName, obj.GetProperties());
+                if (!string.IsNullOrWhiteSpace(match))
+                {
+                    List<Variable> args = null;
+                    if (script != null && script.TryPrev() == Constants.START_ARG)
+                    {
+                        args = await script.GetFunctionArgsAsync();
+                    }
+                    else if (script != null)
+                    {
+                        args = new List<Variable>();
+                    }
+                    result = await obj.GetProperty(match, args, script);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return GetCoreProperty(propName, script);
+        }
+
+        Variable GetCoreProperty(string propName, ParsingScript script = null)
+        {
+            Variable result = Variable.EmptyInstance;
 
             if (m_propertyMap.TryGetValue(propName, out result))
             {
@@ -642,9 +721,158 @@ namespace SplitAndMerge
             {
                 return new Variable(GetTypeString());
             }
+            else if (propName.Equals(Constants.SIZE, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Variable(GetSize());
+            }
+            else if (propName.Equals(Constants.UPPER, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Variable(AsString().ToUpper());
+            }
+            else if (propName.Equals(Constants.LOWER, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Variable(AsString().ToLower());
+            }
+            else if (propName.Equals(Constants.STRING, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Variable(AsString());
+            }
+            else if (propName.Equals(Constants.FIRST, StringComparison.OrdinalIgnoreCase))
+            {
+                if (Tuple != null && Tuple.Count > 0)
+                {
+                    return Tuple[0];
+                }
+                return AsString().Length > 0 ? new Variable("" + AsString()[0]) : Variable.EmptyInstance;
+            }
+            else if (propName.Equals(Constants.LAST, StringComparison.OrdinalIgnoreCase))
+            {
+                if (Tuple != null && Tuple.Count > 0)
+                {
+                    return Tuple.Last<Variable>();
+                }
+                return AsString().Length > 0 ? new Variable("" + AsString().Last<char>()) : Variable.EmptyInstance;
+            }
+            else if (script != null && propName.Equals(Constants.INDEX_OF, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+
+                string search = Utils.GetSafeString(args, 0);
+                int startFrom = Utils.GetSafeInt(args, 1, 0);
+                string param  = Utils.GetSafeString(args, 2, "no_case");
+                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
+                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+                return new Variable(AsString().IndexOf(search, startFrom,comp));
+            }
+            else if (script != null && propName.Equals(Constants.SUBSTRING, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+
+                int startFrom = Utils.GetSafeInt(args, 0, 0);
+                int length = Utils.GetSafeInt(args, 1, AsString().Length);
+                length = Math.Min(length, AsString().Length - startFrom);
+
+                return new Variable(AsString().Substring(startFrom, length));
+            }
+            else if (script != null && propName.Equals(Constants.TOKENIZE, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                string sep = Utils.GetSafeString(args, 0, " ");
+                var option = Utils.GetSafeString(args, 1);
+
+                return TokenizeFunction.Tokenize(AsString(), sep, option);
+            }
+            else if (script != null && propName.Equals(Constants.JOIN, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                string sep = Utils.GetSafeString(args, 0, " ");
+                if (Tuple == null)
+                {
+                    return new Variable(AsString());
+                }
+
+                var join = string.Join(sep, Tuple);
+                return new Variable(join);
+            }
+            else if (script != null && propName.Equals(Constants.AT, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                int at = Utils.GetSafeInt(args, 0);
+
+                if (Tuple != null && Tuple.Count > 0)
+                {
+                    return Tuple.Count > at ? Tuple[at] : Variable.EmptyInstance;
+                }
+                string str = AsString();
+                return str.Length > at ? new Variable("" + str[at]) : Variable.EmptyInstance;
+            }
+            else if (script != null && propName.Equals(Constants.REPLACE, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 2, propName);
+                string oldVal = Utils.GetSafeString(args, 0);
+                string newVal = Utils.GetSafeString(args, 1);
+
+                return new Variable(AsString().Replace(oldVal, newVal));
+            }
+            else if (script != null && propName.Equals(Constants.CONTAINS, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                string val = Utils.GetSafeString(args, 0);
+                string param = Utils.GetSafeString(args, 1, "no_case");
+                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
+                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+                int index = AsString().IndexOf(val, comp);
+                return new Variable(index >= 0);
+            }
+            else if (script != null && propName.Equals(Constants.EQUALS, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                string val = Utils.GetSafeString(args, 0);
+                string param = Utils.GetSafeString(args, 1, "no_case");
+                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
+                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+                return new Variable(AsString().Equals(val, comp));
+            }
+            else if (script != null && propName.Equals(Constants.STARTS_WITH, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                string val = Utils.GetSafeString(args, 0);
+                string param = Utils.GetSafeString(args, 1, "no_case");
+                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
+                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+                return new Variable(AsString().StartsWith(val, comp));
+            }
+            else if (script != null && propName.Equals(Constants.ENDS_WITH, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                string val = Utils.GetSafeString(args, 0);
+                string param = Utils.GetSafeString(args, 1, "no_case");
+                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
+                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+                return new Variable(AsString().EndsWith(val, comp));
+            }
+            else if (script != null && propName.Equals(Constants.TRIM, StringComparison.OrdinalIgnoreCase))
+            {
+                script.GetFunctionArgs();
+                return new Variable(AsString().Trim());
+            }
 
             return result;
         }
+
 
         public List<Variable> GetProperties()
         {
@@ -661,9 +889,12 @@ namespace SplitAndMerge
         public List<string> GetAllProperties()
         {
             HashSet<string> allSet = new HashSet<string>();
+            List<string> all = new List<string>();
+
             foreach (string key in m_propertyMap.Keys)
             {
-                allSet.Add(key);
+                allSet.Add(key.ToLower());
+                all.Add(key);
             }
 
             if (Object is ScriptObject)
@@ -672,23 +903,41 @@ namespace SplitAndMerge
                 List<string> objProps = obj.GetProperties();
                 foreach (string key in objProps)
                 {
-                    allSet.Add(key);
+                    if (allSet.Add(key.ToLower()))
+                    {
+                        all.Add(key);
+                    }
                 }
             }
 
-            List<string> all = new List<string>(allSet);
             all.Sort();
 
-            if (!allSet.Contains(Constants.OBJECT_TYPE))
-            {
-                all.Insert(0, Constants.OBJECT_TYPE);
-            }
-            if (!allSet.Contains(Constants.OBJECT_PROPERTIES))
+            if (!allSet.Contains(Constants.OBJECT_PROPERTIES.ToLower()))
             {
                 all.Add(Constants.OBJECT_PROPERTIES);
             }
+            if (!allSet.Contains(Constants.OBJECT_TYPE.ToLower()))
+            {
+                all.Add(Constants.OBJECT_TYPE);
+            }
+            if (!allSet.Contains(Constants.SIZE.ToLower()))
+            {
+                all.Add(Constants.SIZE);
+            }
+            if (!allSet.Contains(Constants.STRING.ToLower()))
+            {
+                all.Add(Constants.STRING);
+            }
 
             return all;
+        }
+
+        public int GetSize()
+        {
+            int size = Type == Variable.VarType.ARRAY ?
+                  Tuple.Count :
+                  AsString().Length;
+            return size;
         }
 
         public virtual string GetTypeString()
@@ -713,6 +962,17 @@ namespace SplitAndMerge
                 return m_tuple[index];
             }
             return this;
+        }
+
+        public static string GetActualPropertyName(string propName, List<string> properties)
+        {
+            string match = properties.FirstOrDefault(element => element.Equals(propName,
+                                   StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                match = "";
+            }
+            return match;
         }
 
         public double Value
@@ -743,6 +1003,8 @@ namespace SplitAndMerge
         public VarType Type { get; set; }
         public bool IsReturn { get; set; }
         public string ParsingToken { get; set; }
+        public int Index { get; set; }
+        public string CurrentAssign { get; set; } = "";
 
         public static Variable EmptyInstance = new Variable();
 
@@ -759,12 +1021,12 @@ namespace SplitAndMerge
     public interface ScriptObject
     {
         // SetProperty is triggered by the following scripting call: "a.name = value;"
-        Variable SetProperty(string name, Variable value);
+        Task<Variable> SetProperty(string name, Variable value);
 
         // GetProperty is triggered by the following scripting call: "x = a.name;"
         // If args are null, it is triggered by object.ToString() function"
         // If args are not empty, it is triggered by a function call: "y = a.name(arg1, arg2, ...);"
-        Variable GetProperty(string name, List<Variable> args = null, ParsingScript script = null);
+        Task<Variable> GetProperty(string name, List<Variable> args = null, ParsingScript script = null);
 
         // Returns all of the properties that this object implements. Only these properties will be processed
         // by SetProperty() and GetProperty() methods above.

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
     public class TestScriptObject : ScriptObject
     {
         static List<string> s_properties = new List<string> {
-            "name", "color", "translate"
+            "Name", "Color", "Translate"
         };
 
         public TestScriptObject(string name = "", string color = "")
@@ -32,25 +33,26 @@ namespace SplitAndMerge
             return new Variable(m_color);
         }
 
-        public virtual Variable GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
+        public virtual Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {
+            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
             switch (sPropertyName)
             {
-                case "name": return GetNameProperty();
-                case "color": return GetColorProperty();
-                case "translate":
-                    return args != null && args.Count > 0 ?
-                    Translate(args[0]) : Variable.EmptyInstance;
+                case "Name": return Task.FromResult( GetNameProperty() );
+                case "Color": return Task.FromResult( GetColorProperty() );
+                case "Translate":
+                    return Task.FromResult(
+                        args != null && args.Count > 0 ?
+                    Translate(args[0]) : Variable.EmptyInstance);
                 default:
-                    return Variable.EmptyInstance;
+                    return Task.FromResult( Variable.EmptyInstance );
             }
         }
 
-        public Variable SetNameProperty(string sValue)
+        public Task<Variable> SetNameProperty(string sValue)
         {
             m_name = sValue;
-            SetProperty("name", new Variable(sValue));
-            return Variable.EmptyInstance;
+            return Task.FromResult( Variable.EmptyInstance );
         }
 
         public Variable SetColorProperty(string aColor)
@@ -59,13 +61,14 @@ namespace SplitAndMerge
             return Variable.EmptyInstance;
         }
 
-        public virtual Variable SetProperty(string sPropertyName, Variable argValue)
+        public virtual async Task<Variable> SetProperty(string sPropertyName, Variable argValue)
         {
+            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
             switch (sPropertyName)
             {
-                case "name": return SetNameProperty(argValue.AsString());
-                case "color": return SetColorProperty(argValue.AsString());
-                case "translate": return Translate(argValue);
+                case "Name": return await SetNameProperty(argValue.AsString());
+                case "Color": return SetColorProperty(argValue.AsString());
+                case "Translate": return Translate(argValue);
                 default: return Variable.EmptyInstance;
             }
         }
@@ -81,18 +84,34 @@ namespace SplitAndMerge
         public static void Init()
         {
             RegisterClass("CompiledTest", new TestCompiledClass());
+            RegisterClass("CompiledTestAsync", new TestCompiledClassAsync());
         }
 
         public abstract ScriptObject GetImplementation(List<Variable> args);
+    }
+
+    public abstract class CompiledClassAsync : CSCSClass
+    {
+        public abstract Task<ScriptObject> GetImplementationAsync(List<Variable> args);
     }
 
     public class TestCompiledClass : CompiledClass
     {
         public override ScriptObject GetImplementation(List<Variable> args)
         {
-            string name  = Utils.GetSafeString(args, 0);
+            string name = Utils.GetSafeString(args, 0);
             string color = Utils.GetSafeString(args, 1);
             return new TestScriptObject(name, color);
+        }
+    }
+    public class TestCompiledClassAsync : CompiledClassAsync
+    {
+        public override Task<ScriptObject> GetImplementationAsync(List<Variable> args)
+        {
+            string name = Utils.GetSafeString(args, 0);
+            string color = Utils.GetSafeString(args, 1);
+            ScriptObject myScriptObject = new TestScriptObject(name, color);
+            return Task.FromResult( myScriptObject );
         }
     }
 }

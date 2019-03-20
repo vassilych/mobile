@@ -204,6 +204,16 @@ namespace scripting.iOS
             // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828 
         }
 
+        public static double AdjustSize(double size)
+        {
+            if (!IsiPhoneX())
+            {
+                return size;
+            }
+            double newSize = size / 1.5f;
+            return newSize;
+        }
+
         public static int GetVerticalOffset()
         {
             int offset = GetMinBottomOffset();

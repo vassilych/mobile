@@ -94,10 +94,7 @@ namespace scripting.iOS
                 bgColor = UIColor.Gray;
             }
 
-            if (iOSApp.IsiPhoneX())
-            {
-                width = width / 1.4f;
-            }
+            width = (float)iOSApp.AdjustSize(width);
 
             CGSize screen = UtilsiOS.GetScreenSize();
             var size = new CGSize(width, height);
@@ -189,6 +186,12 @@ namespace scripting.iOS
             var width = bounds.Width < bounds.Height ?
                          bounds.Width : bounds.Height;
             return (int)width;
+        }
+        public static int GetAdjustedScreenWidth()
+        {
+            var width = GetRealScreenWidth();
+            var adjusted = iOSApp.AdjustSize(width);
+            return (int)adjusted;
         }
         public static int GetRealScreenHeight()
         {

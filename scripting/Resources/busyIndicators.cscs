@@ -1,6 +1,6 @@
 ﻿h = 200;
 w = 200;
-delta = 3;
+delta = 10;
 locSFWidget1 = GetLocation("ROOT", "LEFT", "ROOT", "TOP", delta, 12);
 AddSfBusyIndicator(locSFWidget1, "BusyIndicator1", "ball", h, w);
 

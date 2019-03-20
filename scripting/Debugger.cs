@@ -6,13 +6,15 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
     public class Debugger
     {
         public static Debugger MainInstance { get; set; }
-        public static Action<string> OnResult;
+        public static Action<string, bool> OnResult;
+        public static Action<string, string> OnSendFile;
 
         static int m_id;
         static string m_startFilename;
@@ -75,19 +77,19 @@ namespace SplitAndMerge
             }
         }
 
-        public void ProcessClientCommands(string data)
+        public async Task ProcessClientCommands(string data)
         {
             string[] commands = data.Split(new char[] { '\n' });
             foreach (string dataCmd in commands)
             {
                 if (!string.IsNullOrWhiteSpace(dataCmd))
                 {
-                    ProcessClientCommand(dataCmd);
+                    await ProcessClientCommand(dataCmd);
                 }
             }
         }
 
-        void ProcessClientCommand(string data)
+        async Task ProcessClientCommand(string data)
         {
             string load = "";
             DebuggerUtils.DebugAction action = DebuggerUtils.StringToAction(data, ref load);
@@ -95,14 +97,16 @@ namespace SplitAndMerge
             SteppingIn = SteppingOut = false;
             SendBackResult = true;
             m_firstBlock = true;
+            End = false;
             string responseToken = DebuggerUtils.ResponseMainToken(action);
 
             Trace("REQUEST: " + data);
             if (action == DebuggerUtils.DebugAction.REPL ||
                 action == DebuggerUtils.DebugAction._REPL)
             {
-                result = responseToken + ProcessRepl(load);
-                SendBack(result);
+                result = await ProcessRepl(load);
+                result = responseToken + (result == null ? "" : result);
+                SendBack(result, false);
                 return;
             }
             if (action == DebuggerUtils.DebugAction.SET_BP)
@@ -117,6 +121,12 @@ namespace SplitAndMerge
                 string filename = load;
                 string rawScript = Utils.GetFileContents(filename);
 
+                if (string.IsNullOrWhiteSpace(rawScript))
+                {
+                    ProcessException(null, new ParsingException("Could not load script " + filename));
+                    return;
+                }
+
                 m_script = Utils.ConvertToScript(rawScript, out m_char2Line);
                 m_debugging = new ParsingScript(m_script, 0, m_char2Line);
                 m_debugging.Filename = filename;
@@ -129,7 +139,7 @@ namespace SplitAndMerge
             }
             else if (action == DebuggerUtils.DebugAction.ALL)
             {
-                result = DebugScript();
+                result = await DebugScript();
             }
             else if (action == DebuggerUtils.DebugAction.STACK)
             {
@@ -171,7 +181,7 @@ namespace SplitAndMerge
                 }
                 else
                 {
-                    Variable res = ProcessNext();
+                    Variable res = await ProcessNext();
                     Trace("MAIN Ret:" + (LastResult != null && LastResult.IsReturn) +
                           " NULL:" + (res == null) + " db.sb=" + m_debugging.Debugger.SendBackResult +
                           " PTR:" + m_debugging.Pointer + "/" + m_script.Length);
@@ -187,18 +197,50 @@ namespace SplitAndMerge
                     else
                     {
                         result = CreateResult(Output);
+                        if (string.IsNullOrEmpty(result))
+                        {
+                            return;
+                        }
                     }
                 }
             }
 
             result = responseToken + result;
-            SendBack(result);
+            SendBack(result, true);
         }
+
+        bool TrySendFile(Variable result, ParsingScript script, ref bool excThrown)
+        {
+            if (result != null &&
+                result.Type == Variable.VarType.ARRAY &&
+                result.Tuple.Count >= 3 &&
+                result.Tuple[0].AsString() == Constants.GET_FILE_FROM_DEBUGGER)
+            {
+                try
+                {
+                    OnSendFile?.Invoke(result.Tuple[1].AsString(), result.Tuple[2].AsString());
+                }
+                catch (Exception exc)
+                {
+                    ProcessException(m_debugging, new ParsingException(exc.Message, script, exc));
+                    excThrown = true;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public string CreateResult(string output, ParsingScript script = null)
         {
             if (script == null)
             {
                 script = m_steppingIns.Count > 0 ? m_steppingIns.Peek().m_debugging : m_debugging;
+            }
+
+            bool excThrown = false;
+            if (TrySendFile(LastResult, script, ref excThrown) && excThrown)
+            {
+                return "";
             }
 
             string filename = GetCurrentFilename(script);
@@ -231,10 +273,10 @@ namespace SplitAndMerge
             return stack.Trim();
         }
 
-        public void SendBack(string str)
+        public void SendBack(string str, bool sendLength = true)
         {
             Trace("SEND_BACK: " + str);
-            OnResult?.Invoke(str);
+            OnResult?.Invoke(str, sendLength);
 
             Output = "";
             m_startFilename = null;
@@ -244,8 +286,12 @@ namespace SplitAndMerge
         public void CreateResultAndSendBack(string cmd, string output, ParsingScript script = null)
         {
             string result = CreateResult(output, script);
+            if (string.IsNullOrEmpty(result))
+            {
+                return;
+            }
             result = cmd + "\n" + result;
-            SendBack(result);
+            SendBack(result, true);
         }
 
         string GetAllVariables(ParsingScript script)
@@ -272,7 +318,7 @@ namespace SplitAndMerge
             return filename;
         }
 
-        string ProcessRepl(string repl)
+        async Task<string> ProcessRepl(string repl)
         {
             ReplMode = true;
 
@@ -283,18 +329,24 @@ namespace SplitAndMerge
             tempScript.Debugger = this;
 
             Variable result = null;
+            bool excThrown = false;
 
             try
             {
                 while (tempScript.Pointer < script.Length)
                 {
-                    result = DebuggerUtils.Execute(tempScript);
+                    result = await DebuggerUtils.Execute(tempScript);
                     tempScript.GoToNextStatement();
                 }
+
+                if (TrySendFile(result, tempScript, ref excThrown) || excThrown)
+                {
+                    return "";
+                }
             }
-            catch (Exception exc)
+            catch (Exception)
             {
-                return "Exception thrown: " + exc.Message;
+                return ""; // The exception was already thrown and sent back.
             }
             finally
             {
@@ -320,7 +372,7 @@ namespace SplitAndMerge
             return false;
         }
 
-        Variable ProcessNext()
+        async Task<Variable> ProcessNext()
         {
             ProcessingClientRequest = true;
             if (MainInstance != null && MainInstance.m_steppingIns.Count > 0)
@@ -335,21 +387,19 @@ namespace SplitAndMerge
             m_startFilename = m_debugging.Filename;
             m_startLine = m_debugging.OriginalLineNumber;
 
-            ExecuteNextStatement();
+            await ExecuteNextStatement();
             return LastResult;
         }
 
-        public bool ExecuteNextStatement()
+        public async Task<bool> ExecuteNextStatement()
         {
             int endGroupRead = 0;
 
             if (m_debugging.Pointer >= m_script.Length - 1)
             {
                 LastResult = null;
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
                 End = true;
-                Trace("END!");
-#endif
+                Trace("END of parsing");
                 return true;
             }
 
@@ -366,7 +416,7 @@ namespace SplitAndMerge
             Executing = true;
             try
             {
-                LastResult = DebuggerUtils.Execute(m_debugging);
+                LastResult = await DebuggerUtils.Execute(m_debugging);
             }
             catch (ParsingException exc)
             {
@@ -388,9 +438,20 @@ namespace SplitAndMerge
 
         public static void ProcessException(ParsingScript script, ParsingException exc)
         {
-            Debugger debugger = script.Debugger != null ? script.Debugger : MainInstance;
+            Debugger debugger = script != null && script.Debugger != null ?
+                                script.Debugger : MainInstance;
             if (debugger == null)
             {
+                return;
+            }
+
+            if (debugger.ReplMode)
+            {
+                string replResult = DebuggerUtils.ResponseMainToken(DebuggerUtils.DebugAction.REPL) +
+                                    "Exception thrown: " + exc.Message + "\n";
+                debugger.SendBack(replResult, false);
+                debugger.LastResult = null;
+                ParserFunction.InvalidateStacksAfterLevel(0);
                 return;
             }
 
@@ -403,7 +464,7 @@ namespace SplitAndMerge
             result += vars + "\n";
             result += stack + "\n";
 
-            debugger.SendBack(result);
+            debugger.SendBack(result, !debugger.ReplMode);
             debugger.LastResult = null;
 
             ParserFunction.InvalidateStacksAfterLevel(0);
@@ -415,7 +476,7 @@ namespace SplitAndMerge
                    !debugging.StillValid();
         }
 
-        public static Variable CheckBreakpoints(ParsingScript stepInScript)
+        public static async Task<Variable> CheckBreakpoints(ParsingScript stepInScript)
         {
             var debugger = stepInScript.Debugger != null ? stepInScript.Debugger : MainInstance;
             if (debugger == null || stepInScript.DisableBreakpoints)
@@ -427,10 +488,10 @@ namespace SplitAndMerge
                 m_startFilename = null;
                 m_startLine = 0;
             }
-            return debugger.StepInBreakpointIfNeeded(stepInScript);
+            return await debugger.StepInBreakpointIfNeeded(stepInScript);
         }
 
-        public Variable DebugBlockIfNeeded(ParsingScript stepInScript, ref bool done)
+        public async Task<Variable> DebugBlockIfNeeded(ParsingScript stepInScript, bool done, Action<bool> doneEvent)
         {
             if (SteppingOut || Continue || ReplMode || !m_firstBlock)
             {
@@ -451,15 +512,16 @@ namespace SplitAndMerge
             /* string body = */ Utils.GetBodyBetween(tempScript, Constants.START_GROUP, Constants.END_GROUP);
 
             Trace("Started ProcessBlock");
-            StepIn(stepInScript);
+            await StepIn(stepInScript);
 
             ProcessingBlock = false;
             done = stepInScript.Pointer >= tempScript.Pointer;
 
             Trace("Finished ProcessBlock");
+            doneEvent(done);
             return LastResult;
         }
-        public Variable StepInFunctionIfNeeded(ParsingScript stepInScript)
+        public async Task<Variable> StepInFunctionIfNeeded(ParsingScript stepInScript)
         {
             stepInScript.Debugger = this;
             m_firstBlock = false;
@@ -469,19 +531,19 @@ namespace SplitAndMerge
             }
 
             Trace("Starting StepIn");
-            StepIn(stepInScript);
+            await StepIn(stepInScript);
 
             Trace("Finished StepIn");
             return LastResult;
         }
 
-        public Variable StepInBreakpointIfNeeded(ParsingScript stepInScript)
+        public async Task<Variable> StepInBreakpointIfNeeded(ParsingScript stepInScript)
         {
-            stepInScript.Debugger = this;
-            if (ReplMode)
+            if (ReplMode || stepInScript.Debugger == null)
             {
                 return null;
             }
+            stepInScript.Debugger = this;
 
             int startPointer = stepInScript.Pointer;
             string filename = stepInScript.Filename;
@@ -500,14 +562,14 @@ namespace SplitAndMerge
             m_startLine = line;
 
             Trace("Starting StepInBreakpoint");
-            StepIn(stepInScript);
+            await StepIn(stepInScript, true);
 
             Trace("Finished StepInBreakpoint");
             SendBackResult = true;
             return LastResult;
         }
 
-        public Variable StepInIncludeIfNeeded(ParsingScript stepInScript)
+        public async Task<Variable> StepInIncludeIfNeeded(ParsingScript stepInScript)
         {
             stepInScript.Debugger = this;
             if (ReplMode || !SteppingIn)
@@ -517,7 +579,7 @@ namespace SplitAndMerge
             m_firstBlock = false;
 
             Trace("Starting StepInInclude");
-            StepIn(stepInScript);
+            await StepIn(stepInScript);
 
             Trace("Finished StepInInclude");
             SendBackResult = true;
@@ -541,7 +603,7 @@ namespace SplitAndMerge
             Output += output;
         }
 
-        void StepIn(ParsingScript stepInScript)
+        async Task StepIn(ParsingScript stepInScript, bool aBreakpoint = false)
         {
             Debugger stepIn = new Debugger();
             stepIn.m_debugging = stepInScript;
@@ -549,7 +611,10 @@ namespace SplitAndMerge
             stepIn.ProcessingBlock = ProcessingBlock;
             stepInScript.Debugger = stepIn;
 
-            MainInstance?.m_steppingIns.Push(stepIn);
+            if (MainInstance != null)
+            {
+                MainInstance.m_steppingIns.Push(stepIn);
+            }
 
             stepIn.Trace("Started StepIn, this: " + Id);
             CreateResultAndSendBack("next", Output, stepInScript);
@@ -560,11 +625,11 @@ namespace SplitAndMerge
                 stepIn.m_completedStepIn.WaitOne();
 
                 stepIn.Trace("StepIn WakedUp. SteppingOut:" + SteppingOut + ", this: " + Id);
-                if (Debugger.SteppingOut)
+                if (Debugger.SteppingOut || aBreakpoint)
                 {
                     break;
                 }
-                done = stepIn.ExecuteNextStatement();
+                done = await stepIn.ExecuteNextStatement();
 
                 if (stepIn.LastResult == null)
                 {
@@ -580,12 +645,16 @@ namespace SplitAndMerge
                 }
             }
 
-            MainInstance?.m_steppingIns.Pop();
+            if (MainInstance != null)
+            {
+                MainInstance.m_steppingIns.Pop();
+            }
+            
             stepIn.Trace("Finished StepIn, this: " + Id);
-            ProcessingClientRequest = false;
+            ProcessingClientRequest = aBreakpoint;
         }
 
-        string DebugScript()
+        async Task<string> DebugScript()
         {
             if (string.IsNullOrWhiteSpace(m_script))
             {
@@ -598,7 +667,7 @@ namespace SplitAndMerge
             Variable result = Variable.EmptyInstance;
             while (m_debugging.Pointer < m_script.Length)
             {
-                result = ProcessNext();
+                result = await ProcessNext();
             }
 
             return result.AsString();

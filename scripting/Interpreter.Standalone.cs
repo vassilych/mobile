@@ -11,7 +11,6 @@ namespace SplitAndMerge
         {
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false
             //ParserFunction.CleanUp();
-            ParserFunction.RegisterFunction(Constants.START_DEBUGGER, new DebuggerFunction());
             ParserFunction.RegisterFunction(Constants.APPEND, new AppendFunction());
             ParserFunction.RegisterFunction(Constants.APPENDLINE, new AppendLineFunction());
             ParserFunction.RegisterFunction(Constants.APPENDLINES, new AppendLinesFunction());
@@ -22,8 +21,8 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.COPY, new CopyFunction());
             ParserFunction.RegisterFunction(Constants.DELETE, new DeleteFunction());
             ParserFunction.RegisterFunction(Constants.DIR, new DirFunction());
-            ParserFunction.RegisterFunction(Constants.ENV, new GetEnvFunction());
             ParserFunction.RegisterFunction(Constants.EXISTS, new ExistsFunction());
+            ParserFunction.RegisterFunction(Constants.EXIT, new ExitFunction());
             ParserFunction.RegisterFunction(Constants.FINDFILES, new FindfilesFunction());
             ParserFunction.RegisterFunction(Constants.FINDSTR, new FindstrFunction());
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
@@ -38,13 +37,10 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.READFILE, new ReadCSCSFileFunction());
             ParserFunction.RegisterFunction(Constants.RUN, new RunFunction());
             ParserFunction.RegisterFunction(Constants.SET_NATIVE, new SetNativeFunction());
-            ParserFunction.RegisterFunction(Constants.SETENV, new SetEnvFunction());
             ParserFunction.RegisterFunction(Constants.STARTSRV, new ServerSocket());
             ParserFunction.RegisterFunction(Constants.STOPWATCH_ELAPSED, new StopWatchFunction(StopWatchFunction.Mode.ELAPSED));
             ParserFunction.RegisterFunction(Constants.STOPWATCH_START, new StopWatchFunction(StopWatchFunction.Mode.START));
             ParserFunction.RegisterFunction(Constants.STOPWATCH_STOP, new StopWatchFunction(StopWatchFunction.Mode.STOP));
-            ParserFunction.RegisterFunction(Constants.STR_BETWEEN, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN));
-            ParserFunction.RegisterFunction(Constants.STR_BETWEEN_ANY, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN_ANY));
             ParserFunction.RegisterFunction(Constants.TAIL, new TailFunction());
             ParserFunction.RegisterFunction(Constants.TIMESTAMP, new TimestampFunction());
             ParserFunction.RegisterFunction(Constants.WRITE, new PrintFunction(false));
@@ -137,7 +133,6 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.FLOOR, tr1, tr2);
                 Translation.Add(languageSection, Constants.GET_COLUMN, tr1, tr2);
                 Translation.Add(languageSection, Constants.GET_KEYS, tr1, tr2);
-                Translation.Add(languageSection, Constants.INDEX_OF, tr1, tr2);
                 Translation.Add(languageSection, Constants.KILL, tr1, tr2);
                 Translation.Add(languageSection, Constants.LOCK, tr1, tr2);
                 Translation.Add(languageSection, Constants.MKDIR, tr1, tr2);
@@ -160,7 +155,6 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.REMOVE_AT, tr1, tr2);
                 Translation.Add(languageSection, Constants.ROUND, tr1, tr2);
                 Translation.Add(languageSection, Constants.RUN, tr1, tr2);
-                Translation.Add(languageSection, Constants.SET, tr1, tr2);
                 Translation.Add(languageSection, Constants.SETENV, tr1, tr2);
                 Translation.Add(languageSection, Constants.SHOW, tr1, tr2);
                 Translation.Add(languageSection, Constants.SIGNAL, tr1, tr2);
@@ -181,7 +175,6 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.STR_SUBSTR, tr1, tr2);
                 Translation.Add(languageSection, Constants.STR_TRIM, tr1, tr2);
                 Translation.Add(languageSection, Constants.STR_UPPER, tr1, tr2);
-                Translation.Add(languageSection, Constants.SUBSTR, tr1, tr2);
                 Translation.Add(languageSection, Constants.TAIL, tr1, tr2);
                 Translation.Add(languageSection, Constants.THREAD, tr1, tr2);
                 Translation.Add(languageSection, Constants.THREAD_ID, tr1, tr2);
@@ -189,8 +182,6 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.TOKENIZE, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKENIZE_LINES, tr1, tr2);
                 Translation.Add(languageSection, Constants.TOKEN_COUNTER, tr1, tr2);
-                Translation.Add(languageSection, Constants.TOLOWER, tr1, tr2);
-                Translation.Add(languageSection, Constants.TOUPPER, tr1, tr2);
                 Translation.Add(languageSection, Constants.TO_BOOL, tr1, tr2);
                 Translation.Add(languageSection, Constants.TO_DECIMAL, tr1, tr2);
                 Translation.Add(languageSection, Constants.TO_DOUBLE, tr1, tr2);

@@ -151,8 +151,8 @@ namespace scripting.iOS
     protected override Variable Evaluate(ParsingScript script)
     {
       bool isList = false;
-      List<Variable> args = Utils.GetArgs(script,
-                            Constants.START_ARG, Constants.END_ARG, out isList);
+      List<Variable> args = Utils.GetArgs(script, Constants.START_ARG, Constants.END_ARG,
+                                         (outList) => { isList = outList; });
       Utils.CheckArgs(args.Count, 2, m_name);
 
       string appId = args[0].AsString();

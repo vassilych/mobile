@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
@@ -21,12 +22,45 @@ namespace SplitAndMerge
                 bool isList = true;
                 Variable value = new Variable();
                 value.Tuple = GetArgs(script,
-                      Constants.START_GROUP, Constants.END_GROUP, out isList);
+                      Constants.START_GROUP, Constants.END_GROUP, (outList) => { isList = outList; } );
                 return value;
             }
 
             // A variable, a function, or a number.
             Variable var = script.Execute(Constants.NEXT_OR_END_ARRAY);
+            //value = var.Clone();
+
+            if (inQuotes)
+            {
+                script.MoveForwardIf(Constants.QUOTE);
+            }
+            if (eatLast)
+            {
+                script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
+            }
+            return var;
+        }
+
+        public static async Task<Variable> GetItemAsync(ParsingScript script, bool eatLast = true)
+        {
+            script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
+            Utils.CheckNotEnd(script);
+
+            bool inQuotes = script.Current == Constants.QUOTE;
+
+            if (script.Current == Constants.START_GROUP)
+            {
+                // We are extracting a list between curly braces.
+                script.Forward(); // Skip the first brace.
+                bool isList = true;
+                Variable value = new Variable();
+                value.Tuple = await GetArgsAsync(script,
+                      Constants.START_GROUP, Constants.END_GROUP, (outList) => { isList = outList; });
+                return value;
+            }
+
+            // A variable, a function, or a number.
+            Variable var = await script.ExecuteAsync(Constants.NEXT_OR_END_ARRAY);
             //value = var.Clone();
 
             if (inQuotes)
@@ -123,7 +157,8 @@ namespace SplitAndMerge
         {
             int argRead = 0;
             bool inQuotes = false;
-            char previous = Constants.EMPTY;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
 
             while (script.StillValid())
             {
@@ -137,7 +172,7 @@ namespace SplitAndMerge
                 switch (currentChar)
                 {
                     case Constants.QUOTE:
-                        if (previous != '\\')
+                        if (prev != '\\' || prevprev == '\\')
                         {
                             inQuotes = !inQuotes;
                         }
@@ -166,29 +201,9 @@ namespace SplitAndMerge
                 }
 
                 script.Forward();
-                previous = currentChar;
+                prevprev = prev;
+                prev = currentChar;
             }
-        }
-
-        public static string GetStringOrVarValue(ParsingScript script)
-        {
-            script.MoveForwardIf(Constants.SPACE);
-
-            // If this token starts with a quote then it is a string constant.
-            // Otherwide we treat it as a variable, but if the variable doesn't exist then it
-            // will be still treated as a string constant.
-            bool stringConstant = script.Rest.StartsWith(Constants.QUOTE.ToString());
-
-            string token = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-            // Check if this is a variable definition:
-            stringConstant = stringConstant || !ParserFunction.FunctionExists(token);
-            if (!stringConstant)
-            {
-                Variable sourceValue = ParserFunction.GetFunction(token, script).GetValue(script);
-                token = sourceValue.String;
-            }
-
-            return token;
         }
 
         public static bool IsCompareSign(char ch)
@@ -247,7 +262,20 @@ namespace SplitAndMerge
         {
             bool isList;
             List<Variable> args = Utils.GetArgs(script,
-                Constants.START_ARG, Constants.END_ARG, out isList);
+                Constants.START_ARG, Constants.END_ARG, (outList) => { isList = outList; });
+
+            List<string> result = new List<string>();
+            for (int i = 0; i < args.Count; i++)
+            {
+                result.Add(args[i].AsString());
+            }
+            return result;
+        }
+        public static async Task<List<string>> GetFunctionArgsAsync(ParsingScript script)
+        {
+            bool isList;
+            List<Variable> args = await Utils.GetArgsAsync(script,
+                Constants.START_ARG, Constants.END_ARG, (outList) => { isList = outList; });
 
             List<string> result = new List<string>();
             for (int i = 0; i < args.Count; i++)
@@ -258,10 +286,10 @@ namespace SplitAndMerge
         }
 
         public static List<Variable> GetArgs(ParsingScript script,
-            char start, char end, out bool isList)
+            char start, char end, Action<bool> outList)
         {
             List<Variable> args = new List<Variable>();
-            isList = script.StillValid() && script.Current == Constants.START_GROUP;
+            bool isList = script.StillValid() && script.Current == Constants.START_GROUP;
 
             if (!script.StillValid() || script.Current == Constants.END_STATEMENT)
             {
@@ -310,6 +338,64 @@ namespace SplitAndMerge
 
             script.MoveForwardIf(Constants.SPACE);
             //script.MoveForwardIf(Constants.SPACE, Constants.END_STATEMENT);
+            outList(isList);
+            return args;
+        }
+
+        public static async Task<List<Variable>> GetArgsAsync(ParsingScript script,
+            char start, char end, Action<bool> outList)
+        {
+            List<Variable> args = new List<Variable>();
+            bool isList = script.StillValid() && script.Current == Constants.START_GROUP;
+
+            if (!script.StillValid() || script.Current == Constants.END_STATEMENT)
+            {
+                return args;
+            }
+
+            ParsingScript tempScript = new ParsingScript(script.String, script.Pointer);
+            tempScript.ParentScript = script;
+            tempScript.InTryBlock = script.InTryBlock;
+
+            if (script.Current != start && script.TryPrev() != start &&
+               (script.Current == ' ' || script.TryPrev() == ' '))
+            { // Allow functions with space separated arguments
+                start = ' ';
+                end = Constants.END_STATEMENT;
+            }
+
+            // ScriptingEngine - body is unsed (used in Debugging) but GetBodyBetween has sideeffects			
+#pragma warning disable 219
+            string body = Utils.GetBodyBetween(tempScript, start, end);
+#pragma warning restore 219
+            // After the statement above tempScript.Parent will point to the last
+            // character belonging to the body between start and end characters. 
+
+            while (script.Pointer < tempScript.Pointer)
+            {
+                Variable item = await Utils.GetItemAsync(script, false);
+                args.Add(item);
+                if (script.Pointer < tempScript.Pointer)
+                {
+                    script.MoveForwardIf(Constants.END_GROUP);
+                    script.MoveForwardIf(Constants.NEXT_ARG);
+                }
+                if (script.Pointer == tempScript.Pointer - 1)
+                {
+                    script.MoveForwardIf(Constants.END_ARG, Constants.END_GROUP);
+                }
+            }
+
+            if (script.Pointer <= tempScript.Pointer)
+            {
+                // Eat closing parenthesis, if there is one, but only if it closes
+                // the current argument list, not one after it. 
+                script.MoveForwardIf(Constants.END_ARG);
+            }
+
+            script.MoveForwardIf(Constants.SPACE);
+            //script.MoveForwardIf(Constants.SPACE, Constants.END_STATEMENT);
+            outList(isList);
             return args;
         }
 
@@ -366,7 +452,7 @@ namespace SplitAndMerge
             string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
             string[] args = argStr.Split(Constants.NEXT_ARG_ARRAY, StringSplitOptions.RemoveEmptyEntries);
 
-            args = args.Select(element => element.Trim()).ToArray();
+            args = args.Select(element => Constants.ConvertName(element.Trim())).ToArray();
             script.Pointer = endArgs + 1;
 
             return args;
@@ -453,7 +539,8 @@ namespace SplitAndMerge
             List<string> args = new List<string>();
 
             bool inQuotes = false;
-            char previous = Constants.EMPTY;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
             int angleBrackets = 0;
 
             for (int i = 0; i < source.Length; i++)
@@ -466,7 +553,7 @@ namespace SplitAndMerge
                     case '„':
                     case '"':
                         ch = '"';
-                        if (previous != '\\')
+                        if (prev != '\\' || prevprev == '\\')
                         {
                             inQuotes = !inQuotes;
                         }
@@ -484,11 +571,13 @@ namespace SplitAndMerge
                         }
                         args.Add(sb.ToString());
                         sb.Clear();
-                        previous = ch;
+                        prevprev = prev;
+                        prev = ch;
                         continue;
                 }
                 sb.Append(ch);
-                previous = ch;
+                prevprev = prev;
+                prev = ch;
             }
             if (sb.Length > 0)
             {
@@ -506,7 +595,8 @@ namespace SplitAndMerge
             bool spaceOK = false;
             bool inComments = false;
             bool simpleComments = false;
-            char previous = Constants.EMPTY;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
 
             int parentheses = 0;
             int groups = 0;
@@ -564,7 +654,10 @@ namespace SplitAndMerge
                         ch = '"';
                         if (!inComments)
                         {
-                            if (previous != '\\') inQuotes = !inQuotes;
+                            if (prev != '\\' || prevprev == '\\')
+                            {
+                                inQuotes = !inQuotes;
+                            }
                         }
                         break;
                     case ' ':
@@ -577,12 +670,12 @@ namespace SplitAndMerge
                             bool keepSpace = KeepSpace(sb, next);
                             bool usedSpace = spaceOK;
                             spaceOK = keepSpace ||
-                                 (previous != Constants.EMPTY && previous != Constants.NEXT_ARG && spaceOK);
+                                 (prev != Constants.EMPTY && prev != Constants.NEXT_ARG && spaceOK);
                             if (spaceOK || KeepSpaceOnce(sb, next))
                             {
                                 sb.Append(ch);
                             }
-                            spaceOK = spaceOK || (usedSpace && previous == Constants.NEXT_ARG);
+                            spaceOK = spaceOK || (usedSpace && prev == Constants.NEXT_ARG);
                         }
                         continue;
                     case '\t':
@@ -634,7 +727,8 @@ namespace SplitAndMerge
                 {
                     sb.Append(ch);
                 }
-                previous = ch;
+                prevprev = prev;
+                prev = ch;
             }
 
             if (sb.Length > lastScriptLength)
@@ -720,7 +814,8 @@ namespace SplitAndMerge
             int braces = 0;
             bool inQuotes = false;
             bool checkBraces = true;
-            char previous = Constants.EMPTY;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
 
             for (; script.StillValid(); script.Forward())
             {
@@ -729,7 +824,8 @@ namespace SplitAndMerge
                 if (close != Constants.QUOTE)
                 {
                     checkBraces = !inQuotes;
-                    if (ch == Constants.QUOTE && previous != '\\')
+                    if (ch == Constants.QUOTE &&
+                       (prev != '\\' || prevprev == '\\'))
                     {
                         inQuotes = !inQuotes;
                     }
@@ -749,7 +845,8 @@ namespace SplitAndMerge
                 }
 
                 sb.Append(ch);
-                previous = ch;
+                prevprev = prev;
+                prev = ch;
                 if (braces < 0)
                 {
                     if (ch == close)
@@ -787,13 +884,18 @@ namespace SplitAndMerge
             return null;
         }
 
-        public static List<Variable> GetArrayIndices(ParsingScript script, ref string varName)
+        public static List<Variable> GetArrayIndices(ParsingScript script, string varName, Action<string> updateVarName)
         {
             int end = 0;
-            return GetArrayIndices(script, ref varName, ref end);
+            return GetArrayIndices(script, varName, end, (string str, int i) => { updateVarName(str); end = i; });
+        }
+        public static async Task<List<Variable>> GetArrayIndicesAsync(ParsingScript script, string varName, Action<string> updateVarName)
+        {
+            int end = 0;
+            return await GetArrayIndicesAsync(script, varName, end, (string str, int i) => { updateVarName(str); end = i; });
         }
 
-        public static List<Variable> GetArrayIndices(ParsingScript script, ref string varName, ref int end)
+        public static List<Variable> GetArrayIndices(ParsingScript script, string varName, int end, Action<string, int> updateVals)
         {
             List<Variable> indices = new List<Variable>();
 
@@ -834,6 +936,51 @@ namespace SplitAndMerge
                 end = argStart - 1;
             }
 
+            updateVals(varName, end);
+            return indices;
+        }
+        public static async Task<List<Variable>> GetArrayIndicesAsync(ParsingScript script, string varName, int end, Action<string, int> updateVals)
+        {
+            List<Variable> indices = new List<Variable>();
+
+            int argStart = varName.IndexOf(Constants.START_ARRAY);
+            if (argStart < 0)
+            {
+                return indices;
+            }
+            int firstIndexStart = argStart;
+
+            while (argStart < varName.Length &&
+                   varName[argStart] == Constants.START_ARRAY)
+            {
+                int argEnd = varName.IndexOf(Constants.END_ARRAY, argStart + 1);
+                if (argEnd == -1 || argEnd <= argStart + 1)
+                {
+                    break;
+                }
+
+                ParsingScript tempScript = new ParsingScript(varName, argStart);
+                tempScript.ParentScript = script;
+                tempScript.Char2Line = script.Char2Line;
+                tempScript.Filename = script.Filename;
+                tempScript.OriginalScript = script.OriginalScript;
+                tempScript.InTryBlock = script.InTryBlock;
+
+                tempScript.MoveForwardIf(Constants.START_ARG, Constants.START_ARRAY);
+
+                Variable index = await tempScript.ExecuteToAsync(Constants.END_ARRAY);
+
+                indices.Add(index);
+                argStart = argEnd + 1;
+            }
+
+            if (indices.Count > 0)
+            {
+                varName = varName.Substring(0, firstIndexStart);
+                end = argStart - 1;
+            }
+
+            updateVals(varName, end);
             return indices;
         }
 
@@ -883,7 +1030,7 @@ namespace SplitAndMerge
 
             return text;
         }
-        public static Variable GetVar(string paramName, ParsingScript script)
+        public static async Task<Variable> GetVar(string paramName, ParsingScript script)
         {
             if (script == null)
             {
@@ -894,17 +1041,17 @@ namespace SplitAndMerge
             {
                 throw new ArgumentException("Variable [" + paramName + "] not found.");
             }
-            Variable result = function.GetValue(script);
+            Variable result = await function.GetValueAsync(script);
             return result;
         }
-        public static string GetString(string paramName, ParsingScript script = null)
+        public static async Task<string> GetString(string paramName, ParsingScript script = null)
         {
-            Variable result = GetVar(paramName, script);
+            Variable result = await GetVar(paramName, script);
             return result.AsString();
         }
-        public static double GetDouble(string paramName, ParsingScript script = null)
+        public static async Task<double> GetDouble(string paramName, ParsingScript script = null)
         {
-            Variable result = GetVar(paramName, script);
+            Variable result = await GetVar(paramName, script);
             return result.AsDouble();
         }
         public static string PrepareArgs(string argsStr, bool validateQuotes = false)

@@ -46,7 +46,6 @@ namespace SplitAndMerge
         public const string CATCH = "catch";
         public const string CANCEL = "cancel_operation";
         public const string COMMENT = "//";
-        public const string CONTAINS = "contains";
         public const string CONTINUE = "continue";
         public const string ELSE = "else";
         public const string ELSE_IF = "elif";
@@ -72,7 +71,9 @@ namespace SplitAndMerge
         public const string ADD_TO_HASH = "AddToHash";
         public const string ADD_ALL_TO_HASH = "AddAllToHash";
         public const string ASIN = "asin";
+        public const string CANCEL_RUN = "CancelRun";
         public const string CEIL = "ceil";
+        public const string CONTAINS = "contains";
         public const string COS = "cos";
         public const string DEEP_COPY = "DeepCopy";
         public const string DEFINE_LOCAL = "DefineLocal";
@@ -83,14 +84,12 @@ namespace SplitAndMerge
         public const string FLOOR = "floor";
         public const string GET_PROPERTIES = "GetPropertyStrings";
         public const string GET_PROPERTY = "GetProperty";
-        public const string INDEX_OF = "indexof";
         public const string LOCK = "lock";
         public const string HELP = "help";
-        public const string LOCAL_IP = "LocalIP";
         public const string LOG = "log";
         public const string NOW = "Now";
-        public const string OBJECT_PROPERTIES = "properties";
-        public const string OBJECT_TYPE = "type";
+        public const string OBJECT_PROPERTIES = "Properties";
+        public const string OBJECT_TYPE = "Type";
         public const string PI = "pi";
         public const string POW = "pow";
         public const string PRINT = "print";
@@ -99,11 +98,14 @@ namespace SplitAndMerge
         public const string REMOVE = "RemoveItem";
         public const string REMOVE_AT = "RemoveAt";
         public const string ROUND = "round";
-        public const string SET = "set";
+        public const string SCHEDULE_RUN = "ScheduleRun";
+        public const string SETENV = "setenv";
         public const string SET_PROPERTY = "SetProperty";
         public const string SHOW = "show";
+        public const string SIGNAL = "signal";
         public const string SIN = "sin";
-        public const string SIZE = "size";
+        public const string SINGLETON = "singleton";
+        public const string SIZE = "Size";
         public const string SLEEP = "sleep";
         public const string SQRT = "sqrt";
         public const string STR_BETWEEN = "StrBetween";
@@ -118,22 +120,37 @@ namespace SplitAndMerge
         public const string STR_SUBSTR = "Substring";
         public const string STR_TRIM = "StrTrim";
         public const string STR_UPPER = "StrUpper";
-        public const string SUBSTR = "substr";
         public const string THREAD = "thread";
         public const string THREAD_ID = "threadid";
-        public const string TOKENIZE = "tokenize";
         public const string TOKENIZE_LINES = "TokenizeLines";
         public const string TOKEN_COUNTER = "CountTokens";
-        public const string TOLOWER = "tolower";
-        public const string TOUPPER = "toupper";
         public const string TO_BOOL = "bool";
         public const string TO_DECIMAL = "decimal";
         public const string TO_DOUBLE = "double";
         public const string TO_INT = "int";
         public const string TO_STRING = "string";
+        public const string WAIT = "wait";
 
         public const string START_DEBUGGER = "StartDebugger";
         public const string STOP_DEBUGGER  = "StopDebugger";
+        public const string GET_FILE_FROM_DEBUGGER = "GetFileFromDebugger";
+
+        // Properties, returned after the variable dot:
+        public const string AT          = "At";
+        public const string ENDS_WITH   = "EndsWith";
+        public const string EQUALS      = "Equals";
+        public const string FIRST       = "First";
+        public const string INDEX_OF    = "IndexOf";
+        public const string JOIN        = "Join";
+        public const string LAST        = "Last";
+        public const string LOWER       = "Lower";
+        public const string REPLACE     = "Replace";
+        public const string STRING      = "String";
+        public const string STARTS_WITH = "StartsWith";
+        public const string SUBSTRING   = "Substring";
+        public const string TOKENIZE    = "Tokenize";
+        public const string TRIM        = "Trim";
+        public const string UPPER       = "Upper";
 
         public static string END_ARG_STR = END_ARG.ToString();
         public static string NULL_ACTION = END_ARG.ToString();
@@ -186,13 +203,14 @@ namespace SplitAndMerge
         // use in calculation of a result.
         public static List<string> CONTROL_FLOW = new List<string>
         {
-            BREAK, CONTINUE, FUNCTION, COMPILED_FUNCTION, IF, INCLUDE, FOR, WHILE, RETURN, THROW, TRY
+            BREAK, CATCH, CLASS, COMPILED_FUNCTION, CONTINUE, ELSE, ELSE_IF, ELSE, FOR, FUNCTION, IF, INCLUDE, NEW,
+            RETURN, THROW, TRY, WHILE
         };
 
         public static List<string> RESERVED = new List<string>
         {
             BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
-            RETURN, THROW, TRY, CATCH, COMMENT,
+            RETURN, THROW, TRY, CATCH, COMMENT, TRUE, FALSE, TYPE,
             ASSIGNMENT, AND, OR, EQUAL, NOT_EQUAL, LESS, LESS_EQ, GREATER, GREATER_EQ,
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
@@ -215,6 +233,35 @@ namespace SplitAndMerge
         public const int INDENT = 2;
         public const int DEFAULT_FILE_LINES = 20;
         public const int MAX_CHARS_TO_SHOW = 45;
+
+        static Dictionary<string, string> s_realNames = new Dictionary<string, string>();
+
+        public static string ConvertName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || name[0] == QUOTE)
+            {
+                return name;
+            }
+
+            string lower = name.ToLower(System.Globalization.CultureInfo.CurrentCulture);
+            if (name == lower || CONTROL_FLOW.Contains(lower))
+            { // Do not permit using key words with no case, like IF, For
+                return name;
+            }
+
+            s_realNames[lower] = name;
+            return lower;
+        }
+
+        public static string GetRealName(string name)
+        {
+            string realName;
+            if (!s_realNames.TryGetValue(name, out realName))
+            {
+                return name;
+            }
+            return realName;
+        }
 
         public static string TypeToString(Variable.VarType type)
         {

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
@@ -30,8 +31,9 @@ namespace SplitAndMerge
         {
             if (number < 0)
             {
+                string realName = Constants.GetRealName(name);
                 throw new ArgumentException("Expected a positive integer instead of [" +
-                                               number + "] in [" + name + "]");
+                                               number + "] in [" + realName + "]");
             }
         }
         public static void CheckNonNegativeInt(Variable variable)
@@ -64,22 +66,25 @@ namespace SplitAndMerge
         {
             if (variable.Tuple == null)
             {
+                string realName = Constants.GetRealName(name);
                 throw new ArgumentException("An array expected for variable [" +
-                                               name + "]");
+                                               realName + "]");
             }
         }
         public static void CheckNotEmpty(ParsingScript script, string varName, string name)
         {
             if (!script.StillValid() || string.IsNullOrWhiteSpace(varName))
             {
-                throw new ArgumentException("Incomplete arguments for [" + name + "]");
+                string realName = Constants.GetRealName(name);
+                throw new ArgumentException("Incomplete arguments for [" + realName + "]");
             }
         }
         public static void CheckNotEnd(ParsingScript script, string name)
         {
             if (!script.StillValid())
             {
-                throw new ArgumentException("Incomplete arguments for [" + name + "]");
+                string realName = Constants.GetRealName(name);
+                throw new ArgumentException("Incomplete arguments for [" + realName + "]");
             }
         }
         public static void CheckNotNull(object obj, string name, int index = -1)
@@ -87,8 +92,9 @@ namespace SplitAndMerge
             if (obj == null)
             {
                 string indexStr = index >= 0 ? " in position " + (index + 1) : "";
+                string realName = Constants.GetRealName(name);
                 throw new ArgumentException("Invalid argument " + indexStr +
-                                            " in function [" + name + "]");
+                                            " in function [" + realName + "]");
             }
         }
         public static void CheckNotEnd(ParsingScript script)
@@ -102,14 +108,16 @@ namespace SplitAndMerge
         {
             if (string.IsNullOrEmpty(varName))
             {
-                throw new ArgumentException("Incomplete arguments for [" + name + "]");
+                string realName = Constants.GetRealName(name);
+                throw new ArgumentException("Incomplete arguments for [" + realName + "]");
             }
         }
         public static void CheckNotNull(string name, ParserFunction func)
         {
             if (func == null)
             {
-                throw new ArgumentException("Variable or function [" + name + "] doesn't exist");
+                string realName = Constants.GetRealName(name);
+                throw new ArgumentException("Variable or function [" + realName + "] doesn't exist");
             }
         }
  
@@ -366,22 +374,47 @@ namespace SplitAndMerge
             Utils.CheckNotNull(varValue, varName);
             return varValue;
         }
+        public static async Task<Variable> GetVariableAsync(string varName, ParsingScript script, bool testNull = true)
+        {
+            ParserFunction func = ParserFunction.GetFunction(varName, script);
+            if (!testNull && func == null)
+            {
+                return null;
+            }
+            Utils.CheckNotNull(varName, func);
+            Variable varValue = await func.GetValueAsync(script);
+            Utils.CheckNotNull(varValue, varName);
+            return varValue;
+        }
 
-        public static double ConvertToDouble(object obj, string errorOrigin = "")
+        public static double ConvertToDouble(object obj, ParsingScript script = null)
         {
             string str = obj.ToString();
             double num = 0;
 
             if (!Double.TryParse(str, NumberStyles.Number |
-                                 NumberStyles.AllowExponent |
-                                 NumberStyles.Float,
-                                 CultureInfo.InvariantCulture, out num) &&
-                !string.IsNullOrWhiteSpace(errorOrigin))
+                                      NumberStyles.AllowExponent |
+                                      NumberStyles.Float,
+                                      CultureInfo.InvariantCulture, out num) &&
+                script != null)
             {
-                throw new ArgumentException("Couldn't parse [" + str + "] in " + errorOrigin);
+                ThrowErrorMsg(str, script);
             }
             return num;
         }
+
+        public static void ThrowErrorMsg(string str, ParsingScript script)
+        {
+            char ch = string.IsNullOrEmpty(script.Rest) ? Constants.EMPTY : script.Rest[0];
+            string entity = ch == '(' || ch == ')' ? "function" :
+                            ch == '[' || ch == ']' ? "array" :
+                                                     "variable";
+            string lineExpr = str.Length < script.OriginalLine.Length - 2 ? " in [" + 
+                              script.OriginalLine + "]" : "";
+            string token    = Constants.GetRealName(str);
+            throw new ArgumentException("Couldn't find " + entity + " [" + token + "]" + lineExpr);
+        }
+
         public static bool ConvertToBool(object obj)
         {
             string str = obj.ToString();
@@ -396,11 +429,12 @@ namespace SplitAndMerge
             Boolean.TryParse(str, out res);
             return res;
         }
-        public static int ConvertToInt(object obj, string errorOrigin = "")
+        public static int ConvertToInt(object obj, ParsingScript script = null)
         {
-            double num = ConvertToDouble(obj, errorOrigin);
+            double num = ConvertToDouble(obj, script);
             return (int)num;
         }
+
         public static void Extract(string data, ref string str1, ref string str2,
                                    ref string str3, ref string str4, ref string str5)
         {

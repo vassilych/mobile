@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
@@ -21,6 +22,13 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
+            AddOutput(args, script, m_newLine);
+
+            return Variable.EmptyInstance;
+        }
+        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            List<Variable> args = await script.GetFunctionArgsAsync();
             AddOutput(args, script, m_newLine);
 
             return Variable.EmptyInstance;
@@ -72,6 +80,13 @@ namespace SplitAndMerge
             string data = Utils.GetSafeString(args, 0);
 
             string sep = Utils.GetSafeString(args, 1, "\t");
+            var option = Utils.GetSafeString(args, 2);
+
+            return Tokenize(data, sep, option);
+        }
+
+        static public Variable Tokenize(string data, string sep, string option = "")
+        {
             if (sep == "\\t")
             {
                 sep = "\t";
@@ -98,8 +113,6 @@ namespace SplitAndMerge
                 }
                 tokens = tokens_.ToArray();
             }
-
-            var option = Utils.GetSafeString(args, 2);
 
             List<Variable> results = new List<Variable>();
             for (int i = 0; i < tokens.Length; i++)
@@ -178,8 +191,8 @@ namespace SplitAndMerge
                     return new Variable(source.Substring(startFrom, length));
                 case Mode.BEETWEEN:
                 case Mode.BEETWEEN_ANY:
-                    int index1 = source.IndexOf(argument);
-                    int index2 = m_mode == Mode.BEETWEEN ? source.IndexOf(parameter, index1 + 1) :
+                    int index1 = source.IndexOf(argument, comp);
+                    int index2 = m_mode == Mode.BEETWEEN ? source.IndexOf(parameter, index1 + 1, comp) :
                                           source.IndexOfAny(parameter.ToCharArray(), index1 + 1);
                     startFrom = index1 + argument.Length;
 
@@ -227,120 +240,6 @@ namespace SplitAndMerge
         }
     }
 
-    // Convert a string to the upper case
-    class ToUpperFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.END_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 3. Take either the string part if it is defined,
-            // or the numerical part converted to a string otherwise.
-            string arg = currentValue.AsString();
-
-            Variable newValue = new Variable(arg.ToUpper());
-            return newValue;
-        }
-    }
-
-    // Convert a string to the lower case
-    class ToLowerFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.END_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 3. Take either the string part if it is defined,
-            // or the numerical part converted to a string otherwise.
-            string arg = currentValue.AsString();
-
-            Variable newValue = new Variable(arg.ToLower());
-            return newValue;
-        }
-    }
-
-    // Get a substring of a string
-    class SubstrFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string substring;
-
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 3. Take either the string part if it is defined,
-            // or the numerical part converted to a string otherwise.
-            string arg = currentValue.AsString();
-            // 4. Get the initial index of the substring.
-            Variable init = Utils.GetItem(script);
-            Utils.CheckNonNegativeInt(init);
-
-            // 5. Get the length of the substring if available.
-            bool lengthAvailable = Utils.SeparatorExists(script);
-            if (lengthAvailable)
-            {
-                Variable length = Utils.GetItem(script);
-                Utils.CheckPosInt(length);
-                if (init.Value + length.Value > arg.Length)
-                {
-                    throw new ArgumentException("The total substring length is larger than [" +
-                      arg + "]");
-                }
-                substring = arg.Substring((int)init.Value, (int)length.Value);
-            }
-            else
-            {
-                substring = arg.Substring((int)init.Value);
-            }
-            Variable newValue = new Variable(substring);
-
-            return newValue;
-        }
-    }
-
-    // Get an index of a substring in a string. Return -1 if not found.
-    class IndexOfFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 3. Get the value to be looked for.
-            Variable searchValue = Utils.GetItem(script);
-
-            // 4. Apply the corresponding C# function.
-            string basePart = currentValue.AsString();
-            string search = searchValue.AsString();
-
-            int result = basePart.IndexOf(search);
-            return new Variable(result);
-        }
-    }
-
     class SignalWaitFunction : ParserFunction, INumericFunction
     {
         static AutoResetEvent waitEvent = new AutoResetEvent(false);
@@ -364,7 +263,7 @@ namespace SplitAndMerge
         {
             string body = script.TryPrev() == Constants.START_GROUP ?
                           Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP) :
-                          Utils.GetBodyBetween(script, script.Current, Constants.END_STATEMENT);
+                          Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
             ThreadPool.QueueUserWorkItem(ThreadProc, body);
             return Variable.EmptyInstance;
         }
@@ -406,6 +305,8 @@ namespace SplitAndMerge
                                                        Constants.END_ARG);
             ParsingScript threadScript = new ParsingScript(body);
 
+            // BUGBUG: Alfred - what is this actually locking?
+            // Vassili - it's a global (static) lock. used when called from different threads
             lock (lockObject)
             {
                 threadScript.ExecuteAll();
@@ -449,6 +350,54 @@ namespace SplitAndMerge
             }
 
             return new Variable(res);
+        }
+    }
+    // Returns an environment variable
+    class GetEnvFunction : ParserFunction, IStringFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetToken(script, Constants.END_ARG_ARRAY);
+            string res = Environment.GetEnvironmentVariable(varName);
+
+            return new Variable(res);
+        }
+    }
+
+    // Sets an environment variable
+    class SetEnvFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
+            Utils.CheckNotEmpty(script, varName, m_name);
+
+            Variable varValue = Utils.GetItem(script);
+            string strValue = varValue.AsString();
+            Environment.SetEnvironmentVariable(varName, strValue);
+
+            return new Variable(varName);
+        }
+    }
+
+    class GetFileFromDebugger : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+
+            Utils.CheckArgs(args.Count, 2, m_name);
+            string filename = Utils.GetSafeString(args, 0);
+            string destination = Utils.GetSafeString(args, 1);
+
+            Variable result = new Variable(Variable.VarType.ARRAY);
+            result.Tuple.Add(new Variable(Constants.GET_FILE_FROM_DEBUGGER));
+            result.Tuple.Add(new Variable(filename));
+            result.Tuple.Add(new Variable(destination));
+
+            result.ParsingToken = m_name;
+
+            return result;
         }
     }
 }

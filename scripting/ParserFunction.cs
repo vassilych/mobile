@@ -26,13 +26,15 @@ namespace SplitAndMerge
                 m_impl = s_idFunction;
                 return;
             }
-            if (item.Length > 1 && item[0] == '"' && item[item.Length - 1] == '"')
+            if (item.Length > 1 && item[0] == Constants.QUOTE && item[item.Length - 1] == Constants.QUOTE)
             {
                 // We are dealing with a string.
-                s_strOrNumFunction.Item = item.Replace("\\\"", "\"");
+                s_strOrNumFunction.Item = item;
                 m_impl = s_strOrNumFunction;
                 return;
             }
+
+            item = Constants.ConvertName(item);
 
             m_impl = GetRegisteredAction(item, ref action);
             if (m_impl != null)
@@ -70,7 +72,7 @@ namespace SplitAndMerge
             m_impl = s_strOrNumFunction;
         }
 
-        public static ParserFunction GetArrayFunction(string name, ParsingScript script, string action)
+        static ParserFunction GetArrayFunction(string name, ParsingScript script, string action)
         {
             int arrayStart = name.IndexOf(Constants.START_ARRAY);
             if (arrayStart < 0)
@@ -81,7 +83,7 @@ namespace SplitAndMerge
             string arrayName = name;
 
             int delta = 0;
-            List<Variable> arrayIndices = Utils.GetArrayIndices(script, ref arrayName, ref delta);
+            List<Variable> arrayIndices = Utils.GetArrayIndices(script, arrayName, delta, (string arr, int del) => { arrayName = arr; delta = del; });
 
             if (arrayIndices.Count == 0)
             {
@@ -107,7 +109,7 @@ namespace SplitAndMerge
             return varFunc;
         }
 
-        public static ParserFunction GetObjectFunction(string name, ParsingScript script)
+        static ParserFunction GetObjectFunction(string name, ParsingScript script)
         {
             if (script.CurrentClass != null && script.CurrentClass.Name == name)
             {
@@ -137,7 +139,7 @@ namespace SplitAndMerge
             return varFunc;
         }
 
-        public static ParserFunction GetRegisteredAction(string name, ref string action)
+        static ParserFunction GetRegisteredAction(string name, ref string action)
         {
             ActionFunction actionFunction = GetAction(action);
 
@@ -157,6 +159,7 @@ namespace SplitAndMerge
 
         public static ParserFunction GetFunction(string name, ParsingScript script)
         {
+            name = Constants.ConvertName(name);
             ParserFunction impl;
             // First search among local variables.
             if (s_locals.Count > StackLevelDelta)
@@ -192,6 +195,7 @@ namespace SplitAndMerge
         }
         public static void UpdateFunction(string name, ParserFunction function)
         {
+            name = Constants.ConvertName(name);
             // First search among local variables.
             if (s_locals.Count > StackLevelDelta)
             {
@@ -230,9 +234,10 @@ namespace SplitAndMerge
             return LocalNameExists(item) || GlobalNameExists(item);
         }
 
-        public static void AddGlobalOrLocalVariable(string name, ParserFunction function)
+        public static void AddGlobalOrLocalVariable(string name, GetVarFunction function)
         {
-            function.Name = name;
+            name          = Constants.ConvertName(name);
+            function.Name = Constants.GetRealName(name);
             if (s_locals.Count > StackLevelDelta && (LocalNameExists(name) || !GlobalNameExists(name)))
             {
                 AddLocalVariable(function);
@@ -255,11 +260,21 @@ namespace SplitAndMerge
 
         static string CreateVariableEntry(Variable var, string name, bool isLocal = false)
         {
-            string value = var.AsString(true, true, 16);
-            string localGlobal = isLocal ? "0" : "1";
-            string varData = name + ":" + localGlobal + ":" +
-                             Constants.TypeToString(var.Type).ToLower() + ":" + value;
-            return varData.Trim();
+            try
+            {
+                string value = var.AsString(true, true, 16);
+                string localGlobal = isLocal ? "0" : "1";
+                string varData = name + ":" + localGlobal + ":" +
+                                 Constants.TypeToString(var.Type).ToLower() + ":" + value;
+                return varData.Trim();
+            }
+            catch(Exception exc)
+            {
+                // TODO: Clean up not used objects.
+                bool removed = isLocal ? PopLocalVariable(name) : RemoveGlobal(name);
+                Console.WriteLine("Object {0} is probably dead ({1}): {2}. Removing it.", name, removed, exc);
+                return null;
+            }
         }
 
         static void GetVariables(Dictionary<string, ParserFunction> variablesScope,
@@ -319,11 +334,13 @@ namespace SplitAndMerge
             {
                 return false;
             }
+            name = Constants.ConvertName(name);
             var vars = s_locals.Peek().Variables;
             return vars.ContainsKey(name);
         }
         static bool GlobalNameExists(string name)
         {
+            name = Constants.ConvertName(name);
             return s_functions.ContainsKey(name);
         }
 
@@ -333,21 +350,30 @@ namespace SplitAndMerge
             AddGlobal(name, function, isNative);
         }
 
-        public static void RemoveGlobal(string name)
+        public static bool RemoveGlobal(string name)
         {
-            s_functions.Remove(name);
+            name = Constants.ConvertName(name);
+            return s_functions.Remove(name);
+        }
+
+        static void NormalizeValue(ParserFunction function)
+        {
+            GetVarFunction gvf = function as GetVarFunction;
+            if (gvf != null)
+            {
+                gvf.Value.CurrentAssign = "";
+            }
         }
 
         public static void AddGlobal(string name, ParserFunction function,
                                      bool isNative = true)
         {
+            name = Constants.ConvertName(name);
+            NormalizeValue(function);
             function.isNative = isNative;
             s_functions[name] = function;
 
-            if (string.IsNullOrWhiteSpace(function.Name))
-            {
-                function.Name = name;
-            }
+            function.Name = Constants.GetRealName(name);
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
             if (!isNative)
             {
@@ -358,8 +384,9 @@ namespace SplitAndMerge
 
         public static void AddLocalScopeVariable(string name, string scopeName, ParserFunction variable)
         {
+            name = Constants.ConvertName(name);
             variable.isNative = false;
-            variable.Name = name;
+            variable.Name = Constants.GetRealName(name);
 
             if (scopeName == null)
             {
@@ -384,6 +411,7 @@ namespace SplitAndMerge
                 return null;
             }
 
+            name = Constants.ConvertName(name);
             ParserFunction function = null;
             localScope.TryGetValue(name, out function);
             return function;
@@ -399,13 +427,14 @@ namespace SplitAndMerge
             s_locals.Push(locals);
         }
 
-        public static void AddStackLevel(string name)
+        public static void AddStackLevel(string scopeName)
         {
-            s_locals.Push(new StackLevel(name));
+            s_locals.Push(new StackLevel(scopeName));
         }
 
         public static void AddLocalVariable(ParserFunction local)
         {
+            NormalizeValue(local);
             local.m_isGlobal = false;
             StackLevel locals = null;
             if (s_locals.Count == 0)
@@ -418,9 +447,11 @@ namespace SplitAndMerge
                 locals = s_locals.Peek();
             }
 
-            locals.Variables[local.Name] = local;
+            var name = Constants.ConvertName(local.Name);
+            local.Name = Constants.GetRealName(name);
+            locals.Variables[name] = local;
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-            Translation.AddTempKeyword(local.Name);
+            Translation.AddTempKeyword(name);
 #endif
         }
 
@@ -445,14 +476,15 @@ namespace SplitAndMerge
             }
         }
 
-        public static void PopLocalVariable(string name)
+        public static bool PopLocalVariable(string name)
         {
             if (s_locals.Count == 0)
             {
-                return;
+                return false;
             }
             Dictionary<string, ParserFunction> locals = s_locals.Peek().Variables;
-            locals.Remove(name);
+            name = Constants.ConvertName(name);
+            return locals.Remove(name);
         }
 
         public Variable GetValue(ParsingScript script)
@@ -460,10 +492,21 @@ namespace SplitAndMerge
             return m_impl.Evaluate(script);
         }
 
+        public async Task<Variable> GetValueAsync(ParsingScript script)
+        {
+            return await m_impl.EvaluateAsync(script);
+        }
+
         protected virtual Variable Evaluate(ParsingScript script)
         {
             // The real implementation will be in the derived classes.
             return new Variable();
+        }
+
+        protected virtual Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            // If not overriden, the non-sync version will be called.
+            return Task.FromResult( Evaluate(script) );
         }
 
         // Derived classes may want to return a new instance in order to
@@ -482,7 +525,11 @@ namespace SplitAndMerge
         }
 
         protected string m_name;
-        public string Name { get { return m_name; } set { m_name = value; } }
+        public string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        }
 
         protected bool m_isGlobal = true;
         public bool isGlobal { get { return m_isGlobal; } set { m_isGlobal = value; } }

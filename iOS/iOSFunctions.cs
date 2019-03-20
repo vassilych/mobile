@@ -30,8 +30,9 @@ namespace scripting.iOS
             if (autoResize)
             {
                 double multiplier = Utils.GetSafeDouble(args, 7);
+                int refWidth = UtilsiOS.GetAdjustedScreenWidth();
                 AutoScaleFunction.TransformSizes(ref leftMargin, ref topMargin,
-                             (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+                                                 refWidth, multiplier);
             }
 
             Variable parentView = Utils.GetSafeVariable(args, 8, null);
@@ -87,8 +88,9 @@ namespace scripting.iOS
             if (autoResize)
             {
                 double multiplier = Utils.GetSafeDouble(args, start + 6);
+                int refWidth = UtilsiOS.GetAdjustedScreenWidth();
                 AutoScaleFunction.TransformSizes(ref width, ref height,
-                             (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+                                                 refWidth, multiplier);
             }
 
             UtilsiOS.AdjustSizes(widgetType, location, config, ref width, ref height);
@@ -245,8 +247,9 @@ namespace scripting.iOS
             if (autoResize)
             {
                 double multiplier = Utils.GetSafeDouble(args, 4);
+                int refWidth = UtilsiOS.GetAdjustedScreenWidth();
                 AutoScaleFunction.TransformSizes(ref deltaX, ref deltaY,
-                             (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+                                                 refWidth, multiplier);
             }
 
             UIView view = widget.ViewX;
@@ -313,7 +316,7 @@ namespace scripting.iOS
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name);
 
-            bool checkNull = Utils.GetSafeInt(args, 2, 1) == 1;
+            bool checkNull = Utils.GetSafeInt(args, 3, 1) == 1;
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             if (checkNull)
@@ -1098,8 +1101,9 @@ namespace scripting.iOS
             if (autoResize)
             {
                 double multiplier = Utils.GetSafeDouble(args, 4);
+                int refWidth = UtilsiOS.GetAdjustedScreenWidth();
                 AutoScaleFunction.TransformSizes(ref width, ref height,
-                             (int)UtilsiOS.GetRealScreenWidth(), multiplier);
+                                                 refWidth, multiplier);
             }
             UIView view = iOSVariable.GetView(varName, script);
 
@@ -1207,8 +1211,9 @@ namespace scripting.iOS
             bool autoResize = Utils.GetSafeInt(args, 2, 1) == 1;
             if (autoResize)
             {
+                int refWidth = UtilsiOS.GetAdjustedScreenWidth();
                 fontSize = AutoScaleFunction.ConvertFontSize((float)fontSize,
-                                                             (int)UtilsiOS.GetRealScreenWidth());
+                                                             refWidth);
             }
 
             bool isSet = widget.SetFontSize(fontSize);
