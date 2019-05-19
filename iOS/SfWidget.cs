@@ -16,7 +16,7 @@ using Syncfusion.SfGauge.iOS;
 using Syncfusion.SfNumericUpDown.iOS;
 //using Syncfusion.SfPicker.iOS;
 using Syncfusion.SfPicker.XForms;
-using Syncfusion.SfPicker.XForms.iOS;
+//using Syncfusion.SfPicker.XForms.iOS;
 using Syncfusion.GridCommon.ScrollAxis;
 
 using Xamarin.Forms.Platform.iOS;
@@ -150,8 +150,6 @@ namespace scripting.iOS
           return new SfWidget(SfWidget.SyncFusionType.SPLINE_GRAPH, widgetName, initArg, rect);
         case "SfPicker":
           return new SfWidget(SfWidget.SyncFusionType.PICKER, widgetName, initArg, rect);
-        case "SfImageEditor":
-          return new ImageEditor(widgetName, initArg, rect);
       }
       return null;
     }
@@ -234,8 +232,8 @@ namespace scripting.iOS
     void CreatePicker()
     {
       if (!m_init) {
-        Forms.Init();
-        SfPickerRenderer.Init();
+        Forms.Init();       
+        //SfPickerRenderer.Init();
         m_init = true;
       }
 
@@ -691,7 +689,7 @@ namespace scripting.iOS
       m_chart = new SFChart();
       m_chart.Frame = m_rect;
 
-      m_chart.Title.Text = new NSString("Graph");
+      //m_chart.Title.Text = new NSString("Graph");
 
       SFCategoryAxis primaryAxis = new SFCategoryAxis();
       m_chart.PrimaryAxis = primaryAxis;
@@ -707,6 +705,8 @@ namespace scripting.iOS
           m_model.AddColumns(data);
         } else if (title == "item") {
           m_model.AddPoint(data);
+        } else if (title == "columnWidth") {
+          m_model.SetColumnWidths(data);
         }
       } else if (m_chart != null) {
         var collection = new ObservableCollection<DataPoint>();
@@ -1114,7 +1114,7 @@ namespace scripting.iOS
                                    string strAction, string argument = "")
     {
       ActionDelegate += (arg1, arg2) => {
-        UIVariable.GetAction(strAction, varName, "\"" + arg2 + "\"");
+        UIVariable.GetAction(strAction, varName, arg2);
       };
     }
   }

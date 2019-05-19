@@ -26,7 +26,9 @@ namespace SplitAndMerge
                 m_impl = s_idFunction;
                 return;
             }
-            if (item.Length > 1 && item[0] == Constants.QUOTE && item[item.Length - 1] == Constants.QUOTE)
+            if (item.Length > 1 &&
+              ((item[0] == Constants.QUOTE  && item[item.Length - 1] == Constants.QUOTE) ||
+               (item[0] == Constants.QUOTE1 && item[item.Length - 1] == Constants.QUOTE1)))
             {
                 // We are dealing with a string.
                 s_strOrNumFunction.Item = item;
@@ -42,13 +44,19 @@ namespace SplitAndMerge
                 return;
             }
 
+            m_impl = GetArrayFunction(item, script, action);
+            if (m_impl != null)
+            {
+                return;
+            }
+
             m_impl = GetObjectFunction(item, script);
             if (m_impl != null)
             {
                 return;
             }
 
-            m_impl = GetArrayFunction(item, script, action);
+            m_impl = GetVariable(item, script);
             if (m_impl != null)
             {
                 return;
@@ -90,7 +98,7 @@ namespace SplitAndMerge
                 return null;
             }
 
-            ParserFunction pf = ParserFunction.GetFunction(arrayName, script);
+            ParserFunction pf = ParserFunction.GetVariable(arrayName, script);
             GetVarFunction varFunc = pf as GetVarFunction;
             if (varFunc == null)
             {
@@ -116,19 +124,37 @@ namespace SplitAndMerge
                 script.Backward(name.Length + 1);
                 return new FunctionCreator();
             }
-            if (script.ClassInstance != null && script.ClassInstance.PropertyExists(name))
+            if (script.ClassInstance != null &&
+               (script.ClassInstance.PropertyExists(name) || script.ClassInstance.FunctionExists(name)))
             {
                 name = script.ClassInstance.InstanceName + "." + name;
             }
-            int ind = name.IndexOf(".");
+            //int ind = name.LastIndexOf('.');
+            int ind = name.IndexOf('.');
             if (ind <= 0)
             {
                 return null;
             }
             string baseName = name.Substring(0, ind);
-            string prop     = name.Substring(ind + 1);
+            if (s_namespaces.ContainsKey(baseName))
+            {
+                int ind2 = name.IndexOf('.', ind + 1);
+                if (ind2 > 0)
+                {
+                    ind = ind2;
+                    baseName = name.Substring(0, ind);
+                }
+            }
 
-            ParserFunction pf = ParserFunction.GetFunction(baseName, script);
+            string prop = name.Substring(ind + 1);
+
+            ParserFunction pf = ParserFunction.GetFromNamespace(prop, baseName, script);
+            if (pf != null)
+            {
+                return pf;
+            }
+
+            pf = ParserFunction.GetVariable(baseName, script, true);
             GetVarFunction varFunc = pf as GetVarFunction;
             if (varFunc == null)
             {
@@ -157,8 +183,77 @@ namespace SplitAndMerge
             return theAction;
         }
 
-        public static ParserFunction GetFunction(string name, ParsingScript script)
+        public static bool TryAddToNamespace(string name, string nameSpace, Variable varValue)
         {
+            StackLevel level;
+            if (string.IsNullOrWhiteSpace(nameSpace) ||
+               !s_namespaces.TryGetValue(nameSpace, out level))
+            {
+                return false;
+            }
+
+            var vars = level.Variables;
+            vars[name] = new GetVarFunction(varValue);
+
+            return true;
+        }
+
+        public static ParserFunction GetFromNamespace(string name, ParsingScript script)
+        {
+            ParserFunction result = GetFromNamespace(name, s_namespace, script);
+            return result;
+        }
+
+        public static ParserFunction GetFromNamespace(string name, string nameSpace, ParsingScript script)
+        {
+            if (string.IsNullOrWhiteSpace(nameSpace))
+            {
+                return null;
+            }
+
+            int ind = nameSpace.IndexOf('.');
+            string prop = "";
+            if (ind >= 0)
+            {
+                prop      = name; 
+                name      = nameSpace.Substring(ind + 1);
+                nameSpace = nameSpace.Substring(0, ind);
+            }
+
+            StackLevel level;
+            if  (!s_namespaces.TryGetValue(nameSpace, out level))
+            {
+                return null;
+            }
+
+            if (!name.StartsWith(nameSpace, StringComparison.OrdinalIgnoreCase))
+            {
+                name = nameSpace + "." + name;
+            }
+
+            var vars = level.Variables;
+            ParserFunction impl;
+            if (!vars.TryGetValue(name, out impl) &&
+                !s_variables.TryGetValue(name, out impl) &&
+                !s_functions.TryGetValue(name, out impl)
+                )
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(prop) &&  impl is GetVarFunction)
+            {
+                ((GetVarFunction) impl).PropertyName = prop;
+            }
+            return impl;
+        }
+
+        public static ParserFunction GetVariable(string name, ParsingScript script, bool force = false)
+        {
+            if (!force && script.TryPrev() == Constants.START_ARG)
+            {
+                return null;
+            }
             name = Constants.ConvertName(name);
             ParserFunction impl;
             // First search among local variables.
@@ -167,7 +262,6 @@ namespace SplitAndMerge
                 Dictionary<string, ParserFunction> local = s_locals.Peek().Variables;
                 if (local.TryGetValue(name, out impl))
                 {
-                    // Local function exists (a local variable)
                     return impl;
                 }
             }
@@ -176,9 +270,21 @@ namespace SplitAndMerge
             impl = GetLocalScopeVariable(name, scopeName);
             if (impl != null)
             {
-                // Local scope variable exists
                 return impl;
             }
+
+            if (s_variables.TryGetValue(name, out impl))
+            {
+                return impl.NewInstance();
+            }
+
+            return GetFromNamespace(name, script);
+        }
+
+        public static ParserFunction GetFunction(string name, ParsingScript script)
+        {
+            name = Constants.ConvertName(name);
+            ParserFunction impl;
 
             if (s_functions.TryGetValue(name, out impl))
             {
@@ -186,7 +292,7 @@ namespace SplitAndMerge
                 return impl.NewInstance();
             }
 
-            return null;
+            return GetFromNamespace(name, script);
         }
 
         public static void UpdateFunction(Variable variable)
@@ -209,7 +315,7 @@ namespace SplitAndMerge
                 }
             }
             // If it's not a local variable, update global.
-            s_functions[name] = function;
+            s_variables[name] = function;
         }
         public static ActionFunction GetAction(string action)
         {
@@ -237,6 +343,13 @@ namespace SplitAndMerge
         public static void AddGlobalOrLocalVariable(string name, GetVarFunction function)
         {
             name          = Constants.ConvertName(name);
+
+            Dictionary<string, ParserFunction> lastLevel = GetLastLevel();
+            if (lastLevel != null && s_locals.Peek().IsNamespace && !string.IsNullOrWhiteSpace(s_namespace))
+            {
+                name = s_namespacePrefix + name;
+            }
+
             function.Name = Constants.GetRealName(name);
             if (s_locals.Count > StackLevelDelta && (LocalNameExists(name) || !GlobalNameExists(name)))
             {
@@ -246,16 +359,6 @@ namespace SplitAndMerge
             {
                 AddGlobal(name, function, false /* not native */);
             }
-        }
-
-        static string CreateVariableEntry(ParserFunction variable, bool isLocal = false)
-        {
-            if (!(variable is GetVarFunction) || string.IsNullOrWhiteSpace(variable.Name))
-            {
-                return null;
-            }
-            GetVarFunction gvf = variable as GetVarFunction;
-            return CreateVariableEntry(gvf.Value, variable.Name, isLocal);
         }
 
         static string CreateVariableEntry(Variable var, string name, bool isLocal = false)
@@ -280,21 +383,31 @@ namespace SplitAndMerge
         static void GetVariables(Dictionary<string, ParserFunction> variablesScope,
                                  StringBuilder sb, bool isLocal = false)
         {
-            foreach (var variable in variablesScope.Values.ToList())
+            var all = variablesScope.Values.ToList();
+            for (int i = 0; i < all.Count; i++)
             {
-                string varData = CreateVariableEntry(variable, isLocal);
+                var variable = all[i];
+                GetVarFunction gvf = variable as GetVarFunction;
+                if (gvf == null || string.IsNullOrWhiteSpace(variable.Name))
+                {
+                    continue;
+                }
+
+                string varData = CreateVariableEntry(gvf.Value, variable.Name, isLocal);
                 if (!string.IsNullOrWhiteSpace(varData))
                 {
                     sb.AppendLine(varData);
-                    GetVarFunction gvf = variable as GetVarFunction;
-                    if (gvf != null && gvf.Value.Type == Variable.VarType.OBJECT)
+                    if (gvf.Value.Type == Variable.VarType.OBJECT)
                     {
                         var props = gvf.Value.GetProperties();
                         foreach (Variable var in props)
                         {
                             var val = gvf.Value.GetProperty(var.AsString());
                             varData = CreateVariableEntry(val, variable.Name + "." + var.AsString(), isLocal);
-                            sb.AppendLine(varData);
+                            if (!string.IsNullOrWhiteSpace(varData))
+                            {
+                                sb.AppendLine(varData);
+                            }
                         }
                     }
                 }
@@ -323,37 +436,72 @@ namespace SplitAndMerge
             }
 
             // Globals:
-            GetVariables(s_functions, sb, false);
+            GetVariables(s_variables, sb, false);
 
             return sb.ToString().Trim();
         }
 
-        static bool LocalNameExists(string name)
+        static Dictionary<string, ParserFunction> GetLastLevel()
         {
             if (s_locals.Count <= StackLevelDelta)
+            {
+                return null;
+            }
+            var result = s_locals.Peek().Variables;
+            return result;
+        }
+
+        static bool LocalNameExists(string name)
+        {
+            Dictionary<string, ParserFunction> lastLevel = GetLastLevel();
+            if (lastLevel == null)
             {
                 return false;
             }
             name = Constants.ConvertName(name);
-            var vars = s_locals.Peek().Variables;
-            return vars.ContainsKey(name);
+            return lastLevel.ContainsKey(name);
         }
+
         static bool GlobalNameExists(string name)
         {
             name = Constants.ConvertName(name);
-            return s_functions.ContainsKey(name);
+            return s_variables.ContainsKey(name) || s_functions.ContainsKey(name);
+        }
+
+        public static Variable RegisterEnum(string varName, string enumName)
+        {
+            Variable enumVar = EnumFunction.UseExistingEnum(enumName);
+            if (enumVar == Variable.EmptyInstance)
+            {
+                return enumVar;
+            }
+
+            AddGlobalOrLocalVariable(varName, new GetVarFunction(enumVar));
+            return enumVar;
         }
 
         public static void RegisterFunction(string name, ParserFunction function,
                                             bool isNative = true)
         {
-            AddGlobal(name, function, isNative);
+            name = Constants.ConvertName(name); 
+            if (!string.IsNullOrWhiteSpace(s_namespace))
+            {
+                StackLevel level;
+                if (s_namespaces.TryGetValue(s_namespace, out level) &&
+                   function is CustomFunction)
+                {
+                    ((CustomFunction)function).NamespaceData = level;
+                    name = s_namespacePrefix + name;
+                }
+            }
+            s_functions[name] = function;
+            //AddGlobal(name, function, isNative);
         }
 
         public static bool RemoveGlobal(string name)
         {
             name = Constants.ConvertName(name);
-            return s_functions.Remove(name);
+            return s_variables.Remove(name);
         }
 
         static void NormalizeValue(ParserFunction function)
@@ -371,7 +519,7 @@ namespace SplitAndMerge
             name = Constants.ConvertName(name);
             NormalizeValue(function);
             function.isNative = isNative;
-            s_functions[name] = function;
+            s_variables[name] = function;
 
             function.Name = Constants.GetRealName(name);
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
@@ -425,6 +573,46 @@ namespace SplitAndMerge
         public static void AddLocalVariables(StackLevel locals)
         {
             s_locals.Push(locals);
+        }
+
+        public static void AddNamespace(string namespaceName)
+        {
+            namespaceName = Constants.ConvertName(namespaceName);
+            if (!string.IsNullOrWhiteSpace(s_namespace))
+            {
+                throw new ArgumentException("Already inside of namespace [" + s_namespace + "].");
+            }
+
+            StackLevel level;
+            if (!s_namespaces.TryGetValue(namespaceName, out level))
+            {
+                level = new StackLevel(namespaceName, true); ;
+            }
+
+            s_locals.Push(level);
+            s_namespaces[namespaceName] = level;
+
+            s_namespace = namespaceName;
+            s_namespacePrefix = namespaceName + ".";
+        }
+
+        public static void PopNamespace()
+        {
+            s_namespace = s_namespacePrefix = "";
+            while (s_locals.Count > 0)
+            {
+                var level = s_locals.Pop();
+                if (level.IsNamespace)
+                {
+                    return;
+                }
+            }
+        }
+
+        public static string AdjustWithNamespace(string name)
+        {
+            name = Constants.ConvertName(name);
+            return s_namespacePrefix + name;
         }
 
         public static void AddStackLevel(string scopeName)
@@ -520,8 +708,16 @@ namespace SplitAndMerge
         {
             s_functions.Clear();
             s_actions.Clear();
+            CleanUpVariables();
+        }
+
+        public static void CleanUpVariables()
+        {
+            s_variables.Clear();
             s_locals.Clear();
             s_localScope.Clear();
+            s_namespaces.Clear();
+            s_namespace = s_namespacePrefix = "";
         }
 
         protected string m_name;
@@ -538,13 +734,17 @@ namespace SplitAndMerge
         public bool isNative { get { return m_isNative; } set { m_isNative = value; } }
 
         ParserFunction m_impl;
-        // Global functions and variables:
+
+        // Global functions:
         static Dictionary<string, ParserFunction> s_functions = new Dictionary<string, ParserFunction>();
 
-        // Global actions - function:
+        // Global variables:
+        static Dictionary<string, ParserFunction> s_variables = new Dictionary<string, ParserFunction>();
+
+        // Global actions to functions map:
         static Dictionary<string, ActionFunction> s_actions = new Dictionary<string, ActionFunction>();
 
-        // Local scope variables- defined only in the current file:
+        // Local scope variables:
         static Dictionary<string, Dictionary<string, ParserFunction>> s_localScope =
            new Dictionary<string, Dictionary<string, ParserFunction>>();
 
@@ -556,12 +756,15 @@ namespace SplitAndMerge
 
         public class StackLevel
         {
-            public StackLevel(string name = null)
+            public StackLevel(string name = null, bool isNamespace = false)
             {
                 Name = name;
+                IsNamespace = isNamespace;
                 Variables = new Dictionary<string, ParserFunction>();
             }
             public string Name { get; set; }
+            public bool IsNamespace { get; set; }
+
             public Dictionary<string, ParserFunction> Variables { get; set; }
         }
 
@@ -569,6 +772,12 @@ namespace SplitAndMerge
         // Stack of the functions being executed:
         static Stack<StackLevel> s_locals = new Stack<StackLevel>();
         public static Stack<StackLevel> ExecutionStack { get { return s_locals; } }
+
+        static Dictionary<string, StackLevel> s_namespaces = new Dictionary<string, StackLevel>();
+        static string s_namespace;
+        static string s_namespacePrefix;
+
+        public static string GetCurrentNamespace { get { return s_namespace; } }
 
         static StringOrNumberFunction s_strOrNumFunction =
           new StringOrNumberFunction();

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 namespace SplitAndMerge
 {
     public partial class Utils
@@ -97,6 +99,23 @@ namespace SplitAndMerge
                                             " in function [" + realName + "]");
             }
         }
+        public static void CheckNotNull(string name, ParserFunction func)
+        {
+            if (func == null)
+            {
+                string realName = Constants.GetRealName(name);
+                throw new ArgumentException("Variable or function [" + realName + "] doesn't exist");
+            }
+        }
+        public static void CheckNotNull(object obj, string name, ParsingScript script)
+        {
+            if (obj == null)
+            {
+                string realName = Constants.GetRealName(name);
+                ThrowErrorMsg("Object [" + realName + "] doesn't exist.", script, realName);
+            }
+        }
+
         public static void CheckNotEnd(ParsingScript script)
         {
             if (!script.StillValid())
@@ -112,15 +131,72 @@ namespace SplitAndMerge
                 throw new ArgumentException("Incomplete arguments for [" + realName + "]");
             }
         }
-        public static void CheckNotNull(string name, ParserFunction func)
+        public static void CheckForValidName(string name, ParsingScript script)
         {
-            if (func == null)
+            string illegals = "\"'?!";
+            for (int i = 0; i < illegals.Length; i++)
             {
-                string realName = Constants.GetRealName(name);
-                throw new ArgumentException("Variable or function [" + realName + "] doesn't exist");
+                char ch = illegals[i];
+                if (name.Contains(ch))
+                {
+                    ThrowErrorMsg("Variable [" + name + "] contains illegal character [" + ch + "]",
+                                  script, name);
+                }
             }
         }
- 
+
+        static void ThrowErrorMsg(string msg, ParsingScript script, string token)
+        {
+            string code     = script == null || string.IsNullOrWhiteSpace(script.OriginalScript) ? "" : script.OriginalScript;
+            int lineNumber  = script == null ? 0 : script.OriginalLineNumber;
+            string filename = script == null || string.IsNullOrWhiteSpace(script.Filename) ? "" : script.Filename;
+            int minLines    = script == null || script.OriginalLine.ToLower().Contains(token.ToLower()) ? 1 : 2;
+
+            ThrowErrorMsg(msg, code, lineNumber, filename, minLines);
+        }
+
+        static void ThrowErrorMsg(string msg, string script, int lineNumber, string filename = "", int minLines = 1)
+        {
+            string [] lines = script.Split('\n');
+            lineNumber = lines.Length <= lineNumber ? -1 : lineNumber;
+            if (lineNumber < 0)
+            {
+                throw new ParsingException(msg);
+            }
+
+            var currentLineNumber = lineNumber;
+            var line = lines[lineNumber].Trim();
+            var collectMore = line.Length < 3 || minLines > 1;
+            var lineContents = line;
+
+            while (collectMore && currentLineNumber > 0)
+            {
+                line = lines[--currentLineNumber].Trim();
+                collectMore = line.Length < 2 || (minLines > lineNumber - currentLineNumber + 1);
+                lineContents = line + "  " + lineContents;
+            }
+
+            if (lines.Length > 1)
+            {
+                string lineStr = currentLineNumber == lineNumber ? "Line " + (lineNumber + 1) :
+                                 "Lines " + (currentLineNumber + 1) + "-" + (lineNumber + 1);
+                msg += " " + lineStr + ": " + lineContents;
+            }
+
+            StringBuilder stack = new StringBuilder();
+            stack.AppendLine("" + currentLineNumber);
+            stack.AppendLine(filename);
+            stack.AppendLine(line);
+
+            throw new ParsingException(msg, stack.ToString());
+        }
+
+        static void ThrowErrorMsg(string msg, string code, int level, int lineStart, int lineEnd, string filename)
+        {
+            var lineNumber = level > 0 ? lineStart : lineEnd;
+            ThrowErrorMsg(msg, code, lineNumber, filename);
+        }
+
         public static string GetLine(int chars = 40)
         {
             return string.Format("-").PadRight(chars, '-');
@@ -334,10 +410,7 @@ namespace SplitAndMerge
             if (numberVar.Type != Variable.VarType.NUMBER)
             {
                 double num;
-                if (!Double.TryParse(numberVar.String, NumberStyles.Number |
-                                   NumberStyles.AllowExponent |
-                                   NumberStyles.Float,
-                                   CultureInfo.InvariantCulture, out num))
+                if (!CanConvertToDouble(numberVar.String, out num))
                 {
                     throw new ArgumentException("Expected a double instead of [" + numberVar.AsString() + "]");
                 }
@@ -345,6 +418,7 @@ namespace SplitAndMerge
             }
             return numberVar.AsDouble();
         }
+
         public static string GetSafeString(List<Variable> args, int index, string defaultValue = "")
         {
             if (args.Count <= index)
@@ -362,9 +436,22 @@ namespace SplitAndMerge
             return args[index];
         }
 
+        public static string GetSafeToken(List<Variable> args, int index, string defaultValue = "")
+        {
+            if (args.Count <= index)
+            {
+                return defaultValue;
+            }
+
+            Variable var = args[index];
+            string token = var.ParsingToken;
+
+            return token;
+        }
+
         public static Variable GetVariable(string varName, ParsingScript script, bool testNull = true)
         {
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
+            ParserFunction func = ParserFunction.GetVariable(varName, script);
             if (!testNull && func == null)
             {
                 return null;
@@ -376,7 +463,7 @@ namespace SplitAndMerge
         }
         public static async Task<Variable> GetVariableAsync(string varName, ParsingScript script, bool testNull = true)
         {
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
+            ParserFunction func = ParserFunction.GetVariable(varName, script);
             if (!testNull && func == null)
             {
                 return null;
@@ -392,35 +479,41 @@ namespace SplitAndMerge
             string str = obj.ToString();
             double num = 0;
 
-            if (!Double.TryParse(str, NumberStyles.Number |
-                                      NumberStyles.AllowExponent |
-                                      NumberStyles.Float,
-                                      CultureInfo.InvariantCulture, out num) &&
+            if (!CanConvertToDouble(str, out num) &&
                 script != null)
             {
-                ThrowErrorMsg(str, script);
+                ProcessErrorMsg(str, script);
             }
             return num;
         }
 
-        public static void ThrowErrorMsg(string str, ParsingScript script)
+        public static bool CanConvertToDouble(string str, out double num)
         {
-            char ch = string.IsNullOrEmpty(script.Rest) ? Constants.EMPTY : script.Rest[0];
-            string entity = ch == '(' || ch == ')' ? "function" :
-                            ch == '[' || ch == ']' ? "array" :
-                                                     "variable";
-            string lineExpr = str.Length < script.OriginalLine.Length - 2 ? " in [" + 
-                              script.OriginalLine + "]" : "";
+            return Double.TryParse(str, NumberStyles.Number |
+                                        NumberStyles.AllowExponent |
+                                        NumberStyles.Float,
+                                        CultureInfo.InvariantCulture, out num);
+        }
+
+        public static void ProcessErrorMsg(string str, ParsingScript script)
+        {
+            char ch = script.TryPrev();
+            string entity = ch == '(' ? "function":
+                            ch == '[' ? "array"   :
+                            ch == '{' ? "operand" :
+                                        "variable";
             string token    = Constants.GetRealName(str);
-            throw new ArgumentException("Couldn't find " + entity + " [" + token + "]" + lineExpr);
+
+            string msg = "Couldn't find " + entity + " [" + token + "].";
+
+            ThrowErrorMsg(msg, script, str);
         }
 
         public static bool ConvertToBool(object obj)
         {
             string str = obj.ToString();
             double dRes = 0;
-            if (Double.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent,
-                                CultureInfo.InvariantCulture, out dRes))
+            if (CanConvertToDouble(str, out dRes))
             {
                 return dRes != 0;
             }
@@ -506,12 +599,16 @@ namespace SplitAndMerge
         }
         public static string GetFileContents(string filename)
         {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                return "";
+            }
             try
             {
                 string[] readText = Utils.GetFileLines(filename);
                 return string.Join("\n", readText);
             }
-            catch (ArgumentException exc)
+            catch (Exception exc)
             {
                 Console.WriteLine(exc.Message);
                 return "";
@@ -547,6 +644,127 @@ namespace SplitAndMerge
                 return candidate.Substring(firstSpace + 1);
             }
             return candidate;
+        }
+
+        static Variable GetVariableForJToken(JToken aToken)
+        {
+            JTokenType currentType = aToken.Type;
+            switch (currentType)
+            {
+                case JTokenType.Object:
+                    {
+                        Variable newValue = new Variable(Variable.VarType.ARRAY);
+                        ParseJObjectIntoVariable(aToken as JObject, newValue);
+                        return newValue;
+                    }
+                case JTokenType.Array:
+                    {
+                        Variable newValue = new Variable(Variable.VarType.ARRAY);
+                        foreach (var aa in aToken)
+                        {
+                            Variable addVariable = GetVariableForJToken(aa);
+                            newValue.AddVariable(addVariable);
+                        }
+                        return newValue;
+                    }
+                case JTokenType.Integer:
+                    return new Variable(aToken.ToObject<Int64>());
+                case JTokenType.Float:
+                    return new Variable(aToken.ToObject<float>());
+                case JTokenType.String:
+                    return new Variable(aToken.ToObject<String>());
+                case JTokenType.Boolean:
+                    return new Variable(aToken.ToObject<Boolean>());
+                case JTokenType.Null:
+                    return Variable.EmptyInstance;
+                case JTokenType.None:
+                case JTokenType.Constructor:
+                case JTokenType.Property:
+                case JTokenType.Comment:
+                case JTokenType.Undefined:
+                case JTokenType.Date:
+                case JTokenType.Raw:
+                case JTokenType.Bytes:
+                case JTokenType.Guid:
+                case JTokenType.Uri:
+                case JTokenType.TimeSpan:
+                    return new Variable(aToken.ToString());
+            }
+            return Variable.EmptyInstance;
+        }
+
+        static void ParseJObjectIntoVariable(JObject jsonObject, Variable aVariable)
+        {
+            foreach (var currentToken in jsonObject)
+            {
+                Variable currentVariable = GetVariableForJToken(currentToken.Value);
+                aVariable.SetHashVariable(currentToken.Key, currentVariable);
+            }
+        }
+
+        public static Variable CreateVariableFromJsonString(string aJSONString)
+        {
+            Variable newValue = new Variable(Variable.VarType.ARRAY);
+
+            try
+            {
+                JObject jsonObject = JObject.Parse(aJSONString);
+                ParseJObjectIntoVariable(jsonObject, newValue);
+            }
+            catch (Exception e)
+            {
+                newValue.SetHashVariable("error", new Variable(true));
+                newValue.SetHashVariable("message", new Variable(e.Message));
+            }
+
+            return newValue;
+        }
+
+        public static string GetFullPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return path;
+            }
+            try
+            {
+                path = Path.GetFullPath(path);
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine("Exception converting path {0}: {1}", path, exc.Message);
+            }
+            return path;
+        }
+
+        public static string GetDirectoryName(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return GetCurrentDirectory();
+            }
+            try
+            {
+                return Path.GetDirectoryName(path);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Exception getting directory name {0}: {1}", path, exc.Message);
+            }
+            return GetCurrentDirectory();
+        }
+
+        public static string GetCurrentDirectory()
+        {
+            try
+            {
+                return Directory.GetCurrentDirectory();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Exception getting current directory: {0}", exc.Message);
+            }
+            return "";
         }
     }
 }

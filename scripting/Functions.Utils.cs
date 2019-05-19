@@ -10,47 +10,6 @@ using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
-    class GetColumnFunction : ParserFunction, IArrayFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
-
-            Variable arrayVar = Utils.GetSafeVariable(args, 0);
-            int col = Utils.GetSafeInt(args, 1);
-            int fromCol = Utils.GetSafeInt(args, 2, 0);
-
-            var tuple = arrayVar.Tuple;
-
-            List<Variable> result = new List<Variable>(tuple.Count);
-            for (int i = fromCol; i < tuple.Count; i++)
-            {
-                Variable current = tuple[i];
-                if (current.Tuple == null || current.Tuple.Count <= col)
-                {
-                    throw new ArgumentException(m_name + ": Index [" + col + "] doesn't exist in column " +
-                                                i + "/" + (tuple.Count - 1));
-                }
-                result.Add(current.Tuple[col]);
-            }
-
-            return new Variable(result);
-        }
-    }
-    class GetAllKeysFunction : ParserFunction, IArrayFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Variable varName = Utils.GetItem(script);
-            Utils.CheckNotNull(varName, m_name);
-
-            List<Variable> results = varName.GetAllKeys();
-
-            return new Variable(results);
-        }
-    }
-
     // Returns process info
     class PsInfoFunction : ParserFunction, IStringFunction
     {
@@ -148,7 +107,6 @@ namespace SplitAndMerge
                 throw new ArgumentException("Couldn't start [" + processName + "]: " + exc.Message);
             }
 
-            Interpreter.Instance.AppendOutput("Process " + processName + " started, id: " + processId, true);
             return new Variable(processId);
         }
     }
@@ -254,7 +212,6 @@ namespace SplitAndMerge
                 // Receive the response from the remote device.
                 int bytesRec = sender.Receive(bytes);
                 string received = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                Interpreter.Instance.AppendOutput("Received [" + received + "]", true);
 
                 sender.Shutdown(SocketShutdown.Both);
                 sender.Close();
@@ -275,8 +232,6 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             string path = Directory.GetCurrentDirectory();
-            Interpreter.Instance.AppendOutput(path, true);
-
             return new Variable(path);
         }
     }
@@ -357,7 +312,6 @@ namespace SplitAndMerge
             string[] lines = Utils.GetFileLines(filename);
 
             List<Variable> results = Utils.ConvertToResults(lines);
-            Interpreter.Instance.AppendOutput("Read " + lines.Length + " line(s).", true);
 
             return new Variable(results);
         }
@@ -675,30 +629,20 @@ namespace SplitAndMerge
         {
             string pathname = Utils.GetItem(script).AsString();
 
-            bool isFile = File.Exists(pathname);
-            bool isDir = Directory.Exists(pathname);
-            if (!isFile && !isDir)
-            {
-                throw new ArgumentException("[" + pathname + "] doesn't exist");
-            }
             bool exists = false;
             try
             {
-                if (isFile)
-                {
-                    exists = File.Exists(pathname);
-                }
-                else
+                exists = File.Exists(pathname);
+                if (!exists)
                 {
                     exists = Directory.Exists(pathname);
                 }
             }
-            catch (Exception exc)
+            catch (Exception)
             {
-                throw new ArgumentException("Couldn't delete [" + pathname + "] :" + exc.Message);
             }
 
-            return new Variable(Convert.ToDouble(exists));
+            return new Variable(exists);
         }
     }
 
@@ -888,6 +832,22 @@ namespace SplitAndMerge
             }
 
             return elapsed >= 0 ? new Variable(elapsed) : new Variable(elapsedStr);
+        }
+    }
+
+    class GetVariableFromJSONFunction : ParserFunction
+    {
+        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            List<Variable> args = await script.GetFunctionArgsAsync();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            Variable newVariable = Utils.CreateVariableFromJsonString(args[0].AsString());
+            return newVariable;
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            return EvaluateAsync(script).Result;
         }
     }
 }

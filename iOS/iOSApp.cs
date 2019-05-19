@@ -192,25 +192,23 @@ namespace scripting.iOS
         {
             if (Instance.m_selectedTab < 0)
             {
-                return IsiPhoneX() ? UtilsiOS.ROOT_BOTTOM_MIN_X : 0;
+                return UtilsiOS.IsiPhoneX() ? UtilsiOS.ROOT_BOTTOM_MIN_X : 0;
             }
             return UtilsiOS.ROOT_BOTTOM_MIN;
         }
 
-        public static bool IsiPhoneX()
-        {
-            CGSize screen = UtilsiOS.GetNativeScreenSize();
-            return screen.Width >= 1125;
-            // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828 
-        }
-
         public static double AdjustSize(double size)
         {
-            if (!IsiPhoneX())
+            double newSize = size;
+
+            if (UtilsiOS.IsiPhoneX())
             {
-                return size;
+                newSize = size / 1.5f;
             }
-            double newSize = size / 1.5f;
+            else if (UtilsiOS.IsiPhonePlus())
+            {
+                newSize = size / 1.3f;
+            }
             return newSize;
         }
 
@@ -224,7 +222,7 @@ namespace scripting.iOS
             offset += (int)(iOSApp.CurrentOffset * 0.8);
 
             // Special dealing with iPhone X:
-            if (IsiPhoneX())
+            if (UtilsiOS.IsiPhoneX())
             {
                 offset += 6;
             }

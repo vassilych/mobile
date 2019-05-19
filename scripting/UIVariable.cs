@@ -125,7 +125,7 @@ namespace SplitAndMerge
 
         public static Variable GetAction(string funcName, string senderName, string eventArg)
         {
-            if (senderName == "")
+            /*if (senderName == "")
             {
                 senderName = "\"\"";
             }
@@ -136,7 +136,8 @@ namespace SplitAndMerge
             string body = string.Format("{0}({1},{2});", funcName, senderName, eventArg);
 
             ParsingScript tempScript = new ParsingScript(body);
-            Variable result = tempScript.ExecuteTo();
+            Variable result = tempScript.Execute();*/
+            Variable result = CustomFunction.Run(funcName, new Variable(senderName), new Variable(eventArg)).Result;
 
             return result;
         }

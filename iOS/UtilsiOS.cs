@@ -165,16 +165,39 @@ namespace scripting.iOS
             controller.PresentViewController(okCancelAlertController, true, null);
         }
 
-        public static CGSize GetNativeScreenSize()
+        public static bool IsiPhoneX()
+        {
+            CGSize screen = UtilsiOS.GetNativeScreenSize();
+            return screen.Height == 2436 || screen.Height == 2688 || screen.Height == 1792;
+            // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828
+            // 8: 1334x750, 8 Plus: 1920x1080, SE,5: 1136x640, 4s: 960x640
+        }
+
+        public static bool IsiPhonePlus()
         {
             var bounds = UIScreen.MainScreen.NativeBounds;
             var width = bounds.Width;
             var height = bounds.Height;
+            if (width == 1242 && height == 2208)
+            { // Special hack for wrong size on 6+, 7+, 8+
+                return true;
+            }
+            return false;
+        }
+        public static CGSize GetNativeScreenSize()
+        {
+            var bounds = UIScreen.MainScreen.NativeBounds;
+            var width  = bounds.Width;
+            var height = bounds.Height;
+            if (IsiPhonePlus())
+            { // Special hack for wrong size on 6+, 7+, 8+
+                width  = 1080;
+                height = 1920;
+            }
             return new CGSize(width, height);
         }
         public static CGSize GetScreenSize()
         {
-            //var bounds = UIScreen.MainScreen.NativeBounds;
             var bounds = UIScreen.MainScreen.Bounds;
             var width = bounds.Width;
             var height = bounds.Height;
@@ -182,23 +205,23 @@ namespace scripting.iOS
         }
         public static int GetRealScreenWidth()
         {
-            var bounds = UIScreen.MainScreen.NativeBounds;
+            var bounds = GetNativeScreenSize();
             var width = bounds.Width < bounds.Height ?
-                         bounds.Width : bounds.Height;
+                        bounds.Width : bounds.Height;
             return (int)width;
+        }
+        public static int GetRealScreenHeight()
+        {
+            var bounds = GetNativeScreenSize();
+            var height = bounds.Width > bounds.Height ?
+                         bounds.Width : bounds.Height;
+            return (int)height;
         }
         public static int GetAdjustedScreenWidth()
         {
             var width = GetRealScreenWidth();
             var adjusted = iOSApp.AdjustSize(width);
             return (int)adjusted;
-        }
-        public static int GetRealScreenHeight()
-        {
-            var bounds = UIScreen.MainScreen.NativeBounds;
-            var height = bounds.Width > bounds.Height ?
-                         bounds.Width : bounds.Height;
-            return (int)height;
         }
         public static double WidthMultiplier()
         {
@@ -212,11 +235,7 @@ namespace scripting.iOS
             {
                 return xdiff;
             }
-            var native = UIScreen.MainScreen.NativeBounds;
-            var bounds = UIScreen.MainScreen.Bounds;
-            var nativeWidth = Math.Min(native.Width, native.Height);
-            var currWidth = Math.Min(bounds.Width, bounds.Height);
-            xdiff = currWidth > 0 && nativeWidth > 0 ? nativeWidth / currWidth : 1.0;
+            var native = GetNativeScreenSize();
             xdiff = 2.0;
             if (native.Width <= 640)
             {

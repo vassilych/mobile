@@ -1315,7 +1315,7 @@ namespace scripting.Droid
                                    string strAction, string argument = "")
     {
       ActionDelegate += (arg1, arg2) => {
-        UIVariable.GetAction(strAction, varName, "\"" + arg2 + "\"");
+        UIVariable.GetAction(strAction, varName, arg2);
       };
     }
 

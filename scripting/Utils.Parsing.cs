@@ -13,7 +13,8 @@ namespace SplitAndMerge
             script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
             Utils.CheckNotEnd(script);
 
-            bool inQuotes = script.Current == Constants.QUOTE;
+            bool inQuotes  = script.Current == Constants.QUOTE;
+            bool inQuotes1 = script.Current == Constants.QUOTE1;
 
             if (script.Current == Constants.START_GROUP)
             {
@@ -34,6 +35,10 @@ namespace SplitAndMerge
             {
                 script.MoveForwardIf(Constants.QUOTE);
             }
+            else if (inQuotes1)
+            {
+                script.MoveForwardIf(Constants.QUOTE1);
+            }
             if (eatLast)
             {
                 script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
@@ -46,7 +51,8 @@ namespace SplitAndMerge
             script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
             Utils.CheckNotEnd(script);
 
-            bool inQuotes = script.Current == Constants.QUOTE;
+            bool inQuotes  = script.Current == Constants.QUOTE;
+            bool inQuotes1 = script.Current == Constants.QUOTE1;
 
             if (script.Current == Constants.START_GROUP)
             {
@@ -67,6 +73,10 @@ namespace SplitAndMerge
             {
                 script.MoveForwardIf(Constants.QUOTE);
             }
+            else if (inQuotes1)
+            {
+                script.MoveForwardIf(Constants.QUOTE1);
+            }
             if (eatLast)
             {
                 script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
@@ -83,7 +93,7 @@ namespace SplitAndMerge
             if (!to.Contains(Constants.SPACE))
             {
                 // Skip a leading space unless we are inside of quotes
-                while (curr == Constants.SPACE && prev != Constants.QUOTE)
+                while (curr == Constants.SPACE && prev != Constants.QUOTE && prev != Constants.QUOTE1)
                 {
                     script.Forward();
                     curr = script.TryCurrent();
@@ -92,10 +102,10 @@ namespace SplitAndMerge
             }
 
             // String in quotes
-            bool inQuotes = curr == Constants.QUOTE;
+            bool inQuotes = curr == Constants.QUOTE || curr == Constants.QUOTE1;
             if (inQuotes)
             {
-                int qend = script.Find(Constants.QUOTE, script.Pointer + 1);
+                int qend = script.Find(curr, script.Pointer + 1);
                 if (qend == -1)
                 {
                     throw new ArgumentException("Unmatched quotes in [" +
@@ -106,7 +116,7 @@ namespace SplitAndMerge
                 return result;
             }
 
-            script.MoveForwardIf(Constants.QUOTE);
+            script.MoveForwardIf(Constants.QUOTE, Constants.QUOTE1);
 
             int end = script.FindFirstOf(to);
             end = end < 0 ? script.Size() : end;
@@ -156,7 +166,9 @@ namespace SplitAndMerge
         public static void SkipRestExpr(ParsingScript script)
         {
             int argRead = 0;
-            bool inQuotes = false;
+            bool inQuotes  = false;
+            bool inQuotes1 = false;
+            bool inQuotes2 = false;
             char prev = Constants.EMPTY;
             char prevprev = Constants.EMPTY;
 
@@ -171,10 +183,16 @@ namespace SplitAndMerge
 
                 switch (currentChar)
                 {
-                    case Constants.QUOTE:
-                        if (prev != '\\' || prevprev == '\\')
+                    case Constants.QUOTE1:
+                        if (!inQuotes2 && (prev != '\\' || prevprev == '\\'))
                         {
-                            inQuotes = !inQuotes;
+                            inQuotes = inQuotes1 = !inQuotes1;
+                        }
+                        break;
+                    case Constants.QUOTE:
+                        if (!inQuotes1 && (prev != '\\' || prevprev == '\\'))
+                        {
+                            inQuotes = inQuotes2 = !inQuotes2;
                         }
                         break;
                     case Constants.START_ARG:
@@ -296,9 +314,10 @@ namespace SplitAndMerge
                 return args;
             }
 
-            ParsingScript tempScript = new ParsingScript(script.String, script.Pointer);
+            ParsingScript tempScript = script.GetTempScript(script.String, script.Pointer);
+            /*ParsingScript tempScript = new ParsingScript(script.String, script.Pointer);
             tempScript.ParentScript = script;
-            tempScript.InTryBlock = script.InTryBlock;
+            tempScript.InTryBlock = script.InTryBlock;*/
 
             if (script.Current != start && script.TryPrev() != start &&
                (script.Current == ' ' || script.TryPrev() == ' '))
@@ -333,7 +352,7 @@ namespace SplitAndMerge
             {
                 // Eat closing parenthesis, if there is one, but only if it closes
                 // the current argument list, not one after it. 
-                script.MoveForwardIf(Constants.END_ARG);
+                script.MoveForwardIf(Constants.END_ARG, end);
             }
 
             script.MoveForwardIf(Constants.SPACE);
@@ -353,9 +372,10 @@ namespace SplitAndMerge
                 return args;
             }
 
-            ParsingScript tempScript = new ParsingScript(script.String, script.Pointer);
+            ParsingScript tempScript = script.GetTempScript(script.String, script.Pointer);
+            /*ParsingScript tempScript = new ParsingScript(script.String, script.Pointer);
             tempScript.ParentScript = script;
-            tempScript.InTryBlock = script.InTryBlock;
+            tempScript.InTryBlock = script.InTryBlock;*/
 
             if (script.Current != start && script.TryPrev() != start &&
                (script.Current == ' ' || script.TryPrev() == ' '))
@@ -390,7 +410,7 @@ namespace SplitAndMerge
             {
                 // Eat closing parenthesis, if there is one, but only if it closes
                 // the current argument list, not one after it. 
-                script.MoveForwardIf(Constants.END_ARG);
+                script.MoveForwardIf(Constants.END_ARG, end);
             }
 
             script.MoveForwardIf(Constants.SPACE);
@@ -427,12 +447,56 @@ namespace SplitAndMerge
             }
 
             string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
-            string[] args = argStr.Split(Constants.NEXT_ARG_ARRAY, StringSplitOptions.RemoveEmptyEntries);
+            StringBuilder collect = new StringBuilder(argStr.Length);
+            List<string> args = new List<string>();
+            int curlyLevel = 0;
+            for (int i = 0; i < argStr.Length; i++)
+            {
+                if (argStr[i] == '{')
+                {
+                    curlyLevel++;
+                }
+                else if (argStr[i] == '}')
+                {
+                    curlyLevel--;
+                    if (curlyLevel < 0)
+                    {
+                        break;
+                    }
+                }
+                else if (argStr[i] == Constants.NEXT_ARG && curlyLevel == 0)
+                {
+                    string item = collect.ToString().Trim();
+                    if (item.Length == 0)
+                    {
+                        throw new ArgumentException("Empty argument in function signature [" + argStr + "]");
+                    }
+                    args.Add(item);
+                    collect.Clear();
+                    continue;
+                }
+                collect.Append(argStr[i]);
+            }
 
-            args = args.Select(element => element.Trim()).ToArray();
+            if (curlyLevel != 0)
+            {
+                throw new ArgumentException("Unbalanced curly braces in function signature [" + argStr + "]");
+            }
+            if (collect.Length > 0)
+            {
+                args.Add(collect.ToString().Trim());
+            }
+
             script.Pointer = endArgs + 1;
 
-            return args;
+            return args.ToArray();
+        }
+
+        public static Variable GetVariableFromString(string str, ParsingScript script, int startIndex = 0)
+        {
+            ParsingScript tempScript = script.GetTempScript(str, startIndex);
+            Variable result          = Utils.GetItem(tempScript);
+            return result;
         }
 
         public static string[] GetBaseClasses(ParsingScript script)
@@ -586,29 +650,46 @@ namespace SplitAndMerge
             return args;
         }
 
-        public static string ConvertToScript(string source, out Dictionary<int, int> char2Line)
+        public static string ConvertToScript(string source, out Dictionary<int, int> char2Line, string filename = "")
         {
+            string curlyErrorMsg   = "Unbalanced curly braces.";
+            string bracketErrorMsg = "Unbalanced square brackets.";
+            string parenthErrorMsg = "Unbalanced parentheses.";
+            string quoteErrorMsg   = "Unbalanced quotes.";
+
             StringBuilder sb = new StringBuilder(source.Length);
             char2Line = new Dictionary<int, int>();
 
-            bool inQuotes = false;
+            bool inQuotes  = false;
+            bool inQuotes1 = false;
+            bool inQuotes2 = false;
             bool spaceOK = false;
             bool inComments = false;
             bool simpleComments = false;
             char prev = Constants.EMPTY;
             char prevprev = Constants.EMPTY;
 
-            int parentheses = 0;
-            int groups = 0;
+            int levelCurly = 0;
+            int levelBrackets = 0;
+            int levelParentheses = 0;
             int lineNumber = 0;
+            int lineNumberCurly = 0;
+            int lineNumberBrack = 0;
+            int lineNumberPar = 0;
+            int lineNumberQuote = 0;
+
             int lastScriptLength = 0;
 
-            //string result = "";
+            // Remove these two lines for quality time debugging in case the user has special
+            // spaces with code 160. See https://en.wikipedia.org/wiki/Non-breaking_space
+            char extraSpace = Convert.ToChar(160);
+            source = source.Replace(extraSpace, ' ');
+
             for (int i = 0; i < source.Length; i++)
             {
                 char ch = source[i];
-                //char prev = i - 1 >= 0 ? source[i - 1] : Constants.EMPTY;
                 char next = i + 1 < source.Length ? source[i + 1] : Constants.EMPTY;
+                char last = sb.Length > 0  ? sb[sb.Length - 1] : Constants.EMPTY;
 
                 if (ch == '\n')
                 {
@@ -616,11 +697,14 @@ namespace SplitAndMerge
                     {
                         char2Line[sb.Length - 1] = lineNumber;
                         lastScriptLength = sb.Length;
-
-                        //result += lineNumber + ": " + (sb.Length - 1) + " " +
-                        //          source.Substring(i - Math.Min(i, 6), Math.Min(i, 6)) + "\n";
                     }
                     lineNumber++;
+                    if (simpleComments)
+                    {
+                        inComments = simpleComments = false;
+                    }
+                    spaceOK = false;
+                    continue;
                 }
 
                 if (inComments && ((simpleComments && ch != '\n') ||
@@ -647,17 +731,33 @@ namespace SplitAndMerge
                             continue;
                         }
                         break;
+                    case '\'':
+                        if (!inComments && !inQuotes2 && (prev != '\\' || prevprev == '\\'))
+                        {
+                            ch = '"';
+                            inQuotes = inQuotes1 = !inQuotes1;
+                            if (inQuotes && (prev == '"' && lineNumberQuote == 0))
+                            {
+                                lineNumberQuote = lineNumber;
+                            }
+                        }
+                        break;
                     case '“':
                     case '”':
                     case '„':
                     case '"':
                         ch = '"';
-                        if (!inComments)
+                        if (!inComments && !inQuotes1 && (prev != '\\' || prevprev == '\\'))
                         {
-                            if (prev != '\\' || prevprev == '\\')
+                            inQuotes = inQuotes2 = !inQuotes2;
+                            if (inQuotes && (prev == '"' && lineNumberQuote == 0))
                             {
-                                inQuotes = !inQuotes;
+                                lineNumberQuote = lineNumber;
                             }
+                        }
+                        else if (inQuotes1)
+                        {
+                            sb.Append("\\");
                         }
                         break;
                     case ' ':
@@ -682,37 +782,66 @@ namespace SplitAndMerge
                     case '\r':
                         if (inQuotes) sb.Append(ch);
                         continue;
-                    case '\n':
-                        if (simpleComments)
-                        {
-                            inComments = simpleComments = false;
-                        }
-                        spaceOK = false;
-                        continue;
-                    case Constants.END_ARG:
-                        if (!inQuotes)
-                        {
-                            parentheses--;
-                            spaceOK = false;
-                        }
-                        break;
                     case Constants.START_ARG:
-                        if (!inQuotes)
+                        if (!inQuotes && !inComments)
                         {
-                            parentheses++;
+                            if (levelParentheses == 0)
+                            {
+                                lineNumberPar = lineNumber;
+                            }
+                            levelParentheses++;
                         }
                         break;
-                    case Constants.END_GROUP:
-                        if (!inQuotes)
+                    case Constants.END_ARG:
+                        if (!inQuotes && !inComments)
                         {
-                            groups--;
+                            levelParentheses--;
                             spaceOK = false;
+                            if (levelParentheses < 0)
+                            {
+                                ThrowErrorMsg(parenthErrorMsg, source, levelParentheses, lineNumberPar, lineNumber, filename);
+                            }
                         }
                         break;
                     case Constants.START_GROUP:
-                        if (!inQuotes)
+                        if (!inQuotes && !inComments)
                         {
-                            groups++;
+                            if (levelCurly == 0)
+                            {
+                                lineNumberCurly = lineNumber;
+                            }
+                            levelCurly++;
+                        }
+                        break;
+                    case Constants.END_GROUP:
+                        if (!inQuotes && !inComments)
+                        {
+                            levelCurly--;
+                            spaceOK = false;
+                            if (levelCurly < 0)
+                            {
+                                ThrowErrorMsg(curlyErrorMsg, source, levelCurly, lineNumberCurly, lineNumber, filename);
+                            }
+                        }
+                        break;
+                    case Constants.START_ARRAY:
+                        if (!inQuotes && !inComments)
+                        {
+                            if (levelBrackets == 0)
+                            {
+                                lineNumberBrack = lineNumber;
+                            }
+                            levelBrackets++;
+                        }
+                        break;
+                    case Constants.END_ARRAY:
+                        if (!inQuotes && !inComments)
+                        {
+                            levelBrackets--;
+                            if (levelBrackets < 0)
+                            {
+                                ThrowErrorMsg(bracketErrorMsg, source, levelBrackets, lineNumberBrack, lineNumber, filename);
+                            }
                         }
                         break;
                     case Constants.END_STATEMENT:
@@ -721,7 +850,8 @@ namespace SplitAndMerge
                             spaceOK = false;
                         }
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
                 if (!inComments)
                 {
@@ -735,11 +865,31 @@ namespace SplitAndMerge
             {
                 char2Line[sb.Length - 1] = lineNumber;
                 lastScriptLength = sb.Length;
-
                 //result += lineNumber + ": " + (sb.Length - 1) + " " +
                 //  source.Substring(source.Length - Math.Min(source.Length, 40), Math.Min(source.Length, 40)) + "\n";
-
             }
+
+            bool error = levelCurly != 0 || levelBrackets != 0 || levelParentheses != 0 || inQuotes;
+            if (error)
+            {
+                if (inQuotes)
+                {
+                    ThrowErrorMsg(quoteErrorMsg, source, 1, lineNumberQuote, lineNumber, filename);
+                }
+                else if (levelBrackets != 0)
+                {
+                    ThrowErrorMsg(bracketErrorMsg, source, levelBrackets, lineNumberBrack, lineNumber, filename);
+                }
+                else if (levelParentheses != 0)
+                {
+                    ThrowErrorMsg(parenthErrorMsg, source, levelParentheses, lineNumberPar, lineNumber, filename);
+                }
+                else if (levelCurly != 0)
+                {
+                    ThrowErrorMsg(curlyErrorMsg, source, levelCurly, lineNumberCurly, lineNumber, filename);
+                }
+            }
+
             return sb.ToString();
         }
 
@@ -812,7 +962,9 @@ namespace SplitAndMerge
             // we must not have the opening char as the first one.
             StringBuilder sb = new StringBuilder(script.Size());
             int braces = 0;
-            bool inQuotes = false;
+            bool inQuotes  = false;
+            bool inQuotes1 = false;
+            bool inQuotes2 = false;
             bool checkBraces = true;
             char prev = Constants.EMPTY;
             char prevprev = Constants.EMPTY;
@@ -824,10 +976,13 @@ namespace SplitAndMerge
                 if (close != Constants.QUOTE)
                 {
                     checkBraces = !inQuotes;
-                    if (ch == Constants.QUOTE &&
-                       (prev != '\\' || prevprev == '\\'))
+                    if (ch == Constants.QUOTE && !inQuotes1 && (prev != '\\' || prevprev == '\\'))
                     {
-                        inQuotes = !inQuotes;
+                        inQuotes = inQuotes2 = !inQuotes2;
+                    }
+                    if (ch == Constants.QUOTE1 && !inQuotes2 && (prev != '\\' || prevprev == '\\'))
+                    {
+                        inQuotes = inQuotes1 = !inQuotes1;
                     }
                 }
 
@@ -855,6 +1010,28 @@ namespace SplitAndMerge
                     }
                     break;
                 }
+            }
+
+            return sb.ToString();
+        }
+
+        public static string ProtectQuotes(string str)
+        {
+            StringBuilder sb = new StringBuilder(str.Length);
+            char prev        = Constants.EMPTY;
+            char prevprev    = Constants.EMPTY;
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                char ch = str[i];
+
+                if (ch == Constants.QUOTE && (prev != '\\' || prevprev == '\\'))
+                {
+                    sb.Append('\\');
+                }
+                sb.Append(ch);
+                prevprev = prev;
+                prev = ch;
             }
 
             return sb.ToString();
@@ -915,16 +1092,17 @@ namespace SplitAndMerge
                     break;
                 }
 
-                ParsingScript tempScript = new ParsingScript(varName, argStart);
+                ParsingScript tempScript = script.GetTempScript(varName, argStart);
+                /*ParsingScript tempScript = new ParsingScript(varName, argStart);
                 tempScript.ParentScript = script;
                 tempScript.Char2Line = script.Char2Line;
                 tempScript.Filename = script.Filename;
                 tempScript.OriginalScript = script.OriginalScript;
-                tempScript.InTryBlock = script.InTryBlock;
+                tempScript.InTryBlock = script.InTryBlock;*/
 
                 tempScript.MoveForwardIf(Constants.START_ARG, Constants.START_ARRAY);
 
-                Variable index = tempScript.ExecuteTo(Constants.END_ARRAY);
+                Variable index = tempScript.Execute(Constants.END_ARRAY_ARRAY);
 
                 indices.Add(index);
                 argStart = argEnd + 1;
@@ -959,16 +1137,17 @@ namespace SplitAndMerge
                     break;
                 }
 
-                ParsingScript tempScript = new ParsingScript(varName, argStart);
+                ParsingScript tempScript = script.GetTempScript(varName, argStart);
+                /*ParsingScript tempScript = new ParsingScript(varName, argStart);
                 tempScript.ParentScript = script;
                 tempScript.Char2Line = script.Char2Line;
                 tempScript.Filename = script.Filename;
                 tempScript.OriginalScript = script.OriginalScript;
-                tempScript.InTryBlock = script.InTryBlock;
+                tempScript.InTryBlock = script.InTryBlock;*/
 
                 tempScript.MoveForwardIf(Constants.START_ARG, Constants.START_ARRAY);
 
-                Variable index = await tempScript.ExecuteToAsync(Constants.END_ARRAY);
+                Variable index = await tempScript.ExecuteAsync(Constants.END_ARRAY_ARRAY);
 
                 indices.Add(index);
                 argStart = argEnd + 1;
@@ -982,6 +1161,19 @@ namespace SplitAndMerge
 
             updateVals(varName, end);
             return indices;
+        }
+
+        public static List<string> ExtractTokens(ParsingScript script)
+        {
+            List<string> tokens = new List<string>(); 
+            script.MoveForwardIf(Constants.START_ARG);
+            while (script.TryCurrent() != Constants.END_GROUP)
+            {
+                string propName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+                script.MoveForwardIf(Constants.NEXT_ARG);
+                tokens.Add(propName);
+            }
+            return tokens;
         }
 
         public static Variable ExtractArrayElement(Variable array,
@@ -1036,7 +1228,7 @@ namespace SplitAndMerge
             {
                 script = new ParsingScript("");
             }
-            ParserFunction function = ParserFunction.GetFunction(paramName, script);
+            ParserFunction function = ParserFunction.GetVariable(paramName, script);
             if (function == null)
             {
                 throw new ArgumentException("Variable [" + paramName + "] not found.");

@@ -432,25 +432,25 @@ namespace scripting.Droid
       if (ViewX is Button) {
         Button button = ViewX as Button;
         button.Click += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + argument + "\"");
+          UIVariable.GetAction(strAction, varName, argument);
         };
       } else if (ViewX is EditText) {
         if (argument.Equals("FINISHED")) {
         } else {
           EditText editText = ViewX as EditText;
           editText.TextChanged += (sender, e) => {
-            UIVariable.GetAction(strAction, varName, "\"" + e.Text.ToString() + "\"");
+            UIVariable.GetAction(strAction, varName, e.Text.ToString());
           };
         }
       } else if (ViewX is Switch) {
         Switch sw = ViewX as Switch;
         sw.CheckedChange += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + e + "\"");
+          UIVariable.GetAction(strAction, varName, e.ToString());
         };
       } else if (ViewX is SeekBar) {
         SeekBar slider = ViewX as SeekBar;
         slider.ProgressChanged += (sender, e) => {
-          UIVariable.GetAction(strAction, varName, "\"" + e + "\"");
+          UIVariable.GetAction(strAction, varName, e.ToString());
         };
       } else if (ViewX is NumberPicker) {
         NumberPicker pickerView = ViewX as NumberPicker;
@@ -469,7 +469,7 @@ namespace scripting.Droid
         };
       } else {
         ActionDelegate += (arg1, arg2) => {
-          UIVariable.GetAction(strAction, varName, "\"" + arg2 + "\"");
+          UIVariable.GetAction(strAction, varName, arg2);
         };
       }
 
@@ -480,7 +480,7 @@ namespace scripting.Droid
     {
       Tuple<string, string> action;
       if (m_actions.TryGetValue(Name, out action)) {
-        UIVariable.GetAction(action.Item1, action.Item2, "\"" + arg + "\"");
+        UIVariable.GetAction(action.Item1, action.Item2, arg);
       }
     }
     public bool SetFontSize(View view, float fontSize)

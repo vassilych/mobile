@@ -1,11 +1,15 @@
 ﻿//ImportFile("imaging.cscs");
 //ImportFile("speech.cscs");
-ImportFile("sfscript.cscs");
+//ImportFile("sfscript.cscs");
 //ImportFile("sfhello.cscs");
 //ImportFile("sforientation.cscs");
-//ImportFile("iLanguage.cscs");
+ImportFile("iLanguage.cscs");
 //ImportFile("ads.cscs");
 //ImportFile("custom.cscs");
 //ImportFile("test.cscs");
 //ImportFile("unitTests.cscs");
+//ImportFile("busyIndicators.cscs");
 //ImportFile("cscs.cscs");
+//ImportFile("remote.cscs");
+
+//StartDebugger();

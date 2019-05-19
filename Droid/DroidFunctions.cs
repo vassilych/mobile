@@ -472,7 +472,7 @@ namespace scripting.Droid
       string action = args[0].AsString();
 
       MainActivity.TabSelectedDelegate += (tab) => {
-        UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
+        UIVariable.GetAction(action, "ROOT", tab.ToString());
       };
       return Variable.EmptyInstance;
     }
@@ -658,7 +658,7 @@ namespace scripting.Droid
       View view = DroidVariable.GetView(varName, script);
 
       view.LongClick += (sender, e) => {
-        UIVariable.GetAction(strAction, varName, "\"" + e + "\"");
+        UIVariable.GetAction(strAction, varName, e.ToString());
       };
 
       return Variable.EmptyInstance;
@@ -741,7 +741,7 @@ namespace scripting.Droid
       void triggerAction(float deltaX, float deltaY)
       {
         if (!string.IsNullOrWhiteSpace(m_action)) {
-          UIVariable.GetAction(m_action, m_varName, "\"" + m_direction + "\"");
+          UIVariable.GetAction(m_action, m_varName, m_direction.ToString());
         }
       }
     }
@@ -835,7 +835,7 @@ namespace scripting.Droid
 
                 List<string> involved = UIUtils.FindWidgets(rect, parentName, tabId, m_widget);
                 string arg = string.Join(", ", involved);
-                UIVariable.GetAction(m_action, m_widget, "\"" + arg + "\"");
+                UIVariable.GetAction(m_action, m_widget, arg);
               }
             }
           }
@@ -1194,7 +1194,7 @@ namespace scripting.Droid
                                   m_actionPortrait: m_actionLandscape;
       Console.WriteLine("PerformAction {0} Orient: {1} isInit={2}", action, m_currentOrientation, isInit);
 
-      UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");
+      UIVariable.GetAction(action, "ROOT", (isInit ? "init" : m_currentOrientation));
 
       if (!isInit && currentTab >= 0) {
         MainActivity.TheView.ChangeTab(currentTab);
@@ -1211,7 +1211,7 @@ namespace scripting.Droid
       string strAction = args[0].AsString();
 
       MainActivity.OnOrientationChange += (newOrientation) => {
-        UIVariable.GetAction(strAction, "\"ROOT\"", "\"" + newOrientation + "\"");
+        UIVariable.GetAction(strAction, "ROOT", newOrientation);
       };
 
       return Variable.EmptyInstance;
@@ -1241,7 +1241,7 @@ namespace scripting.Droid
 
       MainActivity.OnEnterBackgroundDelegate += () => {
         MainActivity.TheView.RunOnUiThread(() => {
-          UIVariable.GetAction(strAction, "\"ROOT\"", "\"OnEnterBackground\"");
+          UIVariable.GetAction(strAction, "ROOT", "OnEnterBackground");
         });
       };
 
@@ -1323,7 +1323,7 @@ namespace scripting.Droid
           (sender, e) => {
             dialog.Dispose();
             if (!string.IsNullOrWhiteSpace(actionOK)) {
-              UIVariable.GetAction(actionOK, "\"" + buttonOK + "\"", "1");
+              UIVariable.GetAction(actionOK, buttonOK, "1");
             }
           });
       if (!string.IsNullOrWhiteSpace(buttonCancel)) {
@@ -1331,7 +1331,7 @@ namespace scripting.Droid
             (sender, e) => {
               dialog.Dispose();
               if (!string.IsNullOrWhiteSpace(actionCancel)) {
-                UIVariable.GetAction(actionCancel, "\"" + buttonCancel + "\"", "0");
+                UIVariable.GetAction(actionCancel, buttonCancel, "0");
               }
             });
       }
@@ -1405,15 +1405,14 @@ namespace scripting.Droid
       string init = STT.StartVoiceRecognition(prompt);
       if (init != null) {
         // An error in initializing:
-        UIVariable.GetAction(m_action, "\"" + init + "\"", "");
+        UIVariable.GetAction(m_action, init, "");
       }
 
       return Variable.EmptyInstance;
     }
     protected void OnVoiceResult(string status, string recognized)
     {
-      UIVariable.GetAction(m_action, "\"" + status + "\"",
-                                     "\"" + recognized + "\"");
+      UIVariable.GetAction(m_action, status, recognized);
     }
   }
   public class StopVoiceFunction : ParserFunction
@@ -1594,7 +1593,7 @@ namespace scripting.Droid
         }
         //Console.WriteLine("QuizTimer_Elapsed {0:HH:mm:ss.fff}", e.SignalTime);
         MainActivity.TheView.RunOnUiThread(() => {
-          UIVariable.GetAction(strAction, owner, "\"" + timerId + "\"");
+          UIVariable.GetAction(strAction, owner, timerId);
         });
 
       };
@@ -1763,10 +1762,10 @@ namespace scripting.Droid
 
       UnsubscribeFromAll();
       InAppBilling.OnIAPOK += (productIds) => {
-        UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+        UIVariable.GetAction(strAction, "", productIds);
       };
       InAppBilling.OnIAPError += (errorStr) => {
-        UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+        UIVariable.GetAction(strAction, errorStr, "");
         UnsubscribeFromAll();
       };
       //IAP.Restore();
@@ -1803,10 +1802,10 @@ namespace scripting.Droid
       RestoreFunction.UnsubscribeFromAll();
 
       InAppBilling.OnIAPOK += (productIds) => {
-        UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+        UIVariable.GetAction(strAction, "", productIds);
       };
       InAppBilling.OnIAPError += (errorStr) => {
-        UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+        UIVariable.GetAction(strAction, errorStr, "");
         RestoreFunction.UnsubscribeFromAll();
       };
       InAppBilling.AddProductId(productId);

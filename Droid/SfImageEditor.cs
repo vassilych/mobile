@@ -54,7 +54,7 @@ namespace scripting.Droid
       Editor = new SfImageEditor(Context);
       Editor.ImageSaved += (sender, args) => {
         if (!string.IsNullOrEmpty(m_actionDoneEdit)) {
-          UIVariable.GetAction(m_actionDoneEdit, WidgetName, "\"" + args.Location + "\"");
+          UIVariable.GetAction(m_actionDoneEdit, WidgetName, args.Location);
         }
         m_editing = false;
       };

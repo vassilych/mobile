@@ -189,6 +189,7 @@ namespace SplitAndMerge
             string result = item.ToString();
             result = result.Replace("\\\\", "\\");
             result = result.Replace("\\\"", "\"");
+            result = result.Replace("\\'", "'");
             return result;
         }
 
@@ -571,7 +572,8 @@ namespace SplitAndMerge
                 // Done!
                 return;
             }
-            if (leftCell.Type == Variable.VarType.NUMBER)
+            if (leftCell.Type  == Variable.VarType.NUMBER &&
+                rightCell.Type == Variable.VarType.NUMBER)
             {
                 MergeNumbers(leftCell, rightCell);
             }

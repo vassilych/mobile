@@ -72,12 +72,18 @@ namespace scripting.iOS
                 case "TextEdit":
                     type = UIVariable.UIType.TEXT_FIELD;
                     widget = new UITextField(rect);
-                    ((UITextField)widget).TextColor = UIColor.Black;
-                    ((UITextField)widget).Placeholder = initArg;
+                    UITextField textField = ((UITextField)widget);
+                    textField.TextColor = UIColor.Black;
+                    textField.Placeholder = initArg;
                     MakeBottomBorder(widget, (int)rect.Width, (int)rect.Height);
-                    ((UITextField)widget).ShouldReturn = (textField) => {
-                        textField.ResignFirstResponder();
+
+                    textField.ShouldReturn = (tf) => {
+                        tf.ResignFirstResponder();
                         return true;
+                    };
+                    textField.TouchUpOutside += delegate
+                    {
+                        textField.ResignFirstResponder();
                     };
                     /*var parentView = GetParentView();
                     var g = new UITapGestureRecognizer(() => parentView.EndEditing(true));
@@ -648,6 +654,14 @@ namespace scripting.iOS
         }
         public void CreateCombobox(CGRect rect, string argument)
         {
+            int currentRow = 0;
+            if (m_picker != null && m_picker.Model is TypePickerViewModel)
+            {
+                var currModel = m_picker.Model as TypePickerViewModel;
+                string text = GetText();
+                currentRow = currModel.StringToRow(text);
+            }
+
             UIView parent = GetParentView();
             WidgetType = UIVariable.UIType.COMBOBOX;
 
@@ -655,15 +669,27 @@ namespace scripting.iOS
             int mainHeight = (int)mainView.Frame.Size.Height;
             int mainWidth = (int)mainView.Frame.Size.Width;
 
-            int pickerHeight = Math.Min(mainHeight / 3, 320);
+            int pickerHeight = Math.Min(mainHeight / 4, 320);
             int pickerWidth = Math.Min(mainWidth, 640);
-            int pickerY = mainHeight - pickerHeight + 20;
+            int pickerY = mainHeight - pickerHeight;// - 6;
 
             m_picker = new UIPickerView();
             m_button2 = new UIButton();
+            m_buttonCancel = new UIButton();
 
-            m_picker.Frame = new CGRect(0, pickerY, pickerWidth, pickerHeight);
-            m_button2.Frame = new CGRect(0, pickerY - 20, pickerWidth, 40);
+            m_extraView1 = new UIView();
+            m_extraView1.BackgroundColor = UIColor.Cyan;
+            m_extraView1.Hidden = true;
+
+            m_extraView2 = new UIView();
+            m_extraView2.BackgroundColor = UIColor.FromRGB(100, 100, 100);
+            m_extraView2.Hidden = true;
+
+            m_extraView1.Frame   = new CGRect(0, pickerY, pickerWidth, pickerHeight);
+            m_picker.Frame       = new CGRect(0, 0, pickerWidth, pickerHeight);
+            m_extraView2.Frame   = new CGRect(0, pickerY - 40, pickerWidth, 40);
+            m_button2.Frame      = new CGRect(pickerWidth - 140, 0, 140, 40);
+            m_buttonCancel.Frame = new CGRect(0, 0, 140, 40);
 
             string alignment = "", color1 = "", color2 = "", closeLabel = "", mode = "view";
             Utils.Extract(argument, ref alignment, ref color1, ref color2, ref closeLabel, ref mode);
@@ -675,15 +701,7 @@ namespace scripting.iOS
             m_viewY.Frame = new CGRect(0, 0, mainWidth, mainHeight);
 
             TypePickerViewModel model = new TypePickerViewModel(AppDelegate.GetCurrentController());
-            /*model.RowSelected += (row) => {
-              string text = model.SelectedText;
-              SetText(text, alignment, true);
-              ActionDelegate?.Invoke(WidgetName, text);
-
-              m_viewY.RemoveFromSuperview();
-            };*/
             m_picker.ShowSelectionIndicator = true;
-            m_picker.Hidden = true;
             m_picker.Model = model;
 
             if (!string.IsNullOrEmpty(color1))
@@ -713,31 +731,36 @@ namespace scripting.iOS
             m_button.TouchUpInside += (sender, e) =>
             {
                 ResetCombos();
-                m_button2.Hidden = false;
-                m_picker.Hidden = false;
+                m_extraView1.Hidden   = false;
+                m_extraView2.Hidden   = false;
+                m_button2.Hidden      = false;
+                m_buttonCancel.Hidden = false;
+                m_picker.Hidden       = false;
 
                 model = m_picker.Model as TypePickerViewModel;
 
                 string text = GetText();
                 int row = model.StringToRow(text);
-                model.Selected(m_picker, (int)row, 0);
+                model.Selected(m_picker, row, 0);
+                m_picker.Model = model;
+
                 mainView.BecomeFirstResponder();
                 mainView.AddSubview(m_viewY);
             };
 
             if (string.IsNullOrEmpty(closeLabel))
             {
-                closeLabel = "X";
+                closeLabel = "Done";
             }
             m_button2.SetTitle(closeLabel + "\t", UIControlState.Normal);
             m_button2.HorizontalAlignment = UIControlContentHorizontalAlignment.Right;
-            m_button2.BackgroundColor = UIColor.FromRGB(100, 100, 100);
+            m_button2.BackgroundColor = UIColor.Clear; //FromRGB(100, 100, 100);
             m_button2.SetTitleColor(UIColor.White, UIControlState.Normal);
-            m_button2.Hidden = true;
             m_button2.TouchUpInside += (sender, e) =>
             {
-                m_button2.Hidden = true;
-                m_picker.Hidden = true;
+                m_extraView1.Hidden = true;
+                m_extraView2.Hidden = true;
+
                 string text = model.SelectedText;
                 SetText(text, alignment, true /* triggered */);
                 ActionDelegate?.Invoke(WidgetName, text);
@@ -746,11 +769,33 @@ namespace scripting.iOS
                 mainView.BecomeFirstResponder();
             };
 
+            m_buttonCancel.SetTitle("   X", UIControlState.Normal);
+            m_buttonCancel.HorizontalAlignment = UIControlContentHorizontalAlignment.Left;
+            m_buttonCancel.BackgroundColor = UIColor.Clear;// .FromRGB(100, 100, 100);
+            m_buttonCancel.SetTitleColor(UIColor.White, UIControlState.Normal);
+            m_buttonCancel.TouchUpInside += (sender, e) =>
+            {
+                m_extraView1.Hidden = true;
+                m_extraView2.Hidden = true;
+
+                model.Selected(m_picker, currentRow, 0);
+                m_picker.Model = model;
+                m_viewY.RemoveFromSuperview();
+                mainView.BecomeFirstResponder();
+            };
+
             m_viewX = m_button;
             mainView.AddSubview(m_viewX);
 
-            m_viewY.AddSubview(m_picker);
-            m_viewY.AddSubview(m_button2);
+            m_viewY.AddSubview(m_extraView2);
+            m_viewY.AddSubview(m_extraView1);
+
+            m_extraView1.AddSubview(m_picker);
+            m_extraView2.AddSubview(m_buttonCancel);
+            m_extraView2.AddSubview(m_button2);
+            //m_viewY.AddSubview(m_picker);
+            //m_viewY.AddSubview(m_buttonCancel);
+            //m_viewY.AddSubview(m_button2);
 
             m_viewX.Tag = ++m_currentTag;
         }
@@ -871,7 +916,7 @@ namespace scripting.iOS
                         UITextField textField = ViewX as UITextField;
                         textField.EditingDidEnd += (sender, e) =>
                         {
-                            UIVariable.GetAction(strAction, varName, "\"" + textField.Text + "\"");
+                            UIVariable.GetAction(strAction, varName, textField.Text);
                         };
                     }
                     return;
@@ -881,7 +926,7 @@ namespace scripting.iOS
             {
                 ActionDelegate += (arg1, arg2) =>
                 {
-                    UIVariable.GetAction(strAction, arg1, "\"" + arg2 + "\"");
+                    UIVariable.GetAction(strAction, arg1, arg2);
                 };
             }
             else if (ViewX is UIButton)
@@ -889,7 +934,7 @@ namespace scripting.iOS
                 UIButton button = ViewX as UIButton;
                 button.TouchUpInside += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + argument + "\"");
+                    UIVariable.GetAction(strAction, varName, argument);
                 };
             }
             else if (ViewX is UISwitch)
@@ -897,7 +942,7 @@ namespace scripting.iOS
                 UISwitch sw = ViewX as UISwitch;
                 sw.ValueChanged += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + sw.On + "\"");
+                    UIVariable.GetAction(strAction, varName, sw.On.ToString());
                 };
             }
             else if (ViewX is UITextField)
@@ -905,7 +950,7 @@ namespace scripting.iOS
                 UITextField textField = ViewX as UITextField;
                 textField.EditingChanged += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + textField.Text + "\"");
+                    UIVariable.GetAction(strAction, varName, textField.Text);
                 };
             }
             else if (ViewX is UISlider)
@@ -913,7 +958,7 @@ namespace scripting.iOS
                 UISlider slider = ViewX as UISlider;
                 slider.ValueChanged += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + slider.Value + "\"");
+                    UIVariable.GetAction(strAction, varName, slider.Value.ToString());
                 };
             }
             else if (ViewX is UISegmentedControl)
@@ -921,7 +966,7 @@ namespace scripting.iOS
                 UISegmentedControl seg = ViewX as UISegmentedControl;
                 seg.ValueChanged += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + seg.SelectedSegment + "\"");
+                    UIVariable.GetAction(strAction, varName, seg.SelectedSegment.ToString());
                 };
             }
             else if (ViewX is UIPickerView)
@@ -948,7 +993,7 @@ namespace scripting.iOS
                 }
                 source.RowSelectedDel += (row) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + row + "\"");
+                    UIVariable.GetAction(strAction, varName, row.ToString());
                 };
                 tableView.Source = source;
             }
@@ -956,7 +1001,7 @@ namespace scripting.iOS
             {
                 ActionDelegate += (arg1, arg2) =>
                 {
-                    UIVariable.GetAction(strAction, varName, "\"" + arg2 + "\"");
+                    UIVariable.GetAction(strAction, varName, arg2);
                 };
             }
         }
@@ -1213,11 +1258,15 @@ namespace scripting.iOS
 
         UIView m_viewX;
         UIView m_viewY;
+        UIView m_extraView1;
+        UIView m_extraView2;
+
         string m_originalText;
         string m_alignment;
 
         UIPickerView m_picker;
         UIButton m_button;
+        UIButton m_buttonCancel;
         UIButton m_button2;
         UILabel m_label;
 
@@ -1232,7 +1281,7 @@ namespace scripting.iOS
             {
                 return null;
             }
-            ParserFunction func = ParserFunction.GetFunction(viewName, script);
+            ParserFunction func = ParserFunction.GetVariable(viewName, script);
             Utils.CheckNotNull(viewName, func);
             Variable viewValue = func.GetValue(script);
             iOSVariable viewVar = viewValue as iOSVariable;

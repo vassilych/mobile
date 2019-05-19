@@ -111,6 +111,30 @@ namespace SplitAndMerge
             return id;
         }
 
+        public void SetColumnWidths(List<string> data)
+        {
+            var totalAdjusted = 0.0;
+            List<double> widths = new List<double>(data.Count);
+            for (int i = 0; i < data.Count && i < m_grid.Columns.Count; i++)
+            {
+                var width = Double.Parse(data[i]);
+                totalAdjusted += width;
+                widths.Add(width);
+            }
+            if (totalAdjusted <= 0.0)
+            {
+                return;
+            }
+
+            var total = m_grid.Frame.Width;
+            for (int i = 0; i < widths.Count; i++)
+            {
+                var width = widths[i];
+                var column = m_grid.Columns[i];
+                column.Width = (width/totalAdjusted) * total;
+            }
+        }
+
         public void AddColumns(List<string> data)
         {
             for (int i = 0; i < data.Count - 1; i += 2)

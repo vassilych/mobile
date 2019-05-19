@@ -12,7 +12,7 @@ namespace SplitAndMerge
         {
             NONE, NUMBER, STRING, ARRAY,
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR,
-            BREAK, CONTINUE, OBJECT
+            BREAK, CONTINUE, OBJECT, ENUM
         };
 
         public Variable()
@@ -43,10 +43,6 @@ namespace SplitAndMerge
         {
             this.Tuple = a;
         }
-        public Variable(Variable other)
-        {
-            Copy(other);
-        }
         public Variable(List<string> a)
         {
             List<Variable> tuple = new List<Variable>(a.Count);
@@ -70,7 +66,9 @@ namespace SplitAndMerge
             List<Variable> tuple = new List<Variable>(a.Count);
             foreach (string key in a.Keys)
             {
-                m_dictionary[key] = tuple.Count;
+                string lower = key.ToLower();
+                m_keyMappings[lower] = key;
+                m_dictionary[lower] = tuple.Count;
                 tuple.Add(new Variable(a[key]));
             }
             this.Tuple = tuple;
@@ -80,7 +78,9 @@ namespace SplitAndMerge
             List<Variable> tuple = new List<Variable>(a.Count);
             foreach (string key in a.Keys)
             {
-                m_dictionary[key] = tuple.Count;
+                string lower = key.ToLower();
+                m_keyMappings[lower] = key;
+                m_dictionary[lower] = tuple.Count;
                 tuple.Add(new Variable(a[key]));
             }
             this.Tuple = tuple;
@@ -114,32 +114,6 @@ namespace SplitAndMerge
                 newVar.Tuple = newTuple;
             }
             return newVar;
-        }
-        public virtual void Copy(Variable other)
-        {
-            Reset();
-            Action = other.Action;
-            Type = other.Type;
-            IsReturn = other.IsReturn;
-            m_dictionary = other.m_dictionary;
-            m_propertyMap = other.m_propertyMap;
-            //bug todo
-
-            switch (other.Type)
-            {
-                case VarType.NUMBER:
-                    Value = other.Value;
-                    break;
-                case VarType.STRING:
-                    String = other.String;
-                    break;
-                case VarType.ARRAY:
-                    this.Tuple = other.Tuple;
-                    break;
-                case VarType.OBJECT:
-                    Object = other.Object;
-                    break;
-            }
         }
 
         public static Variable NewEmpty()
@@ -198,7 +172,8 @@ namespace SplitAndMerge
         {
             int retValue = 0;
             Variable listVar = null;
-            if (m_dictionary.TryGetValue(hash, out retValue))
+            string lower = hash.ToLower();
+            if (m_dictionary.TryGetValue(lower, out retValue))
             {
                 // already exists, change the value:
                 listVar = m_tuple[retValue];
@@ -207,7 +182,9 @@ namespace SplitAndMerge
             {
                 listVar = new Variable(VarType.ARRAY);
                 m_tuple.Add(listVar);
-                m_dictionary[hash] = m_tuple.Count - 1;
+
+                m_keyMappings[lower] = hash;
+                m_dictionary[lower] = m_tuple.Count - 1;
             }
 
             listVar.AddVariable(newVar);
@@ -216,7 +193,7 @@ namespace SplitAndMerge
         public List<Variable> GetAllKeys()
         {
             List<Variable> results = new List<Variable>();
-            var keys = m_dictionary.Keys;
+            var keys = m_keyMappings.Values;
             foreach (var key in keys)
             {
                 results.Add(new Variable(key));
@@ -233,7 +210,7 @@ namespace SplitAndMerge
         public List<string> GetKeys()
         {
             List<string> results = new List<string>();
-            var keys = m_dictionary.Keys;
+            var keys = m_keyMappings.Values;
             foreach (var key in keys)
             {
                 results.Add(key);
@@ -244,7 +221,8 @@ namespace SplitAndMerge
         public int SetHashVariable(string hash, Variable var)
         {
             int retValue = m_tuple.Count;
-            if (m_dictionary.TryGetValue(hash, out retValue))
+            string lower = hash.ToLower();
+            if (m_dictionary.TryGetValue(lower, out retValue))
             {
                 // already exists, change the value:
                 m_tuple[retValue] = var;
@@ -252,7 +230,8 @@ namespace SplitAndMerge
             }
 
             m_tuple.Add(var);
-            m_dictionary[hash] = m_tuple.Count - 1;
+            m_keyMappings[lower] = hash;
+            m_dictionary[lower] = m_tuple.Count - 1;
 
             return m_tuple.Count - 1;
         }
@@ -271,8 +250,9 @@ namespace SplitAndMerge
             }
 
             string hash = indexVar.AsString();
+            string lower = hash.ToLower();
             int ptr = m_tuple.Count;
-            if (m_dictionary.TryGetValue(hash, out ptr) &&
+            if (m_dictionary.TryGetValue(lower, out ptr) &&
                 ptr < m_tuple.Count)
             {
                 return ptr;
@@ -313,7 +293,8 @@ namespace SplitAndMerge
         public Variable GetVariable(string hash)
         {
             int index = 0;
-            if (m_tuple == null || !m_dictionary.TryGetValue(hash, out index) ||
+            string lower = hash.ToLower();
+            if (m_tuple == null || !m_dictionary.TryGetValue(lower, out index) ||
                 m_tuple.Count <= index)
             {
                 return Variable.EmptyInstance;
@@ -323,7 +304,8 @@ namespace SplitAndMerge
 
         public bool Exists(string hash)
         {
-            return m_dictionary.ContainsKey(hash);
+            string lower = hash.ToLower();
+            return m_dictionary.ContainsKey(lower);
         }
 
         public int FindIndex(string val)
@@ -453,12 +435,23 @@ namespace SplitAndMerge
             {
                 return ObjectToString();
             }
+
+            StringBuilder sb = new StringBuilder();
+            if (Type == VarType.ENUM)
+            {
+                sb.Append(Constants.START_GROUP.ToString() + " ");
+                foreach (string key in m_propertyMap.Keys)
+                {
+                    sb.Append(key + " ");
+                }
+                sb.Append(Constants.END_GROUP.ToString());
+                return sb.ToString();
+            }
+
             if (Type == VarType.NONE || m_tuple == null)
             {
                 return string.Empty;
             }
-
-            StringBuilder sb = new StringBuilder();
 
             if (isList)
             {
@@ -476,7 +469,10 @@ namespace SplitAndMerge
                     if (entry.Value >= 0 || entry.Value < m_tuple.Count)
                     {
                         string value = m_tuple[entry.Value].AsString(isList, sameLine, maxCount);
-                        sb.Append("\"" + entry.Key + "\" : " + value);
+                        string realKey = entry.Key;
+                        m_keyMappings.TryGetValue(entry.Key.ToLower(), out realKey);
+
+                        sb.Append("\"" + realKey + "\" : " + value);
                         if (i++ < count - 1)
                         {
                             sb.Append(sameLine ? ", " : Environment.NewLine);
@@ -526,8 +522,9 @@ namespace SplitAndMerge
                            Constants.START_GROUP.ToString());
 
                 List<string> allProps = GetAllProperties();
-                foreach (string prop in allProps)
+                for (int i = 0;  i < allProps.Count; i++)
                 {
+                    string prop = allProps[i];
                     if (prop.Equals(Constants.OBJECT_PROPERTIES, StringComparison.OrdinalIgnoreCase))
                     {
                         sb.Append(prop);
@@ -548,7 +545,11 @@ namespace SplitAndMerge
                             value = ": " + value;
                         }
                     }
-                    sb.Append(prop + value + ", ");
+                    sb.Append(prop + value);
+                    if (i < allProps.Count - 1)
+                    {
+                        sb.Append(", ");
+                    }
                 }
 
                 sb.Append(Constants.END_GROUP.ToString());
@@ -576,42 +577,44 @@ namespace SplitAndMerge
             return Count;
         }
 
-        public Variable SetProperty(string propName, Variable value)
+        public Variable SetProperty(string propName, Variable value, string baseName = "")
         {
             propName = Constants.ConvertName(propName);
 
-            int ind = propName.IndexOf(".");
+            int ind = propName.IndexOf('.');
             if (ind > 0)
             { // The case a.b.c = ... is dealt here recursively
                 string varName = propName.Substring(0, ind);
                 string actualPropName = propName.Substring(ind + 1);
                 Variable property = GetProperty(varName);
-                return property.SetProperty(actualPropName, value);
+                Utils.CheckNotNull(property, varName);
+                return property.SetProperty(actualPropName, value, baseName);
             }
-            return FinishSetProperty(propName, value);
+            return FinishSetProperty(propName, value, baseName);
         }
 
-        public async Task<Variable> SetPropertyAsync(string propName, Variable value)
+        public async Task<Variable> SetPropertyAsync(string propName, Variable value, string baseName = "")
         {
             Variable result = Variable.EmptyInstance;
             propName = Constants.ConvertName(propName);
 
-            int ind = propName.IndexOf(".");
+            int ind = propName.IndexOf('.');
             if (ind > 0)
             { // The case a.b.c = ... is dealt here recursively
                 string varName = propName.Substring(0, ind);
                 string actualPropName = propName.Substring(ind + 1);
                 Variable property = await GetPropertyAsync(varName);
-                result = await property.SetPropertyAsync(actualPropName, value);
+                Utils.CheckNotNull(property, varName);
+                result = await property.SetPropertyAsync(actualPropName, value, baseName);
                 return result;
             }
-            return FinishSetProperty(propName, value);
+            return FinishSetProperty(propName, value, baseName);
         }
 
-        public Variable FinishSetProperty(string propName, Variable value)
+        public Variable FinishSetProperty(string propName, Variable value, string baseName = "")
         {
             Variable result = Variable.EmptyInstance;
-            string match = GetActualPropertyName(propName, GetAllProperties());
+            string match = GetActualPropertyName(propName, GetAllProperties(), baseName, this);
             m_propertyMap[match] = value;
             Type = VarType.OBJECT;
 
@@ -623,11 +626,71 @@ namespace SplitAndMerge
             return result;
         }
 
+        public void SetEnumProperty(string propName, Variable value, string baseName = "")
+        {
+            m_propertyMap[propName] = value;
+
+            if (m_enumMap == null)
+            {
+                m_enumMap = new Dictionary<int, string>();
+            }
+            m_enumMap[value.AsInt()] = propName;
+        }
+
+        public Variable GetEnumProperty(string propName, ParsingScript script, string baseName = "")
+        {
+            propName = Constants.ConvertName(propName);
+            if (script.TryPrev() == Constants.START_ARG)
+            {
+                Variable value = Utils.GetItem(script);
+                if (propName == Constants.TO_STRING)
+                {
+                    return ConvertEnumToString(value);
+                }
+                else
+                {
+                    return new Variable(m_enumMap != null && m_enumMap.ContainsKey(value.AsInt()));
+                }
+            }
+
+            string[] tokens = propName.Split('.');
+            if (tokens.Length > 1)
+            {
+                propName = tokens[0];
+            }
+
+            string match = GetActualPropertyName(propName, GetAllProperties(), baseName, this);
+
+            Variable result = GetCoreProperty(match, script);
+
+            if (tokens.Length > 1)
+            {
+                result = ConvertEnumToString(result);
+                if (tokens.Length > 2)
+                {
+                    string rest = string.Join(".", tokens, 2, tokens.Length - 2);
+                    result = result.GetProperty(rest, script);
+                }
+            }
+
+            return result;
+        }
+
+        public Variable ConvertEnumToString(Variable value)
+        {
+            string result = "";
+            if (m_enumMap != null && m_enumMap.TryGetValue(value.AsInt(), out result))
+            {
+                return new Variable(result);
+            }
+            return Variable.EmptyInstance;
+        }
+
         public Variable GetProperty(string propName, ParsingScript script = null)
         {
             Variable result = Variable.EmptyInstance;
 
-            int ind = propName.IndexOf(".");
+            int ind = propName.IndexOf('.');
             if (ind > 0)
             { // The case x = a.b.c ... is dealt here recursively
                 string varName = propName.Substring(0, ind);
@@ -653,7 +716,8 @@ namespace SplitAndMerge
                     {
                         args = new List<Variable>();
                     }
-                    result = obj.GetProperty(match, args, script).Result;
+                    var task = obj.GetProperty(match, args, script);
+                    result   = task != null ? task.Result : null;
                     if (result != null)
                     {
                         return result;
@@ -668,7 +732,7 @@ namespace SplitAndMerge
         {
             Variable result = Variable.EmptyInstance;
 
-            int ind = propName.IndexOf(".");
+            int ind = propName.IndexOf('.');
             if (ind > 0)
             { // The case x = a.b.c ... is dealt here recursively
                 string varName = propName.Substring(0, ind);
@@ -719,7 +783,7 @@ namespace SplitAndMerge
             }
             else if (propName.Equals(Constants.OBJECT_TYPE, StringComparison.OrdinalIgnoreCase))
             {
-                return new Variable(GetTypeString());
+                return new Variable((int)Type);
             }
             else if (propName.Equals(Constants.SIZE, StringComparison.OrdinalIgnoreCase))
             {
@@ -777,7 +841,30 @@ namespace SplitAndMerge
 
                 return new Variable(AsString().Substring(startFrom, length));
             }
-            else if (script != null && propName.Equals(Constants.TOKENIZE, StringComparison.OrdinalIgnoreCase))
+            else if (script != null && propName.Equals(Constants.REVERSE, StringComparison.OrdinalIgnoreCase))
+            {
+                script.GetFunctionArgs();
+                if (Tuple != null)
+                {
+                    Tuple.Reverse();
+                }
+                else if (Type == VarType.STRING)
+                {
+                    char[] charArray = AsString().ToCharArray();
+                    Array.Reverse(charArray);
+                    String = new string(charArray);
+                }
+
+                return this;
+            }
+            else if (script != null && propName.Equals(Constants.SORT, StringComparison.OrdinalIgnoreCase))
+            {
+                script.GetFunctionArgs();
+                Sort();
+
+                return this;
+            }
+            else if (script != null && propName.Equals(Constants.SPLIT, StringComparison.OrdinalIgnoreCase))
             {
                 List<Variable> args = script.GetFunctionArgs();
                 string sep = Utils.GetSafeString(args, 0, " ");
@@ -796,6 +883,25 @@ namespace SplitAndMerge
 
                 var join = string.Join(sep, Tuple);
                 return new Variable(join);
+            }
+            else if (script != null && propName.Equals(Constants.ADD, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 1, propName);
+                Variable var = Utils.GetSafeVariable(args, 0);
+                if (Tuple != null)
+                {
+                    Tuple.Add(var);
+                }
+                else if (Type == VarType.NUMBER)
+                {
+                    Value += var.AsDouble();
+                }
+                else
+                {
+                    String += var.AsString();
+                }
+                return var;
             }
             else if (script != null && propName.Equals(Constants.AT, StringComparison.OrdinalIgnoreCase))
             {
@@ -819,6 +925,26 @@ namespace SplitAndMerge
 
                 return new Variable(AsString().Replace(oldVal, newVal));
             }
+            else if (propName.Equals(Constants.EMPTY_WHITE, StringComparison.OrdinalIgnoreCase))
+            {
+                bool isEmpty = string.IsNullOrWhiteSpace(AsString());
+                return new Variable(isEmpty);
+            }
+            else if (script != null && propName.Equals(Constants.REPLACE_TRIM, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> args = script.GetFunctionArgs();
+                Utils.CheckArgs(args.Count, 2, propName);
+                string currentValue = AsString();
+
+                for (int i = 0; i < args.Count; i += 2)
+                {
+                    string oldVal = Utils.GetSafeString(args, i);
+                    string newVal = Utils.GetSafeString(args, i + 1);
+                    currentValue  = currentValue.Replace(oldVal, newVal);
+                }
+
+                return new Variable(currentValue.Trim());
+            }
             else if (script != null && propName.Equals(Constants.CONTAINS, StringComparison.OrdinalIgnoreCase))
             {
                 List<Variable> args = script.GetFunctionArgs();
@@ -828,8 +954,13 @@ namespace SplitAndMerge
                 StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
                     StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 
-                int index = AsString().IndexOf(val, comp);
-                return new Variable(index >= 0);
+                bool contains = val != "" && AsString().IndexOf(val, comp) >= 0;
+                if (!contains && (Type == Variable.VarType.ARRAY && m_dictionary != null))
+                {
+                    string lower = val.ToLower();
+                    contains = m_dictionary.ContainsKey(lower);
+                }
+                return new Variable(contains);
             }
             else if (script != null && propName.Equals(Constants.EQUALS, StringComparison.OrdinalIgnoreCase))
             {
@@ -868,6 +999,11 @@ namespace SplitAndMerge
             {
                 script.GetFunctionArgs();
                 return new Variable(AsString().Trim());
+            }
+            else if (propName.Equals(Constants.KEYS, StringComparison.OrdinalIgnoreCase))
+            {
+                List<Variable> results = GetAllKeys();
+                return new Variable(results);
             }
 
             return result;
@@ -912,21 +1048,9 @@ namespace SplitAndMerge
 
             all.Sort();
 
-            if (!allSet.Contains(Constants.OBJECT_PROPERTIES.ToLower()))
-            {
-                all.Add(Constants.OBJECT_PROPERTIES);
-            }
             if (!allSet.Contains(Constants.OBJECT_TYPE.ToLower()))
             {
                 all.Add(Constants.OBJECT_TYPE);
-            }
-            if (!allSet.Contains(Constants.SIZE.ToLower()))
-            {
-                all.Add(Constants.SIZE);
-            }
-            if (!allSet.Contains(Constants.STRING.ToLower()))
-            {
-                all.Add(Constants.STRING);
             }
 
             return all;
@@ -964,15 +1088,67 @@ namespace SplitAndMerge
             return this;
         }
 
-        public static string GetActualPropertyName(string propName, List<string> properties)
+        public static string GetActualPropertyName(string propName, List<string> properties,
+                                                   string baseName = "", Variable root = null)
         {
             string match = properties.FirstOrDefault(element => element.Equals(propName,
                                    StringComparison.OrdinalIgnoreCase));
             if (string.IsNullOrWhiteSpace(match))
             {
                 match = "";
+                if (root != null)
+                {
+                    string objName = !string.IsNullOrWhiteSpace(baseName) ? baseName + "." : "";
+                    if (string.IsNullOrWhiteSpace(objName))
+                    {
+                        CSCSClass.ClassInstance obj = root.m_object as CSCSClass.ClassInstance;
+                        objName = obj != null ? obj.InstanceName + "." : "";
+                    }
+                    match = Constants.GetRealName(objName + propName);
+                    match = match.Substring(objName.Length);
+                }
             }
             return match;
+        }
+
+        public void Sort()
+        {
+            if (Tuple == null || Tuple.Count <= 1)
+            {
+                return;
+            }
+
+            List<double> numbers = new List<double>();
+            List<string> strings = new List<string>();
+            for (int i = 0; i < Tuple.Count; i++)
+            {
+                Variable arg = Tuple[i];
+                if (arg.Tuple != null)
+                {
+                    arg.Sort();
+                }
+                else if (arg.Type == VarType.NUMBER)
+                {
+                    numbers.Add(arg.AsDouble());
+                }
+                else
+                {
+                    strings.Add(arg.AsString());
+                }
+            }
+            List<Variable> newTuple = new List<Variable>(Tuple.Count);
+            numbers.Sort();
+            strings.Sort();
+
+            for (int i = 0; i < numbers.Count; i++)
+            {
+                newTuple.Add(new Variable(numbers[i]));
+            }
+            for (int i = 0; i < strings.Count; i++)
+            {
+                newTuple.Add(new Variable(strings[i]));
+            }
+            Tuple = newTuple;
         }
 
         public double Value
@@ -1000,7 +1176,11 @@ namespace SplitAndMerge
         }
 
         public string Action { get; set; }
-        public VarType Type { get; set; }
+        public VarType Type
+        {
+            get;
+            set;
+        }
         public bool IsReturn { get; set; }
         public string ParsingToken { get; set; }
         public int Index { get; set; }
@@ -1013,8 +1193,10 @@ namespace SplitAndMerge
         object m_object;
         List<Variable> m_tuple;
         Dictionary<string, int> m_dictionary = new Dictionary<string, int>();
+        Dictionary<string, string> m_keyMappings = new Dictionary<string, string>();
 
         Dictionary<string, Variable> m_propertyMap = new Dictionary<string, Variable>();
+        Dictionary<int, string> m_enumMap;
     }
 
     // A Variable supporting "dot-notation" must have an object implementing this interface.

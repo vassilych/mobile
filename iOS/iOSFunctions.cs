@@ -144,7 +144,7 @@ namespace scripting.iOS
         }
         public static iOSVariable ExistingWidget(ParsingScript script, string varName)
         {
-            ParserFunction func = ParserFunction.GetFunction(varName, script);
+            ParserFunction func = ParserFunction.GetVariable(varName, script);
             if (func == null)
             {
                 return null;
@@ -193,7 +193,7 @@ namespace scripting.iOS
             string extra = Utils.GetSafeString(args, 3);
 
             widget.AddData(types, widget.Name, strAction, extra);
-            ParserFunction.UpdateFunction(widget);
+            ParserFunction.UpdateFunction(widget.Name, new GetVarFunction(widget));
 
             return Variable.EmptyInstance;
         }
@@ -815,7 +815,7 @@ namespace scripting.iOS
                                       string strAction, string varName)
         {
             Console.WriteLine("Swipe: " + sender.Direction);
-            UIVariable.GetAction(strAction, varName, "\"" + sender.Direction + "\"");
+            UIVariable.GetAction(strAction, varName, sender.Direction.ToString());
         }
     }
     public class AddDragAndDropFunction : ParserFunction
@@ -893,7 +893,7 @@ namespace scripting.iOS
                         string arg = string.Join(", ", involved);
                         //Console.WriteLine("Offsets: {0}, {1} -- {2}, {3} -- {4}, {5}", offset.X, offset.Y,
                         //                  m_originalFrame.X, m_originalFrame.Y, newFrame.X, newFrame.Y);
-                        UIVariable.GetAction(m_action, m_widget, "\"" + arg + "\"");
+                        UIVariable.GetAction(m_action, m_widget, arg);
                     }
                 }
             }
@@ -992,7 +992,7 @@ namespace scripting.iOS
 
             iOSApp.TabSelectedDelegate += (tab) =>
             {
-                UIVariable.GetAction(action, "\"ROOT\"", "\"" + tab + "\"");
+                UIVariable.GetAction(action, "ROOT", tab.ToString());
             };
             return Variable.EmptyInstance;
         }
@@ -1057,7 +1057,7 @@ namespace scripting.iOS
                 {
                     if (!string.IsNullOrWhiteSpace(actionOK))
                     {
-                        UIVariable.GetAction(actionOK, "\"" + buttonOK + "\"", "1");
+                        UIVariable.GetAction(actionOK, buttonOK, "1");
                     }
                 });
             okCancelAlertController.AddAction(okAction);
@@ -1069,7 +1069,7 @@ namespace scripting.iOS
                     {
                         if (!string.IsNullOrWhiteSpace(actionCancel))
                         {
-                            UIVariable.GetAction(actionCancel, "\"" + buttonCancel + "\"", "0");
+                            UIVariable.GetAction(actionCancel, buttonCancel, "0");
                         }
                     });
                 okCancelAlertController.AddAction(cancelAction);
@@ -1320,7 +1320,7 @@ namespace scripting.iOS
         {
             script.MoveForwardIf(Constants.END_ARG_ARRAY);
 
-            var bounds = UIScreen.MainScreen.NativeBounds;
+            var bounds = UtilsiOS.GetNativeScreenSize();
             return new Variable(m_needWidth ? bounds.Width : bounds.Height);
         }
     }
@@ -1395,7 +1395,7 @@ namespace scripting.iOS
                                         m_actionPortrait : m_actionLandscape;
             iOSApp.Instance.OffsetTabBar(false);
 
-            UIVariable.GetAction(action, "\"ROOT\"", "\"" + (isInit ? "init" : m_currentOrientation) + "\"");
+            UIVariable.GetAction(action, "ROOT", (isInit ? "init" : m_currentOrientation));
 
             if (!isInit && currentTab >= 0)
             {
@@ -1429,7 +1429,7 @@ namespace scripting.iOS
             }
             m_currentOrientation = currentOrientation;
             iOSApp.Instance.OffsetTabBar(false);
-            UIVariable.GetAction(m_action, "\"ROOT\"", "\"" + m_currentOrientation + "\"");
+            UIVariable.GetAction(m_action, "ROOT", m_currentOrientation.ToString());
         }
     }
     public class OrientationFunction : ParserFunction
@@ -1476,7 +1476,7 @@ namespace scripting.iOS
             {
                 AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
                 {
-                    UIVariable.GetAction(strAction, "\"ROOT\"", "\"OnEnterBackground\"");
+                    UIVariable.GetAction(strAction, "ROOT", "OnEnterBackground");
                 });
             };
 
@@ -1563,9 +1563,9 @@ namespace scripting.iOS
             bool speechEnabled = UIDevice.CurrentDevice.CheckSystemVersion(10, 0);
             if (!speechEnabled)
             {
-                UIVariable.GetAction(strAction, "\"" +
+                UIVariable.GetAction(strAction,
                  string.Format("Speech recognition requires iOS 10.0 or higher. You have iOS {0}",
-                               UIDevice.CurrentDevice.SystemVersion) + "\"", "");
+                               UIDevice.CurrentDevice.SystemVersion), "");
                 return Variable.EmptyInstance;
             }
 
@@ -1582,7 +1582,7 @@ namespace scripting.iOS
                 Console.WriteLine(errorStr);
                 controller.InvokeOnMainThread(() =>
                 {
-                    UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+                    UIVariable.GetAction(strAction, errorStr, "");
                 });
             };
             m_speech.OnSpeechOK += (recognized) =>
@@ -1590,7 +1590,7 @@ namespace scripting.iOS
                 Console.WriteLine("Recognized: " + recognized);
                 controller.InvokeOnMainThread(() =>
                 {
-                    UIVariable.GetAction(strAction, "", "\"" + recognized + "\"");
+                    UIVariable.GetAction(strAction, "", recognized);
                 });
             };
 
@@ -1677,11 +1677,11 @@ namespace scripting.iOS
 
             IAP.IAPOK += (productIds) =>
             {
-                UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+                UIVariable.GetAction(strAction, "", productIds);
             };
             IAP.IAPError += (errorStr) =>
             {
-                UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+                UIVariable.GetAction(strAction, errorStr, "");
             };
 
             IAP.Restore();
@@ -1703,11 +1703,11 @@ namespace scripting.iOS
 
             IAP.IAPOK += (productIds) =>
             {
-                UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+                UIVariable.GetAction(strAction, "", productIds);
             };
             IAP.IAPError += (errorStr) =>
             {
-                UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+                UIVariable.GetAction(strAction, errorStr, "");
             };
 
             IAP.Purchase(productId);
@@ -1817,7 +1817,7 @@ namespace scripting.iOS
                 //Console.WriteLine("QuizTimer_Elapsed {0:HH:mm:ss.fff}", e.SignalTime);
                 AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
                 {
-                    UIVariable.GetAction(strAction, owner, "\"" + timerId + "\"");
+                    UIVariable.GetAction(strAction, owner, timerId);
                 });
             };
             pauseTimer.AutoReset = autoReset;

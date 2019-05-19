@@ -48,23 +48,14 @@ namespace SplitAndMerge
             get { return m_filename; }
             set
             {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    value = Path.GetFullPath(value);
-                }
-                m_filename = value;
+                m_filename = Utils.GetFullPath(value);
             }
         }
         public string PWD
         {
             get
             {
-                if (!string.IsNullOrWhiteSpace(m_filename))
-                {
-                    return Path.GetDirectoryName(m_filename);
-                }
-
-                return Directory.GetCurrentDirectory();
+                return Utils.GetDirectoryName(m_filename);
             }
         }
         public string OriginalScript
@@ -83,6 +74,8 @@ namespace SplitAndMerge
 
         public bool DisableBreakpoints;
         public bool InTryBlock;
+        public string MainFilename;
+
         public ParsingScript ParentScript;
 
         public CSCSClass CurrentClass { get; set; }
@@ -147,11 +140,15 @@ namespace SplitAndMerge
             {
                 int pointer = script == this ? script.Pointer + firstOffset : script.Pointer;
                 int lineNumber = script.GetOriginalLineNumber(pointer);
-                string filename = string.IsNullOrWhiteSpace(script.Filename) ? "" : Path.GetFullPath(script.Filename);
-                string line = string.IsNullOrWhiteSpace(filename) ? "" : File.ReadLines(filename).Skip(lineNumber).Take(1).First();
+                string filename = string.IsNullOrWhiteSpace(script.Filename) ? "" :
+                                  Utils.GetFullPath(script.Filename);
+                string line = string.IsNullOrWhiteSpace(filename) ? "" :
+                              File.ReadLines(filename).Skip(lineNumber).Take(1).First();
+
                 result.AppendLine("" + lineNumber);
                 result.AppendLine(filename);
                 result.AppendLine(line.Trim());
+
                 script = script.ParentScript;
             }
 
@@ -161,7 +158,7 @@ namespace SplitAndMerge
         public string GetOriginalLine(out int lineNumber)
         {
             lineNumber = GetOriginalLineNumber();
-            if (lineNumber < 0)
+            if (lineNumber < 0 || m_originalScript == null)
             {
                 return "";
             }
@@ -327,6 +324,15 @@ namespace SplitAndMerge
             return args;
         }
 
+        public bool IsProcessingFunctionCall()
+        {
+            if (TryPrev() == Constants.START_ARG || TryCurrent() == Constants.START_ARG)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public int GoToNextStatement()
         {
             int endGroupRead = 0;
@@ -352,32 +358,11 @@ namespace SplitAndMerge
             return endGroupRead;
         }
 
-        public Variable ExecuteTo(char to = '\0')
+        public Variable Execute(char[] toArray = null, int from = -1)
         {
-            return ExecuteFrom(Pointer, to);
-        }
-        public async Task<Variable> ExecuteToAsync(char to = '\0')
-        {
-            return await ExecuteFromAsync(Pointer, to);
-        }
+            toArray = toArray == null ? Constants.END_PARSE_ARRAY : toArray;
+            Pointer = from < 0 ? Pointer : from;
 
-        public Variable ExecuteFrom(int from, char to = '\0')
-        {
-            Pointer = from;
-            char[] toArray = to == '\0' ? Constants.END_PARSE_ARRAY :
-                                          to.ToString().ToCharArray();
-            return Execute(toArray);
-        }
-        public async Task<Variable> ExecuteFromAsync(int from, char to = '\0')
-        {
-            Pointer = from;
-            char[] toArray = to == '\0' ? Constants.END_PARSE_ARRAY :
-                                          to.ToString().ToCharArray();
-            return await ExecuteAsync(toArray);
-        }
-
-        public Variable Execute(char[] toArray)
-        {
             if (!m_data.EndsWith(Constants.END_STATEMENT.ToString()))
             {
                 m_data += Constants.END_STATEMENT;
@@ -426,8 +411,11 @@ namespace SplitAndMerge
             return result;
         }
 
-        public async Task<Variable> ExecuteAsync(char[] toArray)
+        public async Task<Variable> ExecuteAsync(char[] toArray = null, int from = -1)
         {
+            toArray = toArray == null ? Constants.END_PARSE_ARRAY : toArray;
+            Pointer = from < 0 ? Pointer : from;
+
             if (!m_data.EndsWith(Constants.END_STATEMENT.ToString()))
             {
                 m_data += Constants.END_STATEMENT;
@@ -480,19 +468,35 @@ namespace SplitAndMerge
         {
             while (StillValid())
             {
-                ExecuteTo(Constants.END_LINE);
+                Execute(Constants.END_LINE_ARRAY);
                 GoToNextStatement();
             }
         }
+
+        public ParsingScript GetTempScript(string str, int startIndex = 0)
+        {
+            ParsingScript tempScript  = new ParsingScript(str, startIndex);
+            tempScript.Filename       = this.Filename;
+            tempScript.InTryBlock     = this.InTryBlock;
+            tempScript.ParentScript   = this;
+            tempScript.Char2Line      = this.Char2Line;
+            tempScript.OriginalScript = this.OriginalScript;
+            tempScript.InTryBlock     = this.InTryBlock;
+            //tempScript.Debugger       = this.Debugger;
+
+            return tempScript;
+        }
     }
+
     public class ParsingException : Exception
     {
         public ParsingScript ExceptionScript { get; private set; }
         public string ExceptionStack { get; private set; } = "";
 
-        public ParsingException(string message)
+        public ParsingException(string message, string excStack = "")
             : base(message)
         {
+            ExceptionStack = excStack.Trim();
         }
         public ParsingException(string message, ParsingScript script)
             : base(message)

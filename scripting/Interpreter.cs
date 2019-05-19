@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.Text;
 using System.Threading.Tasks;
+using static SplitAndMerge.ParserFunction;
 
 namespace SplitAndMerge
 {
@@ -51,11 +52,12 @@ namespace SplitAndMerge
             }
         }
 
-        public event EventHandler<OutputAvailableEventArgs> GetOutput;
+        public event EventHandler<OutputAvailableEventArgs> OnOutput;
+        public event EventHandler<OutputAvailableEventArgs> OnData;
 
         public void AppendOutput(string text, bool newLine = false)
         {
-            EventHandler<OutputAvailableEventArgs> handler = GetOutput;
+            EventHandler<OutputAvailableEventArgs> handler = OnOutput;
             if (handler != null)
             {
                 OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
@@ -64,7 +66,30 @@ namespace SplitAndMerge
             }
         }
 
+        public bool AppendData(string text, bool newLine = false)
+        {
+            EventHandler<OutputAvailableEventArgs> handler = OnData;
+            if (handler != null)
+            {
+                OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
+                                     (newLine ? Environment.NewLine : string.Empty));
+                handler(this, args);
+                return true;
+            }
+            return false;
+        }
+
         public void Init()
+        {
+            RegisterFunctions();
+            RegisterEnums();
+            RegisterActions();
+
+            InitStandalone();
+            CompiledClass.Init();
+        }
+
+        public void RegisterFunctions()
         {
             ParserFunction.RegisterFunction(Constants.IF, new IfStatement());
             ParserFunction.RegisterFunction(Constants.WHILE, new WhileStatement());
@@ -72,6 +97,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.BREAK, new BreakStatement());
             ParserFunction.RegisterFunction(Constants.CONTINUE, new ContinueStatement());
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
+            ParserFunction.RegisterFunction(Constants.ENUM, new EnumFunction());
             ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
@@ -94,17 +120,23 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
             ParserFunction.RegisterFunction(Constants.CANCEL_RUN, new ScheduleRunFunction(false));
             ParserFunction.RegisterFunction(Constants.CEIL, new CeilFunction());
+            ParserFunction.RegisterFunction(Constants.CHECK_LOADER_MAIN, new CheckLoaderMainFunction());
             ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
             ParserFunction.RegisterFunction(Constants.COS, new CosFunction());
+            ParserFunction.RegisterFunction(Constants.CURRENT_PATH, new CurrentPathFunction());
             ParserFunction.RegisterFunction(Constants.DEEP_COPY, new DeepCopyFunction());
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
             ParserFunction.RegisterFunction(Constants.ENV, new GetEnvFunction());
             ParserFunction.RegisterFunction(Constants.EXP, new ExpFunction());
             ParserFunction.RegisterFunction(Constants.FIND_INDEX, new FindIndexFunction());
             ParserFunction.RegisterFunction(Constants.FLOOR, new FloorFunction());
+            ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_FILE_FROM_DEBUGGER, new GetFileFromDebugger());
+            ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.LOG, new LogFunction());
+            ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
+            ParserFunction.RegisterFunction(Constants.NAME_EXISTS, new NameExistsFunction());
             ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction());
             ParserFunction.RegisterFunction(Constants.PI, new PiFunction());
             ParserFunction.RegisterFunction(Constants.POW, new PowFunction());
@@ -113,6 +145,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.RANDOM, new GetRandomFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
+            ParserFunction.RegisterFunction(Constants.RESET_VARS, new ResetVariablesFunction());
             ParserFunction.RegisterFunction(Constants.ROUND, new RoundFunction());
             ParserFunction.RegisterFunction(Constants.SCHEDULE_RUN, new ScheduleRunFunction(true));
             ParserFunction.RegisterFunction(Constants.SHOW, new ShowFunction());
@@ -148,7 +181,20 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.TO_INT, new ToIntFunction());
             ParserFunction.RegisterFunction(Constants.TO_STRING, new ToStringFunction());
             ParserFunction.RegisterFunction(Constants.WAIT, new SignalWaitFunction(false));
+            ParserFunction.RegisterFunction(Constants.WEB_REQUEST, new WebRequestFunction());
 
+            ParserFunction.RegisterFunction(Constants.ADD_DATA, new DataFunction(DataFunction.DataMode.ADD));
+            ParserFunction.RegisterFunction(Constants.COLLECT_DATA, new DataFunction(DataFunction.DataMode.SUBSCRIBE));
+            ParserFunction.RegisterFunction(Constants.GET_DATA, new DataFunction(DataFunction.DataMode.SEND));
+        }
+
+        public void RegisterEnums()
+        {
+            ParserFunction.RegisterEnum(Constants.VARIABLE_TYPE, "SplitAndMerge.Variable.VarType");
+        }
+
+        public void RegisterActions()
+        {
             ParserFunction.AddAction(Constants.ASSIGNMENT, new AssignFunction());
             ParserFunction.AddAction(Constants.INCREMENT, new IncrementDecrementFunction());
             ParserFunction.AddAction(Constants.DECREMENT, new IncrementDecrementFunction());
@@ -157,19 +203,25 @@ namespace SplitAndMerge
             {
                 ParserFunction.AddAction(Constants.OPER_ACTIONS[i], new OperatorAssignFunction());
             }
-
-            Constants.ELSE_LIST.Add(Constants.ELSE);
-            Constants.ELSE_IF_LIST.Add(Constants.ELSE_IF);
-            Constants.CATCH_LIST.Add(Constants.CATCH);
-
-            InitStandalone();
-            CompiledClass.Init();
         }
 
-        public Variable Process(string script, string filename = "")
+        public Variable ProcessFile(string filename, bool mainFile = false)
+        {
+            string script = Utils.GetFileContents(filename);
+            return Process(script, filename, mainFile);
+        }
+
+        public async Task<Variable> ProcessFileAsync(string filename, bool mainFile = false)
+        {
+            string script = Utils.GetFileContents(filename);
+            Variable result = await ProcessAsync(script, filename, mainFile);
+            return result;
+        }
+
+        public Variable Process(string script, string filename = "", bool mainFile = false)
         {
             Dictionary<int, int> char2Line;
-            string data = Utils.ConvertToScript(script, out char2Line);
+            string data = Utils.ConvertToScript(script, out char2Line, filename);
             if (string.IsNullOrWhiteSpace(data))
             {
                 return null;
@@ -179,20 +231,25 @@ namespace SplitAndMerge
             toParse.OriginalScript = script;
             toParse.Filename = filename;
 
+            if (mainFile)
+            {
+                toParse.MainFilename = toParse.Filename;
+            }
+
             Variable result = null;
 
             while (toParse.Pointer < data.Length)
             {
-                result = toParse.ExecuteTo();
+                result = toParse.Execute();
                 toParse.GoToNextStatement();
             }
 
             return result;
         }
-        public async Task<Variable> ProcessAsync(string script, string filename = "")
+        public async Task<Variable> ProcessAsync(string script, string filename = "", bool mainFile = false)
         {
             Dictionary<int, int> char2Line;
-            string data = Utils.ConvertToScript(script, out char2Line);
+            string data = Utils.ConvertToScript(script, out char2Line, filename);
             if (string.IsNullOrWhiteSpace(data))
             {
                 return null;
@@ -202,11 +259,16 @@ namespace SplitAndMerge
             toParse.OriginalScript = script;
             toParse.Filename = filename;
 
+            if (mainFile)
+            {
+                toParse.MainFilename = toParse.Filename;
+            }
+
             Variable result = null;
 
             while (toParse.Pointer < data.Length)
             {
-                result = await toParse.ExecuteToAsync();
+                result = await toParse.ExecuteAsync();
                 toParse.GoToNextStatement();
             }
 
@@ -262,7 +324,8 @@ namespace SplitAndMerge
             forScript.ParentScript = script;
             forScript.Filename = script.Filename;
             forScript.Debugger = script.Debugger;
-            Variable arrayValue = forScript.ExecuteFrom(index + 1);
+            forScript.Pointer = index + 1;
+            Variable arrayValue = Utils.GetItem(forScript);
 
             int cycles = arrayValue.Count;
             if (cycles == 0)
@@ -304,7 +367,8 @@ namespace SplitAndMerge
             forScript.ParentScript = script;
             forScript.Filename = script.Filename;
             forScript.Debugger = script.Debugger;
-            Variable arrayValue = await forScript.ExecuteFromAsync(index + 1);
+            forScript.Pointer = index + 1;
+            Variable arrayValue = await Utils.GetItemAsync(forScript);
 
             int cycles = arrayValue.Count;
             if (cycles == 0)
@@ -351,14 +415,14 @@ namespace SplitAndMerge
             condScript.ParentScript = script;
             loopScript.ParentScript = script;
 
-            initScript.ExecuteFrom(0);
+            initScript.Execute(null, 0);
 
             int cycles = 0;
             bool stillValid = true;
 
             while (stillValid)
             {
-                Variable condResult = condScript.ExecuteFrom(0);
+                Variable condResult = condScript.Execute(null, 0);
                 stillValid = Convert.ToBoolean(condResult.Value);
                 if (!stillValid)
                 {
@@ -380,7 +444,7 @@ namespace SplitAndMerge
                     //return;
                     break;
                 }
-                loopScript.ExecuteFrom(0);
+                loopScript.Execute(null, 0);
             }
 
             script.Pointer = startForCondition;
@@ -404,14 +468,14 @@ namespace SplitAndMerge
             condScript.ParentScript = script;
             loopScript.ParentScript = script;
 
-            await initScript.ExecuteFromAsync(0);
+            await initScript.ExecuteAsync(null, 0);
 
             int cycles = 0;
             bool stillValid = true;
 
             while (stillValid)
             {
-                Variable condResult = await condScript.ExecuteFromAsync(0);
+                Variable condResult = await condScript.ExecuteAsync(null, 0);
                 stillValid = Convert.ToBoolean(condResult.Value);
                 if (!stillValid)
                 {
@@ -433,7 +497,7 @@ namespace SplitAndMerge
                     //return;
                     break;
                 }
-                await loopScript.ExecuteFromAsync(0);
+                await loopScript.ExecuteAsync(null, 0);
             }
 
             script.Pointer = startForCondition;
@@ -453,7 +517,7 @@ namespace SplitAndMerge
                 script.Pointer = startWhileCondition;
 
                 //int startSkipOnBreakChar = from;
-                Variable condResult = script.ExecuteTo(Constants.END_ARG);
+                Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
                 stillValid = Convert.ToBoolean(condResult.Value);
                 if (!stillValid)
                 {
@@ -493,7 +557,7 @@ namespace SplitAndMerge
                 script.Pointer = startWhileCondition;
 
                 //int startSkipOnBreakChar = from;
-                Variable condResult = await script.ExecuteToAsync(Constants.END_ARG);
+                Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
                 stillValid = Convert.ToBoolean(condResult.Value);
                 if (!stillValid)
                 {
@@ -525,7 +589,7 @@ namespace SplitAndMerge
         {
             int startIfCondition = script.Pointer;
 
-            Variable result = script.ExecuteTo(Constants.END_ARG);
+            Variable result = script.Execute(Constants.END_ARG_ARRAY);
             bool isTrue = Convert.ToBoolean(result.Value);
 
             if (isTrue)
@@ -554,12 +618,12 @@ namespace SplitAndMerge
 
             string nextToken = Utils.GetNextToken(nextData);
 
-            if (Constants.ELSE_IF_LIST.Contains(nextToken))
+            if (Constants.ELSE_IF == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
                 result = ProcessIf(script);
             }
-            else if (Constants.ELSE_LIST.Contains(nextToken))
+            else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
                 result = ProcessBlock(script);
@@ -575,7 +639,7 @@ namespace SplitAndMerge
         {
             int startIfCondition = script.Pointer;
 
-            Variable result = await script.ExecuteToAsync(Constants.END_ARG);
+            Variable result = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
             bool isTrue = Convert.ToBoolean(result.Value);
 
             if (isTrue)
@@ -604,12 +668,12 @@ namespace SplitAndMerge
 
             string nextToken = Utils.GetNextToken(nextData);
 
-            if (Constants.ELSE_IF_LIST.Contains(nextToken))
+            if (Constants.ELSE_IF == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
                 result = await ProcessIfAsync(script);
             }
-            else if (Constants.ELSE_LIST.Contains(nextToken))
+            else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
                 result = await ProcessBlockAsync(script);
@@ -658,7 +722,7 @@ namespace SplitAndMerge
             string catchToken = Utils.GetNextToken(script);
             script.Forward(); // skip opening parenthesis
                               // The next token after the try block must be a catch.
-            if (!Constants.CATCH_LIST.Contains(catchToken))
+            if (Constants.CATCH != catchToken)
             {
                 throw new ArgumentException("Expecting a 'catch()' but got [" +
                     catchToken + "]");
@@ -724,7 +788,7 @@ namespace SplitAndMerge
             string catchToken = Utils.GetNextToken(script);
             script.Forward(); // skip opening parenthesis
                               // The next token after the try block must be a catch.
-            if (!Constants.CATCH_LIST.Contains(catchToken))
+            if (Constants.CATCH != catchToken)
             {
                 throw new ArgumentException("Expecting a 'catch()' but got [" +
                     catchToken + "]");
@@ -823,12 +887,7 @@ namespace SplitAndMerge
                     return result != null ? result : new Variable();
                 }
 
-                /*if (!script.StillValid())
-                {
-                    throw new ArgumentException("Couldn't process block [" +
-                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]");
-                }*/
-                result = script.ExecuteTo();
+                result = script.Execute();
 
                 if (result.IsReturn ||
                     result.Type == Variable.VarType.BREAK ||
@@ -862,12 +921,7 @@ namespace SplitAndMerge
                     return result != null ? result : new Variable();
                 }
 
-                /*if (!script.StillValid())
-                {
-                    throw new ArgumentException("Couldn't process block [" +
-                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]");
-                }*/
-                result = await script.ExecuteToAsync();
+                result = await script.ExecuteAsync();
 
                 if (result.IsReturn ||
                     result.Type == Variable.VarType.BREAK ||
@@ -884,8 +938,11 @@ namespace SplitAndMerge
             int blockStart = script.Pointer;
             int startCount = 0;
             int endCount = 0;
-            bool inQuotes = false;
+            bool inQuotes  = false;
+            bool inQuotes1 = false;
+            bool inQuotes2 = false;
             char previous = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
             while (startCount == 0 || startCount > endCount)
             {
                 if (!script.StillValid())
@@ -896,10 +953,32 @@ namespace SplitAndMerge
                 char currentChar = script.CurrentAndForward();
                 switch (currentChar)
                 {
-                    case Constants.QUOTE: if (previous != '\\') inQuotes = !inQuotes; break;
-                    case Constants.START_GROUP: if (!inQuotes) startCount++; break;
-                    case Constants.END_GROUP: if (!inQuotes) endCount++; break;
+                    case Constants.QUOTE1:
+                        if (!inQuotes2 && (previous != '\\' || prevprev == '\\'))
+                        {
+                            inQuotes = inQuotes1 = !inQuotes1;
+                        }
+                        break;
+                    case Constants.QUOTE:
+                        if (!inQuotes1 && (previous != '\\' || prevprev == '\\'))
+                        {
+                            inQuotes = inQuotes2 = !inQuotes2;
+                        }
+                        break;
+                    case Constants.START_GROUP:
+                        if (!inQuotes)
+                        {
+                            startCount++;
+                        }
+                        break;
+                    case Constants.END_GROUP:
+                        if (!inQuotes)
+                        {
+                            endCount++;
+                        }
+                        break;
                 }
+                prevprev = previous;
                 previous = currentChar;
             }
 
@@ -916,8 +995,8 @@ namespace SplitAndMerge
                 int endOfToken = script.Pointer;
                 ParsingScript nextData = new ParsingScript(script);
                 string nextToken = Utils.GetNextToken(nextData);
-                if (!Constants.ELSE_IF_LIST.Contains(nextToken) &&
-                      !Constants.ELSE_LIST.Contains(nextToken))
+                if (Constants.ELSE_IF != nextToken &&
+                    Constants.ELSE    != nextToken)
                 {
                     return;
                 }

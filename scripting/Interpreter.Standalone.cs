@@ -25,9 +25,8 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.EXIT, new ExitFunction());
             ParserFunction.RegisterFunction(Constants.FINDFILES, new FindfilesFunction());
             ParserFunction.RegisterFunction(Constants.FINDSTR, new FindstrFunction());
-            ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
-            ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
             ParserFunction.RegisterFunction(Constants.GET_NATIVE, new GetNativeFunction());
+            ParserFunction.RegisterFunction(Constants.JSON, new GetVariableFromJSONFunction());
             ParserFunction.RegisterFunction(Constants.KILL, new KillFunction());
             ParserFunction.RegisterFunction(Constants.MKDIR, new MkdirFunction());
             ParserFunction.RegisterFunction(Constants.MORE, new MoreFunction());
@@ -59,7 +58,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.TRANSLATE, new TranslateFunction());
 #endif
 #endif
-            ReadConfig();
+            //ReadConfig();
         }
 
         void ReadConfig()
@@ -193,13 +192,6 @@ namespace SplitAndMerge
                 Translation.Add(languageSection, Constants.WRITELINE, tr1, tr2);
                 Translation.Add(languageSection, Constants.WRITELINES, tr1, tr2);
                 Translation.Add(languageSection, Constants.WRITE_CONSOLE, tr1, tr2);
-
-                // Special dealing for else, elif since they are not separate
-                // functions but are part of the if statement block.
-                // Same for and, or, not.
-                Translation.AddSubstatement(languageSection, Constants.ELSE, Constants.ELSE_LIST, tr1, tr2);
-                Translation.AddSubstatement(languageSection, Constants.ELSE_IF, Constants.ELSE_IF_LIST, tr1, tr2);
-                Translation.AddSubstatement(languageSection, Constants.CATCH, Constants.CATCH_LIST, tr1, tr2);
             }
 #endif
         }

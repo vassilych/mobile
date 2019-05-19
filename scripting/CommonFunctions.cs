@@ -137,6 +137,11 @@ namespace scripting
             ParserFunction.RegisterFunction("SetOptions", new SetOptionsFunction());
 
             ParserFunction.RegisterFunction("GetLocalIp", new GetLocalIpFunction(true));
+            ParserFunction.RegisterFunction("isiPhoneX", new IsiPhoneXFunction());
+            ParserFunction.RegisterFunction("isAndroid", new IsAndroidFunction());
+
+            ParserFunction.RegisterFunction("RunOnMain", new RunOnMainFunction());
+            ParserFunction.RegisterFunction("PrintConsole", new PrintConsoleFunction());
         }
 
         public static void RunScript(string fileName)
@@ -192,6 +197,52 @@ namespace scripting
 #if __ANDROID__ || __IOS__
             });
 #endif
+        }
+
+        public static void RunOnMainThread(CustomFunction callbackFunction,
+            string arg1 = null, string arg2 = null, string arg3 = null)
+        {
+            List<Variable> args = new List<Variable>();
+            if (arg1 != null)
+            {
+                args.Add(new Variable(arg1));
+            }
+            if (arg2 != null)
+            {
+                args.Add(new Variable(arg2));
+            }
+            if (arg3 != null)
+            {
+                args.Add(new Variable(arg3));
+            }
+#if __ANDROID__
+            scripting.Droid.MainActivity.TheView.RunOnUiThread(() =>
+            {
+#elif __IOS__
+            scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+            {
+#endif
+                callbackFunction.Run(args);
+#if __ANDROID__ || __IOS__
+            });
+#endif
+        }
+    }
+
+
+    public class RunOnMainFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            string funcName = Utils.GetSafeString(args, 0);
+            string arg1     = Utils.GetSafeString(args, 1);
+            string arg2     = Utils.GetSafeString(args, 2);
+
+            CommonFunctions.RunOnMainThread(funcName, arg1, arg2);
+            return Variable.EmptyInstance;
         }
     }
 
@@ -375,7 +426,7 @@ namespace scripting
             Variable result = null;
             while (tempScript.Pointer < includeScript.Length)
             {
-                result = tempScript.ExecuteTo();
+                result = tempScript.Execute();
                 tempScript.GoToNextStatement();
             }
             return result;
@@ -672,6 +723,46 @@ namespace scripting
                 return string.Compare(part1, part2);
             }
             return part1.Length < part2.Length ? -1 : 1;
+        }
+    }
+
+    class IsiPhoneXFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+#if __ANDROID__
+            bool isiPhoneX = false;
+#elif __IOS__
+            bool isiPhoneX = UtilsiOS.IsiPhoneX();
+#endif
+            return new Variable(isiPhoneX);
+        }
+    }
+    class IsAndroidFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+#if __ANDROID__
+            bool isAndroid = true;
+#elif __IOS__
+            bool isAndroid = false;
+#endif
+            return new Variable(isAndroid);
+        }
+    }
+
+    public class PrintConsoleFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            for (int i = 0; i < args.Count; i++)
+            {
+                var arg = args[i];
+                System.Diagnostics.Debug.Write(arg.ToString());
+            }
+            System.Diagnostics.Debug.WriteLine("");
+            return Variable.EmptyInstance;
         }
     }
 }
