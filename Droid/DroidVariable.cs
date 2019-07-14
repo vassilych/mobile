@@ -697,7 +697,7 @@ namespace scripting.Droid
       if (viewName.Equals("root", StringComparison.OrdinalIgnoreCase)) {
         return null;
       }
-      ParserFunction func = ParserFunction.GetFunction(viewName, script);
+      ParserFunction func = ParserFunction.GetVariable(viewName, script);
       Utils.CheckNotNull(func, viewName, script);
       Variable viewValue = func.GetValue(script);
       DroidVariable viewVar = viewValue as DroidVariable;
