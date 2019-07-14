@@ -698,7 +698,7 @@ namespace scripting.Droid
         return null;
       }
       ParserFunction func = ParserFunction.GetFunction(viewName, script);
-      Utils.CheckNotNull(func, viewName);
+      Utils.CheckNotNull(func, viewName, script);
       Variable viewValue = func.GetValue(script);
       DroidVariable viewVar = viewValue as DroidVariable;
       return viewVar.ViewX;

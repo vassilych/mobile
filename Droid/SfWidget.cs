@@ -255,8 +255,8 @@ namespace scripting.Droid
     {
       m_picker = new SfPicker(m_context);
 
-      string str1 = "", str2 = "", str3 = "", str4 = "";
-      Utils.Extract(m_data, ref str1, ref str2, ref str3, ref str4);
+      string str1 = "", str2 = "", str3 = "", str4 = "", str5 = "";
+      Utils.Extract(m_data, ref str1, ref str2, ref str3, ref str4, ref str5);
       if (!string.IsNullOrEmpty(str1)) {
         double rowHeight = Utils.ConvertToDouble(str1);
         if (rowHeight > 0) {

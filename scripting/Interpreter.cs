@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static SplitAndMerge.ParserFunction;
@@ -95,6 +96,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.WHILE, new WhileStatement());
             ParserFunction.RegisterFunction(Constants.FOR, new ForStatement());
             ParserFunction.RegisterFunction(Constants.BREAK, new BreakStatement());
+            ParserFunction.RegisterFunction(Constants.COMPILED_FUNCTION, new CompiledFunctionCreator());
             ParserFunction.RegisterFunction(Constants.CONTINUE, new ContinueStatement());
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
             ParserFunction.RegisterFunction(Constants.ENUM, new EnumFunction());
@@ -133,6 +135,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_FILE_FROM_DEBUGGER, new GetFileFromDebugger());
             ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
+            ParserFunction.RegisterFunction(Constants.JSON, new GetVariableFromJSONFunction());
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.LOG, new LogFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
@@ -143,6 +146,7 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction(Constants.PRINT, new PrintFunction());
             ParserFunction.RegisterFunction(Constants.PSTIME, new ProcessorTimeFunction());
             ParserFunction.RegisterFunction(Constants.RANDOM, new GetRandomFunction());
+            ParserFunction.RegisterFunction(Constants.REGEX, new RegexFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
             ParserFunction.RegisterFunction(Constants.RESET_VARS, new ResetVariablesFunction());
@@ -324,8 +328,13 @@ namespace SplitAndMerge
             forScript.ParentScript = script;
             forScript.Filename = script.Filename;
             forScript.Debugger = script.Debugger;
-            forScript.Pointer = index + 1;
+            forScript.Pointer = index + Constants.FOR_EACH.Length;
             Variable arrayValue = Utils.GetItem(forScript);
+
+            if (arrayValue.Type == Variable.VarType.STRING)
+            {
+                arrayValue = new Variable(new List<string>(arrayValue.ToString().ToCharArray().Select(c => c.ToString())));
+            }
 
             int cycles = arrayValue.Count;
             if (cycles == 0)
@@ -363,12 +372,18 @@ namespace SplitAndMerge
 
             string varName = forString.Substring(0, index);
 
+
             ParsingScript forScript = new ParsingScript(forString, 0, script.Char2Line);
             forScript.ParentScript = script;
             forScript.Filename = script.Filename;
             forScript.Debugger = script.Debugger;
-            forScript.Pointer = index + 1;
+            forScript.Pointer = index + Constants.FOR_EACH.Length;
             Variable arrayValue = await Utils.GetItemAsync(forScript);
+
+            if (arrayValue.Type == Variable.VarType.STRING)
+            {
+                arrayValue = new Variable(new List<string>(arrayValue.ToString().ToCharArray().Select(c => c.ToString())));
+            }
 
             int cycles = arrayValue.Count;
             if (cycles == 0)
@@ -511,6 +526,7 @@ namespace SplitAndMerge
             // A check against an infinite loop.
             int cycles = 0;
             bool stillValid = true;
+            Variable result = Variable.EmptyInstance;
 
             while (stillValid)
             {
@@ -531,7 +547,7 @@ namespace SplitAndMerge
                         cycles + " cycles.");
                 }
 
-                Variable result = ProcessBlock(script);
+                result = ProcessBlock(script);
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -542,8 +558,9 @@ namespace SplitAndMerge
             // The while condition is not true anymore: must skip the whole while
             // block before continuing with next statements.
             SkipBlock(script);
-            return Variable.EmptyInstance;
+            return result.IsReturn ? result : Variable.EmptyInstance;
         }
+
         internal async Task<Variable> ProcessWhileAsync(ParsingScript script)
         {
             int startWhileCondition = script.Pointer;
@@ -551,6 +568,7 @@ namespace SplitAndMerge
             // A check against an infinite loop.
             int cycles = 0;
             bool stillValid = true;
+            Variable result = Variable.EmptyInstance;
 
             while (stillValid)
             {
@@ -571,7 +589,7 @@ namespace SplitAndMerge
                         cycles + " cycles.");
                 }
 
-                Variable result = await ProcessBlockAsync(script);
+                result = await ProcessBlockAsync(script);
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -582,7 +600,7 @@ namespace SplitAndMerge
             // The while condition is not true anymore: must skip the whole while
             // block before continuing with next statements.
             SkipBlock(script);
-            return Variable.EmptyInstance;
+            return result.IsReturn ? result : Variable.EmptyInstance;
         }
 
         internal Variable ProcessIf(ParsingScript script)
@@ -606,8 +624,10 @@ namespace SplitAndMerge
                 }
                 SkipRestBlocks(script);
 
-                return result;
-                //return Variable.EmptyInstance;
+                //return result;
+                return result.IsReturn ||
+                       result.Type == Variable.VarType.BREAK ||
+                       result.Type == Variable.VarType.CONTINUE ? result : Variable.EmptyInstance;
             }
 
             // We are in Else. Skip everything in the If statement.
@@ -629,12 +649,11 @@ namespace SplitAndMerge
                 result = ProcessBlock(script);
             }
 
-            if (result.IsReturn)
-            {
-                return result;
-            }
-            return Variable.EmptyInstance;
+            return result.IsReturn ||
+                   result.Type == Variable.VarType.BREAK ||
+                   result.Type == Variable.VarType.CONTINUE ? result : Variable.EmptyInstance;
         }
+
         internal async Task<Variable> ProcessIfAsync(ParsingScript script)
         {
             int startIfCondition = script.Pointer;
@@ -656,8 +675,10 @@ namespace SplitAndMerge
                 }
                 SkipRestBlocks(script);
 
-                return result;
-                //return Variable.EmptyInstance;
+                //return result;
+                return result.IsReturn ||
+                       result.Type == Variable.VarType.BREAK ||
+                       result.Type == Variable.VarType.CONTINUE ? result : Variable.EmptyInstance;
             }
 
             // We are in Else. Skip everything in the If statement.
@@ -679,11 +700,9 @@ namespace SplitAndMerge
                 result = await ProcessBlockAsync(script);
             }
 
-            if (result.IsReturn)
-            {
-                return result;
-            }
-            return Variable.EmptyInstance;
+            return result.IsReturn ||
+                   result.Type == Variable.VarType.BREAK ||
+                   result.Type == Variable.VarType.CONTINUE ? result : Variable.EmptyInstance;
         }
 
         internal Variable ProcessTry(ParsingScript script)

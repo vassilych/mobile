@@ -185,7 +185,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             string filename = Utils.GetSafeString(args, 1);
             pdf.Save(filename);
@@ -202,7 +202,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             string text = Utils.GetSafeString(args, 1);
             int x = Utils.GetSafeInt(args, 2);
@@ -226,7 +226,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             string image = Utils.GetSafeString(args, 1);
             int x = Utils.GetSafeInt(args, 2);
@@ -247,7 +247,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             //m_grapics.DrawLine(pen, x1, y1, x2, y2);
             //m_grapics.DrawRectangle(color, x, y, w, h);
@@ -278,7 +278,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             //m_grapics.DrawLine(pen, x1, y1, x2, y2);
             //m_grapics.DrawRectangle(color, x, y, w, h);
@@ -307,7 +307,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             //m_grapics.DrawLine(pen, x1, y1, x2, y2);
             //m_grapics.DrawRectangle(color, x, y, w, h);
@@ -340,7 +340,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfPdf pdf = args[0] as SfPdf;
-            Utils.CheckNotNull(pdf, m_name);
+            Utils.CheckNotNull(pdf, m_name, script);
 
             string fontName = Utils.GetSafeString(args, 1);
             double newSize = Utils.GetSafeDouble(args, 2);

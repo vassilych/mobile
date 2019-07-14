@@ -82,11 +82,9 @@ namespace scripting
             ParserFunction.RegisterFunction("SetNormalFont", new SetFontTypeFunction(SetFontTypeFunction.FontType.NORMAL));
             ParserFunction.RegisterFunction("AlignText", new AlignTitleFunction());
             ParserFunction.RegisterFunction("SetSize", new SetSizeFunction());
-            ParserFunction.RegisterFunction("Enable", new EnableFunction());
             ParserFunction.RegisterFunction("Relative", new RelativeSizeFunction());
             ParserFunction.RegisterFunction("ShowHideKeyboard", new ShowHideKeyboardFunction());
             ParserFunction.RegisterFunction("IsKeyboard", new IsKeyboardFunction());
-            ParserFunction.RegisterFunction("SetSecure", new MakeSecureFunction());
 
             ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
             ParserFunction.RegisterFunction("AllowedOrientation", new AllowedOrientationFunction());
@@ -124,6 +122,9 @@ namespace scripting
             ParserFunction.RegisterFunction("ImportFile", new ImportFileFunction());
             ParserFunction.RegisterFunction("OpenUrl", new OpenURLFunction());
             ParserFunction.RegisterFunction("WebRequest", new WebRequestFunction());
+
+            ParserFunction.RegisterFunction("Enable", new EnableFunction());
+            ParserFunction.RegisterFunction("SetSecure", new MakeSecureFunction());
             ParserFunction.RegisterFunction("SaveToPhotos", new SaveToPhotosFunction());
 
             ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
@@ -441,7 +442,7 @@ namespace scripting
 
             int baseWidth = Utils.GetSafeInt(args, 0);
 
-            Utils.CheckPosInt(baseWidth, m_name);
+            Utils.CheckPosInt(args[0], script);
 
             AutoScaleFunction.BASE_WIDTH = baseWidth;
 
@@ -457,7 +458,7 @@ namespace scripting
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 1, m_name);
             int limit = args[0].AsInt();
-            Utils.CheckPosInt(args[0]);
+            Utils.CheckPosInt(args[0], script);
             int numberRandoms = Utils.GetSafeInt(args, 1, 1);
 
             if (numberRandoms <= 1)
@@ -495,8 +496,8 @@ namespace scripting
                 return trie;
             }
             Variable data = Utils.GetSafeVariable(args, 1, null);
-            Utils.CheckNotNull(data, m_name);
-            Utils.CheckNotNull(data.Tuple, m_name);
+            Utils.CheckNotNull(data, m_name, script);
+            Utils.CheckNotNull(data.Tuple, m_name, script);
 
             List<string> words = new List<string>();
             for (int i = 0; i < data.Tuple.Count; i++)
@@ -517,7 +518,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             Trie trie = Utils.GetSafeVariable(args, 0, null) as Trie;
-            Utils.CheckNotNull(trie, m_name);
+            Utils.CheckNotNull(trie, m_name, script);
             string text = args[1].AsString();
             int max = Utils.GetSafeInt(args, 2, 10);
 

@@ -86,7 +86,7 @@ namespace scripting.Droid
         Utils.CheckNotEmpty(script, widgetType, m_name);
       }
       DroidVariable location = args[start] as DroidVariable;
-      Utils.CheckNotNull(location, m_name);
+      Utils.CheckNotNull(location, m_name, script);
 
       string varName = args[start + 1].AsString();
       string text = Utils.GetSafeString(args, start + 2);
@@ -126,7 +126,7 @@ namespace scripting.Droid
         }
       }
 
-      Utils.CheckNotNull(widgetFunc, m_name);
+      Utils.CheckNotNull(widgetFunc, m_name, script);
       View widget = widgetFunc.ViewX;
 
       widgetFunc.ProcessTranslationY(location);
@@ -213,10 +213,10 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
       View view = widget.ViewX;
 
-      Utils.CheckNotNull(view, m_name);
+      Utils.CheckNotNull(view, m_name, script);
 
       int width = Utils.GetSafeInt(args, 1, 1);
       int corner = Utils.GetSafeInt(args, 2, 5);
@@ -236,11 +236,11 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
-      Utils.CheckNotNull(data, m_name);
-      Utils.CheckNotNull(data.Tuple, m_name);
+      Utils.CheckNotNull(data, m_name, script);
+      Utils.CheckNotNull(data.Tuple, m_name, script);
 
       List<string> types = new List<string>(data.Tuple.Count);
       for (int i = 0; i < data.Tuple.Count; i++) {
@@ -263,11 +263,11 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       Variable data = Utils.GetSafeVariable(args, 1, null);
-      Utils.CheckNotNull(data, m_name);
-      Utils.CheckNotNull(data.Tuple, m_name);
+      Utils.CheckNotNull(data, m_name, script);
+      Utils.CheckNotNull(data.Tuple, m_name, script);
 
       List<string> images = new List<string>(data.Tuple.Count);
       for (int i = 0; i < data.Tuple.Count; i++) {
@@ -293,7 +293,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 3, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       int deltaX = args[1].AsInt();
       int deltaY = args[2].AsInt();
@@ -306,7 +306,7 @@ namespace scripting.Droid
       }
 
       View view = widget.ViewX;
-      Utils.CheckNotNull(view, m_name);
+      Utils.CheckNotNull(view, m_name, script);
 
       if (deltaX < 0) {
         deltaX = (int)view.GetX();
@@ -337,10 +337,10 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 3, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       View view = widget.ViewX;
-      Utils.CheckNotNull(view, m_name);
+      Utils.CheckNotNull(view, m_name, script);
 
       int coord = 0;
       if (m_isX) {
@@ -365,7 +365,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       bool show = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
 
@@ -390,7 +390,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       MainActivity.RemoveView(widget);
       UIUtils.DeregisterWidget(widget.Name);
@@ -486,11 +486,11 @@ namespace scripting.Droid
 
       string varName = Utils.GetSafeString(args, 0);
       Variable widthVar = Utils.GetSafeVariable(args, 1);
-      Utils.CheckNonNegativeInt(widthVar);
+      Utils.CheckNonNegativeInt(widthVar, script);
       int width = widthVar.AsInt();
 
       Variable heightVar = Utils.GetSafeVariable(args, 2);
-      Utils.CheckNonNegativeInt(heightVar);
+      Utils.CheckNonNegativeInt(heightVar, script);
       int height = heightVar.AsInt();
 
       bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
@@ -521,7 +521,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
 
@@ -537,7 +537,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       bool result = MainActivity.KeyboardVisible;
 
@@ -596,7 +596,7 @@ namespace scripting.Droid
         MainActivity.TheLayout.RootView.SetBackgroundColor(UtilsDroid.String2Color(strColor));
       } else {
         DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-        Utils.CheckNotNull(widget, m_name, 0);
+        Utils.CheckNotNull(widget, m_name, script, 0);
         widget.SetBackgroundColor(strColor, alpha);
       }
 
@@ -635,7 +635,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string strAction = Utils.GetSafeString(args, 1);
       string argument = Utils.GetSafeString(args, 2);
@@ -685,7 +685,7 @@ namespace scripting.Droid
       string strAction = Utils.GetSafeString(args, 2);
 
       View view = DroidVariable.GetView(varName, script);
-      Utils.CheckNotNull(view, m_name);
+      Utils.CheckNotNull(view, m_name, script);
 
       OnTouchListener.Direction dir = OnTouchListener.Direction.Left;
       switch (direction) {
@@ -754,7 +754,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string strAction = Utils.GetSafeString(args, 1);
 
@@ -780,7 +780,7 @@ namespace scripting.Droid
       foreach (string widgetName in all) {
         ParserFunction func = ParserFunction.GetFunction(widgetName, script);
         DroidVariable widget = func.GetValue(script) as DroidVariable;
-        Utils.CheckNotNull(widget, widgetName);
+        Utils.CheckNotNull(widget, widgetName, script);
         View view = widget.ViewX;
         rect = new UIUtils.Rect((int)view.GetX(), (int)view.GetY(),
                                 view.Width, view.Height);
@@ -909,7 +909,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string strTitle = args[1].AsString();
       string alignment = Utils.GetSafeString(args, 2, "left");
@@ -927,7 +927,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string text = widget.GetText();
 
@@ -942,7 +942,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       Variable arg1 = Utils.GetSafeVariable(args, 1);
       Variable arg2 = Utils.GetSafeVariable(args, 2);
@@ -960,7 +960,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 1, m_name, true);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       double result = widget.GetValue();
       return new Variable(result);
@@ -975,7 +975,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string alignment = args[1].AsString();
       bool aligned = widget.AlignText(alignment);
@@ -1001,7 +1001,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       float fontSize = (float)args[1].AsDouble();
 
@@ -1023,7 +1023,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string fontName = args[1].AsString();
       double fontSize = Utils.GetSafeDouble(args, 2);
@@ -1047,7 +1047,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       double fontSize = Utils.GetSafeDouble(args, 1);
 
@@ -1076,7 +1076,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name, true);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string colorStr = args[1].AsString();
       widget.SetFontColor(colorStr);
@@ -1093,7 +1093,7 @@ namespace scripting.Droid
       Utils.CheckArgs(args.Count, 2, m_name);
 
       DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
-      Utils.CheckNotNull(widget, m_name, 0);
+      Utils.CheckNotNull(widget, m_name, script, 0);
 
       string text = Utils.ProcessString(args[1].AsString());
       string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
@@ -1366,7 +1366,7 @@ namespace scripting.Droid
 
       string option = args[0].AsString();
       Variable optionValue = Utils.GetSafeVariable(args, 1);
-      Utils.CheckNotNull(optionValue, m_name);
+      Utils.CheckNotNull(optionValue, m_name, script);
 
       switch (option) {
         case "sound":
@@ -1745,88 +1745,121 @@ namespace scripting.Droid
       return Variable.EmptyInstance;
     }
   }
-  public class RestoreFunction : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
+    public class RestoreFunction : ParserFunction
     {
-      List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name);
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
 
-      string strAction = args[0].AsString();
+            string strAction = args[0].AsString();
 
-      for (int i = 1; i < args.Count; i++) {
-        string productId = Utils.GetSafeString(args, i);
-        //IAP.AddProductId(productId);
-        InAppBilling.AddProductId(productId);
-      }
+            /*for (int i = 1; i < args.Count; i++) {
+              string productId = Utils.GetSafeString(args, i);
+              //IAP.AddProductId(productId);
+              InAppBilling.AddProductId(productId);
+            }
 
-      UnsubscribeFromAll();
-      InAppBilling.OnIAPOK += (productIds) => {
-        UIVariable.GetAction(strAction, "", productIds);
-      };
-      InAppBilling.OnIAPError += (errorStr) => {
-        UIVariable.GetAction(strAction, errorStr, "");
-        UnsubscribeFromAll();
-      };
-      //IAP.Restore();
-      InAppBilling.Restore();
+            UnsubscribeFromAll();
+            InAppBilling.OnIAPOK += (productIds) => {
+              UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+            };
+            InAppBilling.OnIAPError += (errorStr) => {
+              UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+              UnsubscribeFromAll();
+            };
+            //IAP.Restore();
+            InAppBilling.Restore();*/
 
-      return Variable.EmptyInstance;
-    }
-    public static void UnsubscribeFromAll()
-    {
-      Delegate[] clientList = InAppBilling.OnIAPOK?.GetInvocationList();
-      if (clientList != null) {
-        foreach (var d in clientList) {
-          InAppBilling.OnIAPOK -= (System.Action<string>)d;
+            return Variable.EmptyInstance;
         }
-      }
-      clientList = InAppBilling.OnIAPError?.GetInvocationList();
-      if (clientList != null) {
-        foreach (var d in clientList) {
-          InAppBilling.OnIAPError -= (System.Action<string>)d;
+        public static void UnsubscribeFromAll()
+        {
+            /*Delegate[] clientList = InAppBilling.OnIAPOK?.GetInvocationList();
+            if (clientList != null) {
+              foreach (var d in clientList) {
+                InAppBilling.OnIAPOK -= (System.Action<string>)d;
+              }
+            }
+            clientList = InAppBilling.OnIAPError?.GetInvocationList();
+            if (clientList != null) {
+              foreach (var d in clientList) {
+                InAppBilling.OnIAPError -= (System.Action<string>)d;
+              }
+            }*/
         }
-      }
     }
-  }
-  public class PurchaseFunction : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
+    public class PurchaseFunction : ParserFunction
     {
-      List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 2, m_name, true);
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name, true);
 
-      string strAction = args[0].AsString();
-      string productId = args[1].AsString();
+            string strAction = args[0].AsString();
+            string productId = args[1].AsString();
 
-      RestoreFunction.UnsubscribeFromAll();
+            RestoreFunction.UnsubscribeFromAll();
 
-      InAppBilling.OnIAPOK += (productIds) => {
-        UIVariable.GetAction(strAction, "", productIds);
-      };
-      InAppBilling.OnIAPError += (errorStr) => {
-        UIVariable.GetAction(strAction, errorStr, "");
-        RestoreFunction.UnsubscribeFromAll();
-      };
-      InAppBilling.AddProductId(productId);
-      InAppBilling.PurchaseItem(productId, productId);
-
-      return Variable.EmptyInstance;
+            /*InAppBilling.OnIAPOK += (productIds) => {
+              UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
+            };
+            InAppBilling.OnIAPError += (errorStr) => {
+              UIVariable.GetAction(strAction, "\"" + errorStr + "\"", "");
+              RestoreFunction.UnsubscribeFromAll();
+            };
+            InAppBilling.AddProductId(productId);
+            InAppBilling.PurchaseItem(productId, productId);
+      */
+            return Variable.EmptyInstance;
+        }
     }
-  }
-  public class ProductIdDescriptionFunction : ParserFunction
-  {
-    protected override Variable Evaluate(ParsingScript script)
+    public class ProductIdDescriptionFunction : ParserFunction
     {
-      List<Variable> args = script.GetFunctionArgs();
-      Utils.CheckArgs(args.Count, 1, m_name, true);
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name, true);
 
-      string productId = args[0].AsString();
+            string productId = args[0].AsString();
 
-      //string description = IAP.GetDescription(productId);
-      string description = InAppBilling.GetDescription(productId);
+            //string description = IAP.GetDescription(productId);
+            string description = "";//InAppBilling.GetDescription(productId);
 
-      return new Variable(description);
+            return new Variable(description);
+        }
     }
-  }
+    public class MakeSecureFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 0, m_name, true);
+
+            string productId = args[0].AsString();
+            return Variable.EmptyInstance;
+        }
+    }
+    public class EnableFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 0, m_name, true);
+
+            string productId = args[0].AsString();
+            return Variable.EmptyInstance;
+        }
+    }
+    public class SaveToPhotosFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 0, m_name, true);
+
+            string productId = args[0].AsString();
+            return Variable.EmptyInstance;
+        }
+    }
 }

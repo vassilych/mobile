@@ -67,7 +67,7 @@ namespace SplitAndMerge
             Utils.CheckArgs(args.Count, 1, m_name, true);
 
             Variable id = args[0];
-            Utils.CheckPosInt(id);
+            Utils.CheckPosInt(id, script);
 
             int processId = (int)id.Value;
             try
@@ -117,7 +117,7 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             Variable portRes = Utils.GetItem(script);
-            Utils.CheckPosInt(portRes);
+            Utils.CheckPosInt(portRes, script);
             int port = (int)portRes.Value;
 
             try
@@ -181,7 +181,7 @@ namespace SplitAndMerge
             List<Variable> args = script.GetFunctionArgs();
 
             Utils.CheckArgs(args.Count, 3, Constants.CONNECTSRV);
-            Utils.CheckPosInt(args[1]);
+            Utils.CheckPosInt(args[1], script);
 
             string hostname = args[0].String;
             int port = (int)args[1].Value;
@@ -309,7 +309,17 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             string filename = Utils.GetItem(script).AsString();
-            string[] lines = Utils.GetFileLines(filename);
+            string[] lines;
+#if __ANDROID__
+            Android.Content.Res.AssetManager assets = scripting.Droid.MainActivity.TheView.Assets;
+            using (StreamReader sr = new StreamReader(assets.Open(filename)))
+            {
+                string contents = sr.ReadToEnd();
+                lines = contents.Split("\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            }
+#else
+            lines = Utils.GetFileLines(filename);
+#endif
 
             List<Variable> results = Utils.ConvertToResults(lines);
 
@@ -330,7 +340,7 @@ namespace SplitAndMerge
             if (sizeAvailable)
             {
                 Variable length = Utils.GetItem(script);
-                Utils.CheckPosInt(length);
+                Utils.CheckPosInt(length, script);
                 size = (int)length.Value;
             }
 
@@ -353,7 +363,7 @@ namespace SplitAndMerge
             if (sizeAvailable)
             {
                 Variable length = Utils.GetItem(script);
-                Utils.CheckPosInt(length);
+                Utils.CheckPosInt(length, script);
                 size = (int)length.Value;
             }
 
@@ -835,19 +845,18 @@ namespace SplitAndMerge
         }
     }
 
-    class GetVariableFromJSONFunction : ParserFunction
+    class GetVariableFromJSONNewtonsoftFunction : ParserFunction
     {
-        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
-        {
-            List<Variable> args = await script.GetFunctionArgsAsync();
-            Utils.CheckArgs(args.Count, 1, m_name);
-
-            Variable newVariable = Utils.CreateVariableFromJsonString(args[0].AsString());
-            return newVariable;
-        }
         protected override Variable Evaluate(ParsingScript script)
         {
-            return EvaluateAsync(script).Result;
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            string json = args[0].AsString();
+
+            Variable newVariable = Utils.CreateVariableFromJsonString(json);
+            return newVariable;
         }
+
     }
 }

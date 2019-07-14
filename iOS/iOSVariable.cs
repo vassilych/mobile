@@ -1282,7 +1282,7 @@ namespace scripting.iOS
                 return null;
             }
             ParserFunction func = ParserFunction.GetVariable(viewName, script);
-            Utils.CheckNotNull(viewName, func);
+            Utils.CheckNotNull(viewName, func, script);
             Variable viewValue = func.GetValue(script);
             iOSVariable viewVar = viewValue as iOSVariable;
             return viewVar.ViewX;

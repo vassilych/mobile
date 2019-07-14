@@ -74,7 +74,7 @@ namespace scripting.iOS
             }
 
             iOSVariable location = args[start] as iOSVariable;
-            Utils.CheckNotNull(location, m_name);
+            Utils.CheckNotNull(location, m_name, script);
 
             double screenRatio = UtilsiOS.GetScreenRatio();
 
@@ -114,7 +114,7 @@ namespace scripting.iOS
             {
                 widgetFunc.ViewX.Frame = rect;
             }
-            Utils.CheckNotNull(widgetFunc, m_name);
+            Utils.CheckNotNull(widgetFunc, m_name, script);
 
             //widgetFunc.CreateComplexView(rect, m_extras, config);
 
@@ -177,11 +177,11 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             Variable data = Utils.GetSafeVariable(args, 1, null);
-            Utils.CheckNotNull(data, m_name);
-            Utils.CheckNotNull(data.Tuple, m_name);
+            Utils.CheckNotNull(data, m_name, script);
+            Utils.CheckNotNull(data.Tuple, m_name, script);
 
             List<string> types = new List<string>(data.Tuple.Count);
             for (int i = 0; i < data.Tuple.Count; i++)
@@ -206,11 +206,11 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             Variable data = Utils.GetSafeVariable(args, 1, null);
-            Utils.CheckNotNull(data, m_name);
-            Utils.CheckNotNull(data.Tuple, m_name);
+            Utils.CheckNotNull(data, m_name, script);
+            Utils.CheckNotNull(data.Tuple, m_name, script);
 
             List<UIImage> images = new List<UIImage>(data.Tuple.Count);
             for (int i = 0; i < data.Tuple.Count; i++)
@@ -238,7 +238,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 3, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             int deltaX = args[1].AsInt();
             int deltaY = args[2].AsInt();
@@ -253,7 +253,7 @@ namespace scripting.iOS
             }
 
             UIView view = widget.ViewX;
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             CGRect frame = view.Frame;
             if (deltaX < 0)
@@ -290,10 +290,10 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             UIView view = widget.ViewX;
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             int coord = 0;
             CGRect frame = view.Frame;
@@ -321,7 +321,7 @@ namespace scripting.iOS
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             if (checkNull)
             {
-                Utils.CheckNotNull(widget, m_name, 0);
+                Utils.CheckNotNull(widget, m_name, script, 0);
             }
             else if (widget == null)
             {
@@ -349,7 +349,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name, true);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             return new Variable(widget.GetText());
         }
@@ -366,7 +366,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             Variable arg1 = Utils.GetSafeVariable(args, 1);
             Variable arg2 = Utils.GetSafeVariable(args, 2);
@@ -384,7 +384,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name, true);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             double result = GetValue(widget);
 
@@ -403,10 +403,10 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name, true);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             UIView view = widget.ViewX;
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             string alignment = args[1].AsString();
             bool isSet = widget.AlignText(alignment);
@@ -423,10 +423,10 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             UIView view = widget.ViewX;
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             bool enable = Utils.GetSafeInt(args, 1, 1) == 1;
             bool isSet = widget.MakeSecure(enable);
@@ -444,7 +444,7 @@ namespace scripting.iOS
             bool checkNull = Utils.GetSafeInt(args, 2, 1) == 1;
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             bool enable = Utils.GetSafeInt(args, 1, 1) == 1;
             bool isSet = widget.Enable(enable);
@@ -465,7 +465,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             bool show = Utils.GetSafeInt(args, 1, m_show ? 1 : 0) != 0;
             iOSApp.ShowView(widget, show, false);
@@ -495,7 +495,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             iOSApp.RemoveView(widget);
             UIUtils.DeregisterWidget(widget.Name);
@@ -541,7 +541,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             bool showKeyboard = Utils.GetSafeInt(args, 1, 1) == 1;
 
@@ -583,7 +583,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             bool result = false;
 
@@ -707,7 +707,7 @@ namespace scripting.iOS
             else
             {
                 iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-                Utils.CheckNotNull(widget, m_name, 0);
+                Utils.CheckNotNull(widget, m_name, script, 0);
                 widget.SetBackgroundColor(strColor, alpha);
             }
 
@@ -738,7 +738,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             string strAction = Utils.GetSafeString(args, 1);
             string argument = Utils.GetSafeString(args, 2);
@@ -761,7 +761,7 @@ namespace scripting.iOS
             string strAction = args[1].AsString();
 
             UIView view = iOSVariable.GetView(varName, script);
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             var gr = new UILongPressGestureRecognizer();
             gr.AddTarget(() => this.ButtonLongPressed(gr, strAction, varName));
@@ -793,7 +793,7 @@ namespace scripting.iOS
             string strAction = Utils.GetSafeString(args, 2);
 
             UIView view = iOSVariable.GetView(varName, script);
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             UISwipeGestureRecognizerDirection dir = UISwipeGestureRecognizerDirection.Left;
             switch (direction)
@@ -826,7 +826,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             string strAction = Utils.GetSafeString(args, 1);
 
@@ -907,10 +907,10 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
             UIView view = widget.ViewX;
 
-            Utils.CheckNotNull(view, m_name);
+            Utils.CheckNotNull(view, m_name, script);
 
             int width = Utils.GetSafeInt(args, 1, 1);
             int corner = Utils.GetSafeInt(args, 2, 5);
@@ -1090,11 +1090,11 @@ namespace scripting.iOS
             Utils.CheckNotEmpty(script, varName, m_name);
 
             Variable widthVar = Utils.GetSafeVariable(args, 1);
-            Utils.CheckNonNegativeInt(widthVar);
+            Utils.CheckNonNegativeInt(widthVar, script);
             int width = widthVar.AsInt();
 
             Variable heightVar = Utils.GetSafeVariable(args, 2);
-            Utils.CheckNonNegativeInt(heightVar);
+            Utils.CheckNonNegativeInt(heightVar, script);
             int height = heightVar.AsInt();
 
             bool autoResize = Utils.GetSafeInt(args, 3, 1) == 1;
@@ -1135,7 +1135,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             UIView view = widget.ViewX;
 
@@ -1204,7 +1204,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             double fontSize = Utils.GetSafeDouble(args, 1);
 
@@ -1229,7 +1229,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             string fontName = args[1].AsString();
             double fontSize = Utils.GetSafeDouble(args, 2);
@@ -1253,7 +1253,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             double fontSize = Utils.GetSafeDouble(args, 1);
 
@@ -1282,7 +1282,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name, true);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             string colorStr = args[1].AsString();
             widget.SetFontColor(colorStr);
@@ -1299,7 +1299,7 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
-            Utils.CheckNotNull(widget, m_name, 0);
+            Utils.CheckNotNull(widget, m_name, script, 0);
 
             string text = Utils.ProcessString(args[1].AsString());
             string colorStr = Utils.GetSafeString(args, 2, "black").ToLower();
@@ -1523,7 +1523,7 @@ namespace scripting.iOS
 
             string option = args[0].AsString();
             Variable optionValue = Utils.GetSafeVariable(args, 1);
-            Utils.CheckNotNull(optionValue, m_name);
+            Utils.CheckNotNull(optionValue, m_name, script);
 
             switch (option)
             {

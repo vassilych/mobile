@@ -126,7 +126,11 @@ namespace SplitAndMerge
                 return;
             }
 
+#if __ANDROID__
+            var total = m_grid.View.Records.Count;
+#elif __IOS__
             var total = m_grid.Frame.Width;
+#endif
             for (int i = 0; i < widths.Count; i++)
             {
                 var width = widths[i];

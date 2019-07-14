@@ -21,10 +21,10 @@ namespace SplitAndMerge
         public const char END_GROUP = '}';
         public const char VAR_START = '$';
         public const char END_STATEMENT = ';';
-        public const char FOR_EACH = ':';
         public const char CONTINUE_LINE = '\\';
         public const char EMPTY = '\0';
         public const char TERNARY_OPERATOR = '?';
+        public const string FOR_EACH = ":";
 
         public const string ASSIGNMENT = "=";
         public const string AND = "&&";
@@ -103,6 +103,7 @@ namespace SplitAndMerge
         public const string PRINT = "print";
         public const string PSTIME = "pstime";
         public const string RANDOM = "GetRandom";
+        public const string REGEX = "Regex";
         public const string REMOVE = "RemoveItem";
         public const string REMOVE_AT = "RemoveAt";
         public const string RESET_VARS = "ResetVariables";
@@ -141,6 +142,7 @@ namespace SplitAndMerge
         public const string VARIABLE_TYPE = "VariableType";
         public const string WAIT = "wait";
         public const string WEB_REQUEST = "WebRequest";
+        public const string JSON = "GetVariableFromJson";
 
         public const string START_DEBUGGER = "StartDebugger";
         public const string STOP_DEBUGGER  = "StopDebugger";
@@ -180,8 +182,8 @@ namespace SplitAndMerge
         public static string NULL_ACTION = END_ARG.ToString();
 
         public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=" };
-        public static string[] MATH_ACTIONS = { "&&", "||", "==", "!=", "<=", ">=", "++", "--",
-                                            "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "="};
+        public static string[] MATH_ACTIONS = { "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
+                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "="};
         // Actions: always decreasing by the number of characters.
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
@@ -212,7 +214,7 @@ namespace SplitAndMerge
         };
 #else
         public static List<string> FUNCT_WITH_SPACE = new List<string> {
-            CLASS, FUNCTION, HELP, NEW, NAMESPACE, SHOW, THREAD
+            CLASS, FUNCTION, COMPILED_FUNCTION, HELP, NEW, NAMESPACE, SHOW, THREAD
         };
 #endif
         // Functions that allow a space separator after them, on top of parentheses but
@@ -327,6 +329,7 @@ namespace SplitAndMerge
                 case "ARRAY": return Variable.VarType.ARRAY;
                 case "BREAK": return Variable.VarType.BREAK;
                 case "CONTINUE": return Variable.VarType.CONTINUE;
+                case "VARIABLE": return Variable.VarType.VARIABLE;
                 default: return Variable.VarType.NONE;
             }
         }

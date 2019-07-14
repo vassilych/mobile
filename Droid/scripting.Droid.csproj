@@ -19,6 +19,7 @@
     <AndroidErrorOnCustomJavaObject>false</AndroidErrorOnCustomJavaObject>
     <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
     <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <AndroidSupportedAbis>x86;arm64-v8a;x86_64</AndroidSupportedAbis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,7 +32,6 @@
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
-    <AndroidSupportedAbis>armeabi;armeabi-v7a;x86;arm64-v8a;x86_64</AndroidSupportedAbis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,7 +43,6 @@
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AndroidEnableSGenConcurrent>false</AndroidEnableSGenConcurrent>
-    <AndroidSupportedAbis>armeabi-v7a;armeabi;x86;arm64-v8a;x86_64</AndroidSupportedAbis>
     <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
   </PropertyGroup>
   <ItemGroup>
@@ -276,9 +275,6 @@
     </None>
     <None Include="..\scripting\Resources\functions.cscs">
       <Link>Resources\functions.cscs</Link>
-    </None>
-    <None Include="..\scripting\Resources\dictionary.txt">
-      <Link>Resources\dictionary.txt</Link>
     </None>
     <None Include="..\scripting\Resources\custom.cscs">
       <Link>Resources\custom.cscs</Link>

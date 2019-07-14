@@ -385,8 +385,8 @@ namespace scripting.Droid
         TTS.OnTTSResult(requestCode, resultCode, data);
       } else if (requestCode == STT.STT_REQUEST) {
         STT.SpeechRecognitionCompleted(resultCode, data);
-      } else if (requestCode == InAppBilling.IAP_REQUEST) {
-        InAppBilling.OnIAPCallback(requestCode, resultCode, data);
+      //} else if (requestCode == InAppBilling.IAP_REQUEST) {
+      //  InAppBilling.OnIAPCallback(requestCode, resultCode, data);
       } else if (requestCode == ImageEditor.SELECT_FROM_GALLERY ||
                  requestCode == ImageEditor.SELECT_FROM_CAMERA) {
         ImageEditor.OnActivityResult(requestCode, resultCode, data);

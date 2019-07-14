@@ -199,7 +199,7 @@ namespace scripting.Droid
 
       string varName = Utils.GetSafeString(args, 0);
       ImageEditor editor = Utils.GetVariable(varName, script) as ImageEditor;
-      Utils.CheckNotNull(editor, m_name);
+      Utils.CheckNotNull(editor, m_name, script);
 
       string initArg = Utils.GetSafeString(args, 1);
       editor.Start(initArg);

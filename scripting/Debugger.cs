@@ -378,8 +378,9 @@ namespace SplitAndMerge
                     return "";
                 }
             }
-            catch (Exception)
+            catch (Exception exc)
             {
+                Console.WriteLine("ProcessRepl Exception: " + exc); 
                 return ""; // The exception was already thrown and sent back.
             }
             finally
@@ -463,10 +464,13 @@ namespace SplitAndMerge
 
             endGroupRead = m_debugging.GoToNextStatement();
 
-            //int endPointer = m_debugging.Pointer;
-            //processed = m_debugging.Substr(startPointer, endPointer - startPointer);
+            // Check if after this statement the Step In is completed and we can unwind the stack:
+            bool completedSteppingIn = Completed(m_debugging) || (ProcessingBlock && endGroupRead > 0) ||
+                                       LastResult.Type == Variable.VarType.CONTINUE ||
+                                       LastResult.Type == Variable.VarType.BREAK ||
+                                       LastResult.IsReturn;
 
-            return Completed(m_debugging) || (ProcessingBlock && endGroupRead > 0);
+            return completedSteppingIn;
         }
 
         public static void ProcessException(ParsingScript script, ParsingException exc)
@@ -548,7 +552,10 @@ namespace SplitAndMerge
             await StepIn(stepInScript);
 
             ProcessingBlock = false;
-            done = stepInScript.Pointer >= tempScript.Pointer;
+            done = stepInScript.Pointer >= tempScript.Pointer ||
+                   LastResult.IsReturn ||
+                   LastResult.Type == Variable.VarType.BREAK ||
+                   LastResult.Type == Variable.VarType.CONTINUE;
 
             doneEvent(done);
             return LastResult;

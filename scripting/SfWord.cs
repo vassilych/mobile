@@ -539,7 +539,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string filename = Utils.GetSafeString(args, 1);
             word.Save(filename);
@@ -556,7 +556,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string text = Utils.GetSafeString(args, 1);
             text = text.Replace("\\n", "\n");
@@ -576,7 +576,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string text = Utils.GetSafeString(args, 1);
             string font = Utils.GetSafeString(args, 2, "Calibri");
@@ -600,7 +600,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string imagePath = Utils.GetSafeString(args, 1);
             float horizontalPosition = (float)Utils.GetSafeDouble(args, 2);
@@ -626,7 +626,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 1, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string type = Utils.GetSafeString(args, 1);
             float indent = (float)Utils.GetSafeDouble(args, 2);
@@ -647,7 +647,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 1, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             int rows = Utils.GetSafeInt(args, 1, 2);
             int cols = Utils.GetSafeInt(args, 2, 2);
@@ -667,7 +667,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 1, m_name);
 
             SfWord word = args[0] as SfWord;
-            Utils.CheckNotNull(word, m_name);
+            Utils.CheckNotNull(word, m_name, script);
 
             string styleStr = Utils.GetSafeString(args, 1);
             string alignmentStr = Utils.GetSafeString(args, 2);

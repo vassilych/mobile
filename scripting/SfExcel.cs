@@ -274,7 +274,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             string filename = Utils.GetSafeString(args, 1);
             excel.Save(filename);
@@ -291,7 +291,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             string cell = Utils.GetSafeString(args, 1);
             string option = Utils.GetSafeString(args, 2);
@@ -311,7 +311,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             string sheetName = Utils.GetSafeString(args, 1);
             excel.AddWorksheet(sheetName);
@@ -328,7 +328,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             string sheetName = Utils.GetSafeString(args, 1);
             excel.SetWorksheetName(sheetName);
@@ -345,7 +345,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 2, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             Variable sheet = Utils.GetSafeVariable(args, 1);
             if (sheet.Type == Variable.VarType.NUMBER)
@@ -371,7 +371,7 @@ namespace scripting
             Utils.CheckArgs(args.Count, 3, m_name);
 
             SfExcel excel = args[0] as SfExcel;
-            Utils.CheckNotNull(excel, m_name);
+            Utils.CheckNotNull(excel, m_name, script);
 
             string range = Utils.GetSafeString(args, 1);
             string title = Utils.GetSafeString(args, 2);

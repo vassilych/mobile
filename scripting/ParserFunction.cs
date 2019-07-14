@@ -18,7 +18,7 @@ namespace SplitAndMerge
         }
 
         // A "virtual" Constructor
-        internal ParserFunction(ParsingScript script, string item, char ch, ref string action)
+        public ParserFunction(ParsingScript script, string item, char ch, ref string action)
         {
             if (item.Length == 0 && (ch == Constants.START_ARG || !script.StillValid()))
             {
@@ -57,12 +57,6 @@ namespace SplitAndMerge
             }
 
             m_impl = GetVariable(item, script);
-            if (m_impl != null)
-            {
-                return;
-            }
-
-            m_impl = GetFunction(item, script);
             if (m_impl != null)
             {
                 return;
@@ -257,7 +251,7 @@ namespace SplitAndMerge
         {
             if (!force && script.TryPrev() == Constants.START_ARG)
             {
-                return null;
+                return GetFunction(name, script);
             }
             name = Constants.ConvertName(name);
             ParserFunction impl;
@@ -283,7 +277,7 @@ namespace SplitAndMerge
                 return impl.NewInstance();
             }
 
-            return GetFromNamespace(name, script);
+            return GetFunction(name, script);
         }
 
         public static ParserFunction GetFunction(string name, ParsingScript script)
@@ -356,6 +350,7 @@ namespace SplitAndMerge
             }
 
             function.Name = Constants.GetRealName(name);
+            function.Value.ParamName = function.Name;
             if (s_locals.Count > StackLevelDelta && (LocalNameExists(name) || !GlobalNameExists(name)))
             {
                 AddLocalVariable(function);
@@ -488,7 +483,9 @@ namespace SplitAndMerge
         public static void RegisterFunction(string name, ParserFunction function,
                                             bool isNative = true)
         {
-            name = Constants.ConvertName(name); 
+            name = Constants.ConvertName(name);
+            function.Name = Constants.GetRealName(name);
+
             if (!string.IsNullOrWhiteSpace(s_namespace))
             {
                 StackLevel level;
@@ -499,8 +496,9 @@ namespace SplitAndMerge
                     name = s_namespacePrefix + name;
                 }
             }
+
             s_functions[name] = function;
-            //AddGlobal(name, function, isNative);
+            function.isNative = isNative;
         }
 
         public static bool RemoveGlobal(string name)
@@ -540,6 +538,10 @@ namespace SplitAndMerge
             name = Constants.ConvertName(name);
             variable.isNative = false;
             variable.Name = Constants.GetRealName(name);
+            if (variable is GetVarFunction)
+            {
+                ((GetVarFunction)variable).Value.ParamName = variable.Name;
+            }
 
             if (scopeName == null)
             {
@@ -642,6 +644,10 @@ namespace SplitAndMerge
 
             var name = Constants.ConvertName(local.Name);
             local.Name = Constants.GetRealName(name);
+            if (local is GetVarFunction)
+            {
+                ((GetVarFunction)local).Value.ParamName = local.Name;
+            }
             locals.Variables[name] = local;
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
             Translation.AddTempKeyword(name);

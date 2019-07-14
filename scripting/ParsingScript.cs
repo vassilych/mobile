@@ -31,7 +31,19 @@ namespace SplitAndMerge
         }
         public char Current
         {
-            get { return m_data[m_from]; }
+            get { return m_from < m_data.Length ? m_data[m_from] : Constants.EMPTY; }
+        }
+        public char Prev
+        {
+            get { return m_from >= 1 ? m_data[m_from - 1] : Constants.EMPTY; }
+        }
+        public char PrevPrev
+        {
+            get { return m_from >= 2 ? m_data[m_from - 2] : Constants.EMPTY; }
+        }
+        public char Next
+        {
+            get { return m_from + 1 < m_data.Length ? m_data[m_from + 1] : Constants.EMPTY; }
         }
         public Dictionary<int, int> Char2Line
         {
@@ -142,7 +154,7 @@ namespace SplitAndMerge
                 int lineNumber = script.GetOriginalLineNumber(pointer);
                 string filename = string.IsNullOrWhiteSpace(script.Filename) ? "" :
                                   Utils.GetFullPath(script.Filename);
-                string line = string.IsNullOrWhiteSpace(filename) ? "" :
+                string line = string.IsNullOrWhiteSpace(filename) || !File.Exists(filename) ? "" :
                               File.ReadLines(filename).Skip(lineNumber).Take(1).First();
 
                 result.AppendLine("" + lineNumber);
@@ -291,6 +303,13 @@ namespace SplitAndMerge
         public void MoveBackIf(char notExpected)
         {
             if (StillValid() && Pointer > 0 && Current == notExpected)
+            {
+                Backward();
+            }
+        }
+        public void MoveBackIfPrevious(char ch)
+        {
+            if (Prev == ch)
             {
                 Backward();
             }

@@ -32,7 +32,7 @@ namespace SplitAndMerge
             }
 
             // Second step: merge list of cells to get the result of an expression.
-            Variable result = MergeList(listToMerge);
+            Variable result = MergeList(listToMerge, script);
             return result;
         }
 
@@ -48,7 +48,7 @@ namespace SplitAndMerge
             }
 
             // Second step: merge list of cells to get the result of an expression.
-            Variable result = MergeList(listToMerge);
+            Variable result = MergeList(listToMerge, script);
             return result;
         }
 
@@ -190,6 +190,13 @@ namespace SplitAndMerge
             result = result.Replace("\\\\", "\\");
             result = result.Replace("\\\"", "\"");
             result = result.Replace("\\'", "'");
+
+            if (string.IsNullOrWhiteSpace(result) && Utils.IsAction(script.Prev) && Utils.IsAction(script.PrevPrev))
+            {
+                Utils.ThrowErrorMsg("Can't process token [" + script.PrevPrev + script.Prev + script.Current +
+                                    "].", script, script.Current.ToString());
+            }
+
             return result;
         }
 
@@ -417,7 +424,7 @@ namespace SplitAndMerge
                 return false;
             }
 
-            Variable arg1 = MergeList(listInput);
+            Variable arg1 = MergeList(listInput, script);
             script.MoveForwardIf(Constants.TERNARY_OPERATOR);
             Variable arg2 = script.Execute(Constants.TERNARY_SEPARATOR);
             script.MoveForwardIf(Constants.TERNARY_SEPARATOR);
@@ -440,7 +447,7 @@ namespace SplitAndMerge
                 return false;
             }
 
-            Variable arg1 = MergeList(listInput);
+            Variable arg1 = MergeList(listInput, script);
             script.MoveForwardIf(Constants.TERNARY_OPERATOR);
             Variable arg2 = await script.ExecuteAsync(Constants.TERNARY_SEPARATOR);
             script.MoveForwardIf(Constants.TERNARY_SEPARATOR);
@@ -467,7 +474,7 @@ namespace SplitAndMerge
                 if (CanMergeCells(listInput.Last(), current))
                 {
                     listInput.Add(current);
-                    current = MergeList(listInput);
+                    current = MergeList(listInput, script);
                     updateCurrent(current);
                     listInput.Clear();
                     needToAdd = false;
@@ -504,7 +511,7 @@ namespace SplitAndMerge
             return action == null ? Constants.NULL_ACTION : action;
         }
 
-        private static Variable MergeList(List<Variable> listToMerge)
+        private static Variable MergeList(List<Variable> listToMerge, ParsingScript script)
         {
             if (listToMerge.Count == 0)
             {
@@ -521,7 +528,7 @@ namespace SplitAndMerge
             int index = 1;
 
             // Second step: merge list of cells to get the result of an expression.
-            Variable result = Merge(baseCell, ref index, listToMerge);
+            Variable result = Merge(baseCell, ref index, listToMerge, script);
             return result;
         }
 
@@ -529,7 +536,7 @@ namespace SplitAndMerge
         // It also calls itself recursively with mergeOneOnly = true, meaning
         // that it will return after only one merge.
         private static Variable Merge(Variable current, ref int index, List<Variable> listToMerge,
-                                      bool mergeOneOnly = false)
+                                      ParsingScript script, bool mergeOneOnly = false)
         {
             if (Verbose)
             {
@@ -545,10 +552,10 @@ namespace SplitAndMerge
                     // If we cannot merge cells yet, go to the next cell and merge
                     // next cells first. E.g. if we have 1+2*3, we first merge next
                     // cells, i.e. 2*3, getting 6, and then we can merge 1+6.
-                    Merge(next, ref index, listToMerge, true /* mergeOneOnly */);
+                    Merge(next, ref index, listToMerge, script, true /* mergeOneOnly */);
                 }
 
-                MergeCells(current, next);
+                MergeCells(current, next, script);
                 if (mergeOneOnly)
                 {
                     break;
@@ -563,7 +570,7 @@ namespace SplitAndMerge
             return current;
         }
 
-        private static void MergeCells(Variable leftCell, Variable rightCell)
+        private static void MergeCells(Variable leftCell, Variable rightCell, ParsingScript script)
         {
             if (leftCell.IsReturn ||
                 leftCell.Type == Variable.VarType.BREAK ||
@@ -575,17 +582,17 @@ namespace SplitAndMerge
             if (leftCell.Type  == Variable.VarType.NUMBER &&
                 rightCell.Type == Variable.VarType.NUMBER)
             {
-                MergeNumbers(leftCell, rightCell);
+                MergeNumbers(leftCell, rightCell, script);
             }
             else
             {
-                MergeStrings(leftCell, rightCell);
+                MergeStrings(leftCell, rightCell, script);
             }
 
             leftCell.Action = rightCell.Action;
         }
 
-        private static void MergeNumbers(Variable leftCell, Variable rightCell)
+        private static void MergeNumbers(Variable leftCell, Variable rightCell, ParsingScript script)
         {
             if (rightCell.Type != Variable.VarType.NUMBER)
             {
@@ -648,16 +655,27 @@ namespace SplitAndMerge
                     break;
                 case "&&":
                     leftCell.Value = Convert.ToDouble(
-           Convert.ToBoolean(leftCell.Value) && Convert.ToBoolean(rightCell.Value));
+                        Convert.ToBoolean(leftCell.Value) && Convert.ToBoolean(rightCell.Value));
                     break;
                 case "||":
                     leftCell.Value = Convert.ToDouble(
-           Convert.ToBoolean(leftCell.Value) || Convert.ToBoolean(rightCell.Value));
+                        Convert.ToBoolean(leftCell.Value) || Convert.ToBoolean(rightCell.Value));
+                    break;
+                case "**":
+                    leftCell.Value = Math.Pow(leftCell.Value, rightCell.Value);
+                    break;
+                case ")":
+                    Utils.ThrowErrorMsg("Can't process last token [" + rightCell.Value + "] in the expression.",
+                         script, script.Current.ToString());
+                    break;
+                default:
+                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] in the expression.",
+                         script, leftCell.Action);
                     break;
             }
         }
 
-        static void MergeStrings(Variable leftCell, Variable rightCell)
+        static void MergeStrings(Variable leftCell, Variable rightCell, ParsingScript script)
         {
             switch (leftCell.Action)
             {
@@ -692,8 +710,9 @@ namespace SplitAndMerge
                 case ")":
                     break;
                 default:
-                    throw new ArgumentException("Can't perform action [" +
-                      leftCell.Action + "] on strings");
+                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] on strings.",
+                         script, leftCell.Action);
+                    break; 
             }
         }
 
@@ -706,22 +725,23 @@ namespace SplitAndMerge
         {
             switch (action)
             {
+                case "**":
                 case "++":
                 case "--": return 11;
                 case "%":
                 case "*":
-                case "/": return 10;
+                case "/":  return 10;
                 case "+":
-                case "-": return 9;
+                case "-":  return 9;
                 case "<":
                 case ">":
                 case ">=":
                 case "<=": return 8;
                 case "==":
                 case "!=": return 7;
-                case "&": return 6;
-                case "|": return 5;
-                case "^": return 4;
+                case "&":  return 6;
+                case "|":  return 5;
+                case "^":  return 4;
                 case "&&": return 3;
                 case "||": return 2;
                 case "+=":
@@ -729,7 +749,7 @@ namespace SplitAndMerge
                 case "*=":
                 case "/=":
                 case "%=":
-                case "=": return 1;
+                case "=":  return 1;
             }
             return 0; // NULL action has priority 0.
         }

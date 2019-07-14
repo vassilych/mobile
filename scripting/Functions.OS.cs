@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -373,7 +374,7 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             Variable sleepms = Utils.GetItem(script);
-            Utils.CheckPosInt(sleepms);
+            Utils.CheckPosInt(sleepms, script);
 
             Thread.Sleep((int)sleepms.Value);
 
@@ -609,4 +610,252 @@ namespace SplitAndMerge
             return EvaluateAsync(script).Result;
         }
     }
+
+    class GetVariableFromJSONFunction : ParserFunction
+    {
+        static char[] SEP = "\",:]}".ToCharArray();
+
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            string json = args[0].AsString();
+
+            Dictionary<int, int> d;
+            json = Utils.ConvertToScript(json, out d);
+
+            var tempScript = script.GetTempScript(json);
+            Variable result = ExtractValue(tempScript);
+            return result;
+        }
+
+        static Variable ExtractObject(ParsingScript script)
+        {
+            Variable newValue = new Variable(Variable.VarType.ARRAY);
+
+            while (script.StillValid() && (newValue.Count == 0 || script.Current == ','))
+            {
+                script.Forward();
+                string key = Utils.GetToken(script, SEP);
+                script.MoveForwardIf(':');
+
+                Variable valueVar = ExtractValue(script);
+                newValue.SetHashVariable(key, valueVar);
+            }
+            script.MoveForwardIf('}');
+
+            return newValue;
+        }
+
+        static Variable ExtractArray(ParsingScript script)
+        {
+            Variable newValue = new Variable(Variable.VarType.ARRAY);
+
+            while (script.StillValid() && (newValue.Count == 0 || script.Current == ','))
+            {
+                script.Forward();
+                Variable addVariable = ExtractValue(script);
+                newValue.AddVariable(addVariable);
+            }
+            script.MoveForwardIf(']');
+
+            return newValue;
+        }
+
+        static Variable ExtractValue(ParsingScript script)
+        {
+            if (script.TryCurrent() == '{')
+            {
+                return ExtractObject(script);
+            }
+            if (script.TryCurrent() == '[')
+            {
+                return ExtractArray(script);
+            }
+            var token = Utils.GetToken(script, SEP);
+            return new Variable(token);
+        }
+    }
+
+    class RegexFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+
+            Utils.CheckArgs(args.Count, 2, m_name);
+            string pattern = Utils.GetSafeString(args, 0);
+            string text    = Utils.GetSafeString(args, 1);
+
+            Variable result = new Variable(Variable.VarType.ARRAY);
+
+            Regex rx = new Regex(pattern,
+                        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            MatchCollection matches = rx.Matches(text);
+
+            foreach (Match match in matches)
+            {
+                result.AddVariableToHash("matches", new Variable(match.Value));
+
+                var groups = match.Groups;
+                foreach (var group in groups)
+                {
+                    result.AddVariableToHash("groups", new Variable(group.ToString()));
+                }
+            }
+
+            return result;
+        }
+    }
+
+    class CompiledFunctionCreator : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string funcReturn, funcName;
+            Utils.GetCompiledArgs(script, out funcReturn, out funcName);
+
+#if __ANDROID__ == false && __IOS__ == false
+            Precompiler.RegisterReturnType(funcName, funcReturn);
+
+            Dictionary<string, Variable> argsMap;
+            string[] args = Utils.GetCompiledFunctionSignature(script, out argsMap);
+
+            script.MoveForwardIf(Constants.START_GROUP, Constants.SPACE);
+            int parentOffset = script.Pointer;
+
+            string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+
+            Precompiler precompiler = new Precompiler(funcName, args, argsMap, body, script);
+            precompiler.Compile();
+
+            CustomCompiledFunction customFunc = new CustomCompiledFunction(funcName, body, args, precompiler, argsMap, script);
+            customFunc.ParentScript = script;
+            customFunc.ParentOffset = parentOffset;
+
+            ParserFunction.RegisterFunction(funcName, customFunc, false /* not native */);
+#endif
+            return new Variable(funcName);
+        }
+    }
+
+#if __ANDROID__ == false && __IOS__ == false
+    class CustomCompiledFunction : CustomFunction
+    {
+        internal CustomCompiledFunction(string funcName,
+                                        string body, string[] args,
+                                        Precompiler precompiler,
+                                        Dictionary<string, Variable> argsMap,
+                                        ParsingScript script)
+          : base(funcName, body, args, script)
+        {
+            m_precompiler = precompiler;
+            m_argsMap = argsMap;
+        }
+
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            script.MoveBackIf(Constants.START_GROUP);
+
+            if (args.Count != m_args.Length)
+            {
+                throw new ArgumentException("Function [" + m_name + "] arguments mismatch: " +
+                                    m_args.Length + " declared, " + args.Count + " supplied");
+            }
+
+            Variable result = Run(args);
+            return result;
+        }
+
+        protected override Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            return Task.FromResult(Evaluate(script));
+        }
+
+        public Variable Run(List<Variable> args)
+        {
+            RegisterArguments(args);
+
+            List<string> argsStr = new List<string>();
+            List<double> argsNum = new List<double>();
+            List<List<string>> argsArrStr = new List<List<string>>();
+            List<List<double>> argsArrNum = new List<List<double>>();
+            List<Dictionary<string, string>> argsMapStr = new List<Dictionary<string, string>>();
+            List<Dictionary<string, double>> argsMapNum = new List<Dictionary<string, double>>();
+            List<Variable> argsVar = new List<Variable>();
+
+            for (int i = 0; i < m_args.Length; i++)
+            {
+                Variable typeVar = m_argsMap[m_args[i]];
+                if (typeVar.Type == Variable.VarType.STRING)
+                {
+                    argsStr.Add(args[i].AsString());
+                }
+                else if (typeVar.Type == Variable.VarType.NUMBER)
+                {
+                    argsNum.Add(args[i].AsDouble());
+                }
+                else if (typeVar.Type == Variable.VarType.ARRAY_STR)
+                {
+                    List<string> subArrayStr = new List<string>();
+                    var tuple = args[i].Tuple;
+                    for (int j = 0; j < tuple.Count; j++)
+                    {
+                        subArrayStr.Add(tuple[j].AsString());
+                    }
+                    argsArrStr.Add(subArrayStr);
+                }
+                else if (typeVar.Type == Variable.VarType.ARRAY_NUM)
+                {
+                    List<double> subArrayNum = new List<double>();
+                    var tuple = args[i].Tuple;
+                    for (int j = 0; j < tuple.Count; j++)
+                    {
+                        subArrayNum.Add(tuple[j].AsDouble());
+                    }
+                    argsArrNum.Add(subArrayNum);
+                }
+                else if (typeVar.Type == Variable.VarType.MAP_STR)
+                {
+                    Dictionary<string, string> subMapStr = new Dictionary<string, string>();
+                    var tuple = args[i].Tuple;
+                    var keys = args[i].GetKeys();
+                    for (int j = 0; j < tuple.Count; j++)
+                    {
+                        subMapStr.Add(keys[j], tuple[j].AsString());
+                    }
+                    argsMapStr.Add(subMapStr);
+                }
+                else if (typeVar.Type == Variable.VarType.MAP_NUM)
+                {
+                    Dictionary<string, double> subMapNum = new Dictionary<string, double>();
+                    var tuple = args[i].Tuple;
+                    var keys = args[i].GetKeys();
+                    for (int j = 0; j < tuple.Count; j++)
+                    {
+                        subMapNum.Add(keys[j], tuple[j].AsDouble());
+                    }
+                    argsMapNum.Add(subMapNum);
+                }
+                else if (typeVar.Type == Variable.VarType.VARIABLE)
+                {
+                    argsVar.Add(args[i]);
+                }
+            }
+
+            Variable result = Precompiler.AsyncMode ?
+                m_precompiler.RunAsync(argsStr, argsNum, argsArrStr, argsArrNum, argsMapStr, argsMapNum, argsVar, false) :
+                m_precompiler.Run(argsStr, argsNum, argsArrStr, argsArrNum, argsMapStr, argsMapNum, argsVar, false);
+            ParserFunction.PopLocalVariables();
+
+            return result;
+        }
+
+        Precompiler m_precompiler;
+        Dictionary<string, Variable> m_argsMap;
+    }
+#endif
 }
