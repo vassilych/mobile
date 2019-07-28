@@ -23,7 +23,6 @@ namespace SplitAndMerge
         string m_functionName;
         string m_originalCode;
         string m_cscsCode;
-        string m_csCode;
         string[] m_defArgs;
         StringBuilder m_converted = new StringBuilder();
         Dictionary<string, Variable> m_argsMap;
@@ -44,6 +43,7 @@ namespace SplitAndMerge
         bool m_lastStatementReturn;
 
         ParsingScript m_parentScript;
+        public string CSCode { get; private set; }
 
         Func<List<string>, List<double>, List<List<string>>, List<List<double>>,
              List<Dictionary<string, string>>, List<Dictionary<string, double>>, List<Variable>, Variable> m_compiledFunc;
@@ -112,16 +112,16 @@ namespace SplitAndMerge
 
             var provider = new CSharpCodeProvider();
 
-            /*m_csCode = ConvertScript(false);
-            var compile = provider.CompileAssemblyFromSource(CompilerParams, m_csCode);
+            /*CSCode = ConvertScript(false);
+            var compile = provider.CompileAssemblyFromSource(CompilerParams, CSCode);
             if (compile.Errors.HasErrors)
             {
-                m_csCode = ConvertScript();
-                compile = provider.CompileAssemblyFromSource(CompilerParams, m_csCode);
+                CSCode = ConvertScript();
+                compile = provider.CompileAssemblyFromSource(CompilerParams, CSCode);
             }*/
 
-            m_csCode = ConvertScript();
-            var compile = provider.CompileAssemblyFromSource(CompilerParams, m_csCode);
+            CSCode = ConvertScript();
+            var compile = provider.CompileAssemblyFromSource(CompilerParams, CSCode);
             if (compile.Errors.HasErrors)
             {
                 string text = "Compile error: ";
@@ -271,6 +271,11 @@ namespace SplitAndMerge
                 return arg.Type;
             }
 
+            if (IsMathFunction(paramName))
+            {
+                return Variable.VarType.NUMBER;
+            }
+            
             ParserFunction function = ParserFunction.GetFunction(paramName, m_parentScript);
             if (function == null)
             {
@@ -295,12 +300,12 @@ namespace SplitAndMerge
 
         public string RegisterVariableString(string paramName, string paramValue = "")
         {
-            if (string.IsNullOrEmpty(paramValue))
+            if (string.IsNullOrWhiteSpace(paramValue))
             {
                 paramValue = paramName;
             }
             return m_depth + "ParserFunction.AddGlobalOrLocalVariable(\"" + paramName +
-              "\", new GetVarFunction(new Variable(" + paramValue + ")));\n";
+                     "\", new GetVarFunction(Variable.ConvertToVariable(" + paramValue + ")));\n";
         }
 
         string ConvertScript(bool cscsStyle = true)
@@ -357,13 +362,11 @@ namespace SplitAndMerge
                            " List<Variable> __varVar) {\n");
             m_depth = "      ";
 
-            m_converted.AppendLine("     string __current = \"\";");
             m_converted.AppendLine("     string __argsStr = \"\";");
             m_converted.AppendLine("     string __action = \"\";");
             m_converted.AppendLine("     ParsingScript __script = null;");
             m_converted.AppendLine("     ParserFunction __func = null;");
             m_converted.AppendLine("     Variable __tempVar = null;");
-            m_newVariables.Add("__current");
             m_newVariables.Add("__argsStr");
             m_newVariables.Add("__action");
             m_newVariables.Add("__script");
@@ -415,7 +418,7 @@ namespace SplitAndMerge
                 m_converted.AppendLine(CreateReturnStatement("Variable.EmptyInstance"));
             }
 
-            m_converted.AppendLine("\n    }\n  }\n}");
+            m_converted.AppendLine("\n    }\n    }\n}");
             return m_converted.ToString();
         }
 
@@ -445,7 +448,7 @@ namespace SplitAndMerge
             List<string> tokens = TokenizeStatement(statement);
             List<string> statementVars = new List<string>();
 
-            string result = "";
+            string result = m_depth;
             m_lastStatementReturn = ProcessReturnStatement(tokens, cscsStyle, ref result);
             if (m_lastStatementReturn)
             {
@@ -477,15 +480,32 @@ namespace SplitAndMerge
                     m_newVariables.Add(tokens[0]);
                 }
 
-                result += statement;
+                string rhs = ProcessRHS(tokens);
+                if (!rhs.Contains(";"))
+                {
+                    result += tokens[0] + tokens[1] + rhs;
+                }
+                else
+                {
+                    result += statement;
+                }
+
                 if (nextStatement == ";" || !"(){}[]".Contains(statement.Last()))
                 {
-                    result += ";";
+                    result += ";\n";
                 }
-                result += "\n";
+                result += RegisterVariableString(tokens[0]);
 
                 return result;
             }
+            if (m_numericExpression && tokens.Count == 1 &&
+                (tokens[0].Contains(Constants.START_ARG) ||
+                 tokens[0].Contains(Constants.NEXT_ARG)))
+            {
+                result = ReplaceArgs(tokens[0]);
+                return result;
+            }
+
             m_tokenId = 0;
             while (m_tokenId < tokens.Count)
             {
@@ -527,7 +547,7 @@ namespace SplitAndMerge
             }
             for (int i = 0; i < statementVars.Count; i++)
             {
-                result += RegisterVariableString(statementVars[i]);
+                result += RegisterVariableString(statementVars[i], statementVars[i]);
             }
 
             return result;
@@ -537,7 +557,9 @@ namespace SplitAndMerge
                                     ref string converted)
         {
             string suffix = "";
+            string defaultReturn = "__tempVar";
             bool isArray = false;
+
             string paramName = tokens.Count > 0 ? GetFunctionName(tokens[0], ref suffix, ref isArray).Trim() : "";
             if (paramName != Constants.RETURN)
             {
@@ -558,22 +580,56 @@ namespace SplitAndMerge
                 bool newVarAdded = false;
                 m_tokenId = 2;
                 string result = "";
-                string token = cscsStyle ? ProcessToken(tokens, ref m_tokenId, ref result, ref newVarAdded) : tokens[m_tokenId];
-                converted += CreateReturnStatement(token);
+
+                string token = cscsStyle ? defaultReturn : tokens[m_tokenId];
+                if (cscsStyle)
+                {
+                    GetExpressionType(tokens);
+                    if (m_numericExpression)
+                    {
+                        token = ProcessRHS(tokens);
+                    }
+                    else
+                    {
+                        ProcessToken(tokens, ref m_tokenId, ref result, ref newVarAdded);
+                        if (!result.Contains(";"))
+                        {
+                            token = result;
+                            result = "";
+                        }
+                    }
+                }
+                converted += result + CreateReturnStatement(token);
                 return true;
             }
 
-            string remaining = string.Join("", tokens.GetRange(2, tokens.Count - 2));
-            string returnToken = ProcessStatement(remaining, "", false);
-
-            converted = CreateReturnStatement(returnToken);
+            string returnToken = ProcessRHS(tokens);
+            if (!returnToken.Contains(";"))
+            {
+                converted = CreateReturnStatement(returnToken);
+            }
+            else
+            {
+                converted = returnToken;
+                converted += CreateReturnStatement(defaultReturn);
+            }
 
             return true;
         }
 
+        string ProcessRHS(List<string> tokens, int from = 2)
+        {
+            string remaining = string.Join("", tokens.GetRange(from, tokens.Count - from));
+            string returnToken = ProcessStatement(remaining, "", false);
+            return returnToken;
+        }
+
         string CreateReturnStatement(string toReturn)
         {
-            string result = "";
+            if (toReturn == "__tempVar")
+            {
+                return m_depth + "return __tempVar;\n";
+            }
             if (!toReturn.Contains("Variable.EmptyInstance"))
             {
                 toReturn = "new Variable(" + toReturn + ")";
@@ -583,8 +639,8 @@ namespace SplitAndMerge
                 return m_depth + "return " + toReturn + ";\n"; 
             }
 
-            result += " __tempVar = " + toReturn + ";\n";
-            result += "  return __tempVar;\n";
+            string result = m_depth + "__tempVar = " + toReturn + ";\n";
+            result       += m_depth + "return __tempVar;\n";
             //result += "  return Task.FromResult(__tempVar);\n";
             return result;
         }
@@ -638,7 +694,7 @@ namespace SplitAndMerge
             string varName = GetFunctionName(exceptionVar.Substring(1), ref suffix, ref isArray);
 
             string result = "catch(Exception " + varName + ") {\n";
-            result += RegisterVariableString(varName, varName + ".ToString()");
+            result += RegisterVariableString(varName, "new Variable(" + varName + ".ToString())");
             m_statementId++;
             return result;
         }
@@ -655,27 +711,16 @@ namespace SplitAndMerge
                 return m_depth + "var " + functionName;
             }
             bool firstString = tokens[0].Contains("\"");
-            bool secondString = true;
-            for (int i = 1; i < tokens.Count; i++)
-            {
-                string token = tokens[i];
-                Variable.VarType type = GetVariableType(token);
-                if (type != Variable.VarType.NONE)
-                {
-                    secondString = type != Variable.VarType.NUMBER;
-                    break;
-                }
-            }
             string expr = m_depth;
-            string param1 = firstString ? "string" : "double";
-            string param2 = secondString ? "string" : "double";
+
+            string param = firstString ? "string" : "double";
             if (!firstString)
             {
-                expr += "List<" + param2 + "> " + functionName + " = new List<" + param2 + "> ();\n";
+                expr += "List<" + param + "> " + functionName + " = new List<" + param + "> ();\n";
             }
             else
             {
-                expr += "Dictionary<string," + param2 + "> " + functionName + " = new Dictionary<string," + param2 + "> ();\n";
+                expr += "Dictionary<string," + param + "> " + functionName + " = new Dictionary<string," + param + "> ();\n";
             }
 
             int position = -1;
@@ -724,7 +769,22 @@ namespace SplitAndMerge
                 {
                     token = ProcessElIf(token);
                 }
-                result += token;
+
+                if (token == "new")
+                {
+                    var argsStr = "";
+                    for (int i = id + 1; i < tokens.Count; i++)
+                    {
+                        argsStr += tokens[i].Trim().Replace("\"", "\\\"");
+                    }
+                    string tempFunc = GetCSCSFunction(argsStr, token);
+                    id = tokens.Count - 1;
+                    result = tempFunc + result + " __tempVar;";
+                }
+                else
+                {
+                    result += token;
+                }
                 return token;
             }
             if (Array.IndexOf(Constants.ACTIONS, token) >= 0)
@@ -792,7 +852,7 @@ namespace SplitAndMerge
             int paramEnd = functionName.LastIndexOf(Constants.END_ARG);
             if (paramEnd < 0)
             {
-                paramEnd = functionName.IndexOf("=");
+                paramEnd = functionName.IndexOf('=');
             }
             if (paramEnd >= 0)
             {
@@ -809,6 +869,35 @@ namespace SplitAndMerge
             }
 
             return functionName;
+        }
+
+        string ReplaceArgs(string token)
+        {
+            int paramStart = token.IndexOf(Constants.START_ARG) + 1;
+            string result = "";
+            string rest = token.Substring(paramStart).Trim();
+
+            var funcName = token.Substring(0, paramStart);
+            funcName = funcName[0].ToString().ToUpperInvariant() + funcName.Substring(1).ToLower();
+            if (rest.EndsWith(";"))
+            {
+                rest = rest.Substring(0, rest.Length - 1);
+            }
+            rest = rest.Substring(0, rest.Length - 1);
+
+            var tokens = rest.Split(Constants.NEXT_ARG);
+            int count = 0;
+            foreach (var item in tokens)
+            {
+                result += ProcessStatement(item, "", false);
+                count++;
+                result += count != tokens.Length ? Constants.NEXT_ARG : Constants.END_ARG;
+            }
+            if (paramStart > 0)
+            {
+                result = funcName + result;
+            }
+            return result;
         }
 
         string ProcessFunction(List<string> tokens, ref int id, ref string result, ref bool newVarAdded)
@@ -856,33 +945,21 @@ namespace SplitAndMerge
             {
                 //functionName = "SetProperty";
                 argsStr = tokens[id + 2];
-                sb.AppendLine("    __action =\"=\";");
+                sb.AppendLine(m_depth + "__action =\"=\";");
                 ch = '=';
                 id = tokens.Count;
             }
             else
             {
-                sb.AppendLine("    __action =\"\";");
+                sb.AppendLine(m_depth + "__action =\"\";");
             }
 
-            sb.AppendLine("    __argsStr =\"" + argsStr + "\";");
-            sb.AppendLine("    __script = new ParsingScript(__argsStr);");
-            sb.AppendLine("    __func = new ParserFunction(__script, \"" + functionName + "\", '" + ch + "', ref __action);");
-
-            if (AsyncMode)
-            {
-                sb.AppendLine("    __tempVar = await __func.GetValueAsync(__script);");
-                sb.AppendLine("    __current = __tempVar.AsString();");
-            }
-            else
-            {
-                sb.AppendLine("    __current = __func.GetValue(__script).AsString();");
-            }
+            sb.AppendLine(GetCSCSFunction(argsStr,  functionName, ch));
 
             token = sb.ToString();
             if (tokens.Count >= 3 && tokens[1] == "=" && !string.IsNullOrWhiteSpace(result))
             {
-                result = token + result + " __current;\n";
+                result = m_depth + token + result + " __tempVar;\n";
                 newVarAdded = true;
             }
             else
@@ -893,6 +970,29 @@ namespace SplitAndMerge
             return token;
         }
 
+        string GetCSCSFunction(string argsStr, string functionName, char ch = '(')
+        {
+            StringBuilder sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(argsStr) && argsStr.Last() == '"' && argsStr.First() == '"')
+            {
+                argsStr = "\\\"" + argsStr.Substring(1, argsStr.Length - 2) + "\\\"";
+            }
+
+            sb.AppendLine(m_depth + "__argsStr =\"" + argsStr + "\";");
+            sb.AppendLine(m_depth + "__script = new ParsingScript(__argsStr);");
+            sb.AppendLine(m_depth + "__func = new ParserFunction(__script, \"" + functionName + "\", '" + ch + "', ref __action);");
+
+            if (AsyncMode)
+            {
+                sb.AppendLine(m_depth + "__tempVar = await __func.GetValueAsync(__script);");
+            }
+            else
+            {
+                sb.AppendLine(m_depth + "__tempVar = __func.GetValue(__script);");
+            }
+            return sb.ToString();
+        }
+
         bool ProcessArray(string paramName, string functionName, ref string result)
         {
             string arrayName, arrayArg, mappingName;
@@ -900,7 +1000,7 @@ namespace SplitAndMerge
             {
                 return false;
             }
-            if (functionName == "size")
+            if (functionName.ToLower() == "size")
             {
                 result = mappingName + ".Count";
                 return true;
@@ -911,7 +1011,7 @@ namespace SplitAndMerge
         {
             arrayName = paramName;
             arrayArg = "";
-            int paramStart = paramName.IndexOf("[");
+            int paramStart = paramName.IndexOf('[');
             if (paramStart > 0)
             {
                 arrayName = paramName.Substring(0, paramStart);
@@ -924,7 +1024,7 @@ namespace SplitAndMerge
         {
             arrayName = mappingName = paramName;
             arrayArg = "";
-            int paramStart = paramName.IndexOf("[");
+            int paramStart = paramName.IndexOf('[');
             if (paramStart > 0)
             {
                 arrayName = paramName.Substring(0, paramStart);
@@ -950,7 +1050,7 @@ namespace SplitAndMerge
             for (int i = 0; i < tokens.Count; i++)
             {
                 string token = tokens[i];
-                if (token[0] == Constants.QUOTE)
+                if (string.IsNullOrWhiteSpace(token) || token[0] == Constants.QUOTE || token == Constants.RETURN)
                 {
                     continue;
                 }
@@ -1090,6 +1190,22 @@ namespace SplitAndMerge
             }
 
             return tokens;
+        }
+
+        public static bool IsMathFunction(string name)
+        {
+            name = name[0].ToString().ToUpperInvariant() + name.Substring(1).ToLower();
+
+            Type mathType = typeof(System.Math);
+            try
+            {
+                MethodInfo myMethod = mathType.GetMethod(name);
+                return myMethod != null;
+            }
+            catch (AmbiguousMatchException)
+            {
+                return true;
+            }
         }
 
         public static string TypeToCSString(Variable.VarType type)
