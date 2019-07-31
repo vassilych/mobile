@@ -13,26 +13,19 @@ namespace scripting.iOS
 
     public class TypePickerViewModel : UIPickerViewModel
     {
-        List<string> m_names = null;
-        List<UIImage> m_pics = null;
+        List<string> m_names;
+        List<UIImage> m_pics;
         UIViewController m_controller;
+        Dictionary<int, UIColor> m_row2color;
 
         int m_width = 240, m_height = 40;
         UIFont m_font = UIFont.SystemFontOfSize(15f);
 
-        int m_picSize = 20;
-        public int PicSize
-        {
-            set { m_picSize = value; }
-            get { return m_picSize; }
-        }
+        public int PicSize { get; set; } = 20;
 
-        UITextAlignment m_alignment = UITextAlignment.Center;
-        public UITextAlignment Alignment
-        {
-            set { m_alignment = value; }
-            get { return m_alignment; }
-        }
+        public UITextAlignment Alignment { get; set; } = UITextAlignment.Center;
+
+        public UIColor TextColor { get; set; } = UIColor.Black;
 
         public int SelectedRow { get; protected set; }
         public string SelectedText
@@ -43,7 +36,7 @@ namespace scripting.iOS
             }
         }
 
-        public int StringToRow(string text)
+        public int StringToRow(string text, int defaultRow = 0)
         {
             int result = m_names.FindIndex((obj) => obj.Equals(text));
             if (result < 0)
@@ -51,7 +44,7 @@ namespace scripting.iOS
                 text = text.Trim();
                 result = m_names.FindIndex((obj) => obj.Equals(text));
             }
-            return result < 0 ? 0 : result;
+            return result < 0 ? defaultRow : result;
         }
         public string RowToString(int row)
         {
@@ -59,9 +52,19 @@ namespace scripting.iOS
         }
 
         public RowSelectedDel RowSelected;
+
         public TypePickerViewModel(UIViewController vc)
         {
             m_controller = vc;
+        }
+
+        public void SetColor(int row, UIColor color)
+        {
+            if (m_row2color == null)
+            {
+                m_row2color = new Dictionary<int, UIColor>();
+            }
+            m_row2color[row] = color;
         }
 
         public List<string> Data
@@ -165,7 +168,7 @@ namespace scripting.iOS
 
                 if (m_pics != null)
                 {
-                    deltaX = m_picSize;
+                    deltaX = PicSize;
                     var xamImageView = new UIImageView(new CGRect(0, 2, deltaX, deltaX));
                     xamImageView.Image = m_pics[(int)row];
                     view.AddSubview(xamImageView);
@@ -176,7 +179,13 @@ namespace scripting.iOS
                     var textHeight = rowSize.Height;
                     var textEdit = new UITextView(new CGRect(deltaX + 1, 0, textWidth, textHeight));
                     textEdit.Editable = false;
-                    textEdit.TextColor = UIColor.Black;
+
+                    UIColor color;
+                    if (m_row2color == null || !m_row2color.TryGetValue((int)row, out color))
+                    {
+                        color = TextColor;
+                    }
+                    textEdit.TextColor = color;
                     textEdit.BackgroundColor = UIColor.Clear;
                     textEdit.Text = m_names[(int)row];
                     textEdit.Font = m_font;

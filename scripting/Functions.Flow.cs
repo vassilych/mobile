@@ -114,11 +114,13 @@ namespace SplitAndMerge
             CustomFunction custFunc = ParserFunction.GetFunction(functionName, script) as CustomFunction;
             Utils.CheckNotNull(functionName, custFunc, script);
 
+#if __ANDROID__ == false && __IOS__ == false
             CustomCompiledFunction comp = custFunc as CustomCompiledFunction;
             if (comp != null)
             {
                 return new Variable(comp.Precompiler.CSCode);
             }
+#endif
 
             string body = Utils.BeautifyScript(custFunc.Body, custFunc.Header);
             Utils.PrintScript(body, script);
@@ -399,8 +401,7 @@ namespace SplitAndMerge
             string varName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
             varName = Constants.ConvertName(varName);
 
-            bool result = ParserFunction.GetVariable(varName, script) != null ||
-                          ParserFunction.GetFunction(varName, script) != null;
+            bool result = ParserFunction.GetVariable(varName, script) != null;
             return new Variable(result);
         }
     }
@@ -1137,7 +1138,7 @@ namespace SplitAndMerge
 
             // 2b. Special dealings with arrays:
             Variable query = arrayIndices.Count > 0 ?
-                             Utils.ExtractArrayElement(currentValue, arrayIndices) :
+                             Utils.ExtractArrayElement(currentValue, arrayIndices, script) :
                              currentValue;
 
             // 3. Get the value to be looked for.
@@ -1383,7 +1384,7 @@ namespace SplitAndMerge
                 {
                 }
 
-                Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices);
+                Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices, script);
                 if (script.TryCurrent() != '.')
                 {
                     return result;
@@ -1433,7 +1434,7 @@ namespace SplitAndMerge
                 {
                 }
 
-                Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices);
+                Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices, script);
                 if (script.TryCurrent() != '.')
                 {
                     return result;
@@ -1522,7 +1523,7 @@ namespace SplitAndMerge
                     script.Forward(Math.Max(0, delta - tmpName.Length));
                 }
 
-                Variable element = Utils.ExtractArrayElement(currentValue, arrayIndices);
+                Variable element = Utils.ExtractArrayElement(currentValue, arrayIndices, script);
                 script.MoveForwardIf(Constants.END_ARRAY);
 
                 newValue = element.Value + returnDelta;
@@ -1563,7 +1564,7 @@ namespace SplitAndMerge
 
             if (arrayIndices.Count > 0)
             {// array element
-                left = Utils.ExtractArrayElement(currentValue, arrayIndices);
+                left = Utils.ExtractArrayElement(currentValue, arrayIndices, script);
                 script.MoveForwardIf(Constants.END_ARRAY);
             }
 
@@ -2100,7 +2101,7 @@ namespace SplitAndMerge
             // 2b. Special case for an array.
             if (arrayIndices.Count > 0)
             {// array element
-                element = Utils.ExtractArrayElement(currentValue, arrayIndices);
+                element = Utils.ExtractArrayElement(currentValue, arrayIndices, script);
                 script.MoveForwardIf(Constants.END_ARRAY);
             }
 

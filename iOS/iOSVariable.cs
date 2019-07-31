@@ -1198,6 +1198,12 @@ namespace scripting.iOS
             }
             else if (WidgetType == UIType.COMBOBOX)
             {
+                TypePickerViewModel model = m_picker.Model as TypePickerViewModel;
+                if (model == null)
+                {
+                    return false;
+                }
+
                 switch (arg1)
                 {
                     case "alignment":
@@ -1211,6 +1217,10 @@ namespace scripting.iOS
                     case "backgroundcolorbutton2":
                         m_button2.BackgroundColor = UtilsiOS.String2Color(arg2);
                         break;
+                    case "fontcolor":
+                        var color = UtilsiOS.String2Color(arg2);
+                        model.TextColor = color;
+                        break;
                     case "fontcolor2":
                         m_button2.SetTitleColor(UtilsiOS.String2Color(arg2), UIControlState.Normal);
                         break;
@@ -1218,7 +1228,16 @@ namespace scripting.iOS
                         m_button2.SetTitle(arg2 + "\t", UIControlState.Normal);
                         break;
                     default:
-                        SetComboboxText("", (int)val);
+                        double row;
+                        if (!Utils.CanConvertToDouble(arg1, out row) || row < 0)
+                        {
+                            row = model.StringToRow(arg1, -1);
+                        }
+                        if (row < 0)
+                        {
+                            return false;
+                        }
+                        model.SetColor((int)row, UtilsiOS.String2Color(arg2));
                         break;
                 }
                 if (string.IsNullOrEmpty(arg1) || arg1 == "value")

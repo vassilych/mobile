@@ -732,9 +732,7 @@ namespace scripting.iOS
 
             //m_chart.Title.Text = new NSString("Graph");
 
-            SFCategoryAxis primaryAxis = new SFCategoryAxis();
-            m_chart.PrimaryAxis = primaryAxis;
-            primaryAxis.LabelPlacement = SFChartLabelPlacement.BetweenTicks;
+            m_chart.PrimaryAxis   = new SFNumericalAxis();
             m_chart.SecondaryAxis = new SFNumericalAxis();
 
             ViewX = m_chart;
@@ -763,7 +761,10 @@ namespace scripting.iOS
                 {
                     string coord = data[i];
                     double value = Utils.ConvertToDouble(data[i + 1]);
-                    collection.Add(new DataPoint(coord, value));
+                    double x;
+                    DataPoint dp = Utils.CanConvertToDouble(coord, out x) ?
+                                   new DataPoint(x, value) : new DataPoint(coord, value);
+                    collection.Add(dp);
                 }
                 if (SfType == SyncFusionType.DOUGHNUT_GRAPH)
                 {
@@ -1042,13 +1043,18 @@ namespace scripting.iOS
                     case "secondary_axis":
                         m_chart.SecondaryAxis.Title.Text = (NSString)arg2;
                         break;
-                    case "x_min":
+                    case "string_axis":
+                        SFCategoryAxis catAxis = new SFCategoryAxis();
+                        catAxis.LabelPlacement = SFChartLabelPlacement.BetweenTicks;
+                        m_chart.PrimaryAxis    = catAxis;
+                        break;
+                    case "y_min":
                         numericalaxis.Minimum = new NSNumber(valueNum);
                         break;
-                    case "x_max":
+                    case "y_max":
                         numericalaxis.Maximum = new NSNumber(valueNum);
                         break;
-                    case "x_interval":
+                    case "y_interval":
                         numericalaxis.Interval = new NSNumber(valueNum);
                         break;
                     case "tooltip":
