@@ -12,7 +12,7 @@ namespace SplitAndMerge
         {
             NONE, NUMBER, STRING, ARRAY,
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME
         };
 
         public Variable()
@@ -38,6 +38,10 @@ namespace SplitAndMerge
         public Variable(string s)
         {
             String = s;
+        }
+        public Variable(DateTime dt)
+        {
+            DateTime = dt;
         }
         public Variable(List<Variable> a)
         {
@@ -112,6 +116,12 @@ namespace SplitAndMerge
                 }
 
                 newVar.Tuple = newTuple;
+
+                newVar.m_dictionary = new Dictionary<string, int>(m_dictionary);
+                newVar.m_keyMappings = new Dictionary<string, string>(m_keyMappings);
+                newVar.m_propertyStringMap = new Dictionary<string, string>(m_propertyStringMap);
+                newVar.m_propertyMap = new Dictionary<string, Variable>(m_propertyMap);
+                newVar.m_enumMap = m_enumMap == null ? null : new Dictionary<int, string>(m_enumMap);
             }
             return newVar;
         }
@@ -473,9 +483,23 @@ namespace SplitAndMerge
 
             return result;
         }
+        public DateTime AsDateTime()
+        {
+            return m_datetime;
+        }
 
         public override string ToString()
         {
+            return AsString();
+        }
+
+        public virtual string AsString(string format)
+        {
+            if (Type == VarType.DATETIME && !string.IsNullOrWhiteSpace(format))
+            {
+                return DateTime.ToString(format);
+            }
+
             return AsString();
         }
 
@@ -490,6 +514,10 @@ namespace SplitAndMerge
             if (Type == VarType.STRING)
             {
                 return m_string == null ? "" : m_string;
+            }
+            if (Type == VarType.DATETIME)
+            {
+                return DateTime.ToString();
             }
             if (Type == VarType.OBJECT)
             {
@@ -526,7 +554,7 @@ namespace SplitAndMerge
                 count = maxCount < 0 ? m_dictionary.Count : Math.Min(maxCount, m_dictionary.Count);
                 foreach (KeyValuePair<string, int> entry in m_dictionary)
                 {
-                    if (entry.Value >= 0 || entry.Value < m_tuple.Count)
+                    if (entry.Value >= 0 && entry.Value < m_tuple.Count)
                     {
                         string value = m_tuple[entry.Value].AsString(isList, sameLine, maxCount);
                         string realKey = entry.Key;
@@ -541,6 +569,10 @@ namespace SplitAndMerge
                         {
                             break;
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error condition: dictionary value {0} out of bounds {1}", entry.Value, m_tuple.Count);
                     }
                 }
             }
@@ -982,11 +1014,15 @@ namespace SplitAndMerge
                 {
                     Value += var.AsDouble();
                 }
+                else if (Type == VarType.DATETIME)
+                {
+                    DateTime = DateTimeFunction.Add(DateTime, var.AsString());
+                }
                 else
                 {
                     String += var.AsString();
                 }
-                return var;
+                return this;
             }
             else if (script != null && propName.Equals(Constants.REMOVE_AT, StringComparison.OrdinalIgnoreCase))
             {
@@ -1011,6 +1047,11 @@ namespace SplitAndMerge
 
                 int removed = RemoveItem(oldVal);
                 return new Variable(removed);
+            }
+            else if (script != null && propName.Equals(Constants.DEEP_COPY, StringComparison.OrdinalIgnoreCase))
+            {
+                script.GetFunctionArgs();
+                return DeepClone();
             }
             else if (script != null && propName.Equals(Constants.AT, StringComparison.OrdinalIgnoreCase))
             {
@@ -1293,6 +1334,12 @@ namespace SplitAndMerge
             set { m_object = value; Type = VarType.OBJECT; }
         }
 
+        public DateTime DateTime
+        {
+            get { return m_datetime; }
+            set { m_datetime = value; Type = VarType.DATETIME; }
+        }
+
         public List<Variable> Tuple
         {
             get { return m_tuple; }
@@ -1316,6 +1363,7 @@ namespace SplitAndMerge
         double m_value;
         string m_string;
         object m_object;
+        DateTime m_datetime;
         List<Variable> m_tuple;
         Dictionary<string, int> m_dictionary = new Dictionary<string, int>();
         Dictionary<string, string> m_keyMappings = new Dictionary<string, string>();
@@ -1323,6 +1371,8 @@ namespace SplitAndMerge
 
         Dictionary<string, Variable> m_propertyMap = new Dictionary<string, Variable>();
         Dictionary<int, string> m_enumMap;
+
+        //Dictionary<string, Func<ParsingScript, Variable, string, Variable>> m_properties = new Dictionary<string, Func<ParsingScript, Variable, string, Variable>>();
     }
 
     // A Variable supporting "dot-notation" must have an object implementing this interface.

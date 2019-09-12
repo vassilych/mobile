@@ -309,17 +309,7 @@ namespace SplitAndMerge
         protected override Variable Evaluate(ParsingScript script)
         {
             string filename = Utils.GetItem(script).AsString();
-            string[] lines;
-#if __ANDROID__
-            Android.Content.Res.AssetManager assets = scripting.Droid.MainActivity.TheView.Assets;
-            using (StreamReader sr = new StreamReader(assets.Open(filename)))
-            {
-                string contents = sr.ReadToEnd();
-                lines = contents.Split("\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            }
-#else
-            lines = Utils.GetFileLines(filename);
-#endif
+            string[] lines = Utils.GetFileLines(filename);
 
             List<Variable> results = Utils.ConvertToResults(lines);
 
@@ -843,20 +833,5 @@ namespace SplitAndMerge
 
             return elapsed >= 0 ? new Variable(elapsed) : new Variable(elapsedStr);
         }
-    }
-
-    class GetVariableFromJSONNewtonsoftFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name);
-
-            string json = args[0].AsString();
-
-            Variable newVariable = Utils.CreateVariableFromJsonString(json);
-            return newVariable;
-        }
-
     }
 }

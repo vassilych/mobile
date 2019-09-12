@@ -79,6 +79,7 @@ namespace SplitAndMerge
         public const string CONTAINS = "contains";
         public const string COS = "cos";
         public const string CURRENT_PATH = "CurrentPath";
+        public const string DATE_TIME = "DateTime";
         public const string DEEP_COPY = "DeepCopy";
         public const string DEFINE_LOCAL = "DefineLocal";
         public const string ENV = "env";
@@ -188,6 +189,8 @@ namespace SplitAndMerge
         // Actions: always decreasing by the number of characters.
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
+        public static string[] CORE_OPERATORS = (new List<string> { TRY, FOR, WHILE }).ToArray();
+
         public static char[] TERNARY_SEPARATOR = { ':' };
         public static char[] NEXT_ARG_ARRAY = NEXT_ARG.ToString().ToCharArray();
         public static char[] END_ARG_ARRAY = END_ARG.ToString().ToCharArray();
@@ -242,9 +245,10 @@ namespace SplitAndMerge
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
         };
+
         public static List<string> ARITHMETIC_EXPR = new List<string>
         {
-            "*", "*=" , "+", "+=" , "-", "-=", "/", "/="
+            "*", "*=" , "+", "+=" , "-", "-=", "/", "/=", "%", "%=", ">", "<", ">=", "<="
         };
 
         public static string STATEMENT_SEPARATOR = ";{}";

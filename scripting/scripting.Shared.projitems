@@ -42,6 +42,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SfDataModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Precompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomClasses.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SQLLite.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />
@@ -61,10 +62,6 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\test2.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\combobox.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\transparent.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\start.cscs" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\test.cscs" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\gui.cscs" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\dictionary.txt" />
     <None Include="$(MSBuildThisFileDirectory)Resources\utilFunctions.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\unitTests.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\unitTest.cscs" />
@@ -86,6 +83,7 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\cscs.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\busyIndicators.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\ads.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\remote.cscs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

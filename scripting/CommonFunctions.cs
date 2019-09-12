@@ -143,6 +143,8 @@ namespace scripting
 
             ParserFunction.RegisterFunction("RunOnMain", new RunOnMainFunction());
             ParserFunction.RegisterFunction("PrintConsole", new PrintConsoleFunction());
+
+            SQLLite.Init();
         }
 
         public static void RunScript(string fileName)
