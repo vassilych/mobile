@@ -125,9 +125,8 @@ namespace SplitAndMerge
 
         public static Variable GetAction(string funcName, string senderName, string eventArg)
         {
-            Variable result = CustomFunction.Run(funcName, new Variable(senderName), new Variable(eventArg)).Result;
-
-            return result;
+            var task = CustomFunction.Run(funcName, new Variable(senderName), new Variable(eventArg));
+            return task == null ? Variable.EmptyInstance : task.Result;
         }
     }
 }

@@ -251,6 +251,32 @@
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-58.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-29.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-87.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-1125%403x~iphoneX-portrait_1125x2436.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-2436%403x~iphoneX-landscape_2436x1125.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-1242%403x~iphone6s-landscape_2208x1242.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-828%402x~iphoneXr-portrait_828x1792.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-1242%403x~iphoneXsMax-portrait_1242x2688.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-2688%403x~iphoneXsMax-landscape_2688x1242.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-1792%402x~iphoneXr-landscape_1792x828.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\LaunchImage-Portrait%402x~ipad_2048x2732.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs60-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-87-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs40-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-58-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs120-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs80-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs120-2.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs180-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs20-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs40-2.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-29-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-58-2.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-marketing-1024x1024.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs40-3.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\cscs80-2.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-76-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-152-1.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-167-1.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />

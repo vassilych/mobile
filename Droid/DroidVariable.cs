@@ -76,114 +76,118 @@ namespace scripting.Droid
       m_viewX = MainActivity.CreateViewLayout(width, height, refView?.ViewLayout);
     }
 
-    public virtual DroidVariable GetWidget(string widgetType, string widgetName, string initArg,
-                                           int width, int height)
-    {
-      UIVariable.UIType type = UIVariable.UIType.NONE;
-      View widget = null;
-      switch (widgetType) {
-        case "View":
-          type = UIVariable.UIType.VIEW;
-          widget = new View(MainActivity.TheView);
-          break;
-        case "Button":
-          type = UIVariable.UIType.BUTTON;
-          widget = new Button(MainActivity.TheView);
-          ((Button)widget).SetTextColor(Color.Black);
-          ((Button)widget).Text = initArg;
-          UtilsDroid.AddViewBorder(widget, Color.Black);
-          break;
-        case "TextView":
-          type = UIVariable.UIType.TEXT_VIEW;
-          widget = new TextView(MainActivity.TheView);
-          ((TextView)widget).SetTextColor(Color.Black);
-          ((TextView)widget).Text = initArg;
-          ((TextView)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
-          ((TextView)widget).TextAlignment = TextAlignment.TextStart;
-          ((TextView)widget).MovementMethod = new ScrollingMovementMethod();
-          ((TextView)widget).VerticalScrollBarEnabled = true;
-          ((TextView)widget).HorizontalScrollBarEnabled = true;
-          //((TextView)widget).SetMaxLines(40);
-          //((TextView)widget).ScrollBarStyle = ScrollbarStyles.OutsideOverlay;
-          //((TextView)widget).ScrollBarSize = 2;
-          break;
-        case "Label":
-          type = UIVariable.UIType.LABEL;
-          widget = new TextView(MainActivity.TheView);
-          ((TextView)widget).SetTextColor(Color.Black);
-          ((TextView)widget).Text = initArg;
-          ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
-          break;
-        case "TextEdit":
-          type = UIVariable.UIType.TEXT_FIELD;
-          widget = new EditText(MainActivity.TheView);
-          ((EditText)widget).SetTextColor(Color.Black);
-          ((EditText)widget).Hint = initArg;
-          break;
-        case "TextEditView":
-          type = UIVariable.UIType.EDIT_VIEW;
-          widget = new EditText(MainActivity.TheView);
-          ((EditText)widget).SetTextColor(Color.Black);
-          ((EditText)widget).Hint = initArg;
-          ((EditText)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
-          ((EditText)widget).TextAlignment = TextAlignment.TextStart;
-          ((EditText)widget).MovementMethod = new ScrollingMovementMethod();
-          ((EditText)widget).VerticalScrollBarEnabled = true;
-          ((EditText)widget).HorizontalScrollBarEnabled = true;
-          break;
-        case "ImageView":
-          type = UIVariable.UIType.IMAGE_VIEW;
-          widget = new ImageView(MainActivity.TheView);
-          if (!string.IsNullOrWhiteSpace(initArg)) {
-            int resourceID = MainActivity.String2Pic(initArg);
-            widget.SetBackgroundResource(resourceID);
-          }
-          break;
-        case "Combobox":
-          type = UIVariable.UIType.COMBOBOX;
-          widget = new Spinner(MainActivity.TheView);
-          ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
-          break;
-        case "TypePicker":
-          type = UIVariable.UIType.PICKER_VIEW;
-          widget = new NumberPicker(MainActivity.TheView);
-          // Don't show the cursor on the picker:
-          ((NumberPicker)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
-          break;
-        case "Picker":
-          type = UIVariable.UIType.PICKER_IMAGES;
-          widget = new Spinner(MainActivity.TheView);
-          // Don't show the cursor on the picker:
-          ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
-          break;
-        case "ListView":
-          type = UIVariable.UIType.LIST_VIEW;
-          widget = new ListView(MainActivity.TheView);
-          // Don't show the cursor on the list view:
-          ((ListView)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
-          break;
-        case "Switch":
-          type = UIVariable.UIType.SWITCH;
-          widget = new Switch(MainActivity.TheView);
-          break;
-        case "SegmentedControl":
-          type = UIVariable.UIType.SEGMENTED;
-          widget = new Switch(MainActivity.TheView);
-          break;
-        case "Slider":
-          type = UIVariable.UIType.SLIDER;
-          widget = new SeekBar(MainActivity.TheView);
-          break;
-        case "Stepper":
-          type = UIVariable.UIType.STEPPER;
-          widget = new View(MainActivity.TheView);
-          break;
-      }
+        public virtual DroidVariable GetWidget(string widgetType, string widgetName, string initArg,
+                                               int width, int height)
+        {
+            UIVariable.UIType type = UIVariable.UIType.NONE;
+            View widget = null;
+            switch (widgetType)
+            {
+                case "View":
+                    type = UIVariable.UIType.VIEW;
+                    widget = new View(MainActivity.TheView);
+                    break;
+                case "Button":
+                    type = UIVariable.UIType.BUTTON;
+                    widget = new Button(MainActivity.TheView);
+                    ((Button)widget).SetTextColor(Color.Black);
+                    ((Button)widget).Text = initArg;
+                    UtilsDroid.AddViewBorder(widget, Color.Black);
+                    break;
+                case "TextView":
+                    type = UIVariable.UIType.TEXT_VIEW;
+                    widget = new TextView(MainActivity.TheView);
+                    ((TextView)widget).SetTextColor(Color.Black);
+                    ((TextView)widget).Text = initArg;
+                    ((TextView)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
+                    ((TextView)widget).TextAlignment = TextAlignment.TextStart;
+                    ((TextView)widget).MovementMethod = new ScrollingMovementMethod();
+                    ((TextView)widget).VerticalScrollBarEnabled = true;
+                    ((TextView)widget).HorizontalScrollBarEnabled = true;
+                    //((TextView)widget).SetMaxLines(40);
+                    //((TextView)widget).ScrollBarStyle = ScrollbarStyles.OutsideOverlay;
+                    //((TextView)widget).ScrollBarSize = 2;
+                    break;
+                case "Label":
+                    type = UIVariable.UIType.LABEL;
+                    widget = new TextView(MainActivity.TheView);
+                    ((TextView)widget).SetTextColor(Color.Black);
+                    ((TextView)widget).Text = initArg;
+                    ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
+                    break;
+                case "TextEdit":
+                    type = UIVariable.UIType.TEXT_FIELD;
+                    widget = new EditText(MainActivity.TheView);
+                    ((EditText)widget).SetTextColor(Color.Black);
+                    ((EditText)widget).Hint = initArg;
+                    break;
+                case "TextEditView":
+                    type = UIVariable.UIType.EDIT_VIEW;
+                    widget = new EditText(MainActivity.TheView);
+                    ((EditText)widget).SetTextColor(Color.Black);
+                    ((EditText)widget).Hint = initArg;
+                    ((EditText)widget).Gravity = GravityFlags.Top | GravityFlags.Left;
+                    ((EditText)widget).TextAlignment = TextAlignment.TextStart;
+                    ((EditText)widget).MovementMethod = new ScrollingMovementMethod();
+                    ((EditText)widget).VerticalScrollBarEnabled = true;
+                    ((EditText)widget).HorizontalScrollBarEnabled = true;
+                    break;
+                case "ImageView":
+                    type = UIVariable.UIType.IMAGE_VIEW;
+                    widget = new ImageView(MainActivity.TheView);
+                    if (!string.IsNullOrWhiteSpace(initArg))
+                    {
+                        int resourceID = MainActivity.String2Pic(initArg);
+                        widget.SetBackgroundResource(resourceID);
+                    }
+                    break;
+                case "Combobox":
+                    type = UIVariable.UIType.COMBOBOX;
+                    widget = new Spinner(MainActivity.TheView);
+                    ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+                    break;
+                case "TypePicker":
+                    type = UIVariable.UIType.PICKER_VIEW;
+                    widget = new NumberPicker(MainActivity.TheView);
+                    // Don't show the cursor on the picker:
+                    ((NumberPicker)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+                    break;
+                case "Picker":
+                    type = UIVariable.UIType.PICKER_IMAGES;
+                    widget = new Spinner(MainActivity.TheView);
+                    // Don't show the cursor on the picker:
+                    ((Spinner)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+                    break;
+                case "ListView":
+                    type = UIVariable.UIType.LIST_VIEW;
+                    widget = new ListView(MainActivity.TheView);
+                    // Don't show the cursor on the list view:
+                    ((ListView)widget).DescendantFocusability = DescendantFocusability.BlockDescendants;
+                    break;
+                case "Switch":
+                    type = UIVariable.UIType.SWITCH;
+                    widget = new Switch(MainActivity.TheView);
+                    break;
+                case "SegmentedControl":
+                    type = UIVariable.UIType.SEGMENTED;
+                    widget = new Switch(MainActivity.TheView);
+                    break;
+                case "Slider":
+                    type = UIVariable.UIType.SLIDER;
+                    widget = new SeekBar(MainActivity.TheView);
+                    break;
+                case "Stepper":
+                    type = UIVariable.UIType.STEPPER;
+                    widget = new View(MainActivity.TheView);
+                    break;
+            }
 
-      DroidVariable widgetFunc = new DroidVariable(type, widgetName, widget);
-      SetValues(widgetFunc, initArg);
-      return widgetFunc;
-    }
+            DroidVariable widgetFunc = new DroidVariable(type, widgetName, widget);
+            widgetFunc.AddAction(widgetName, widgetName + "_click");
+
+            SetValues(widgetFunc, initArg);
+            return widgetFunc;
+        }
 
     public virtual void AdjustTranslation(DroidVariable location, bool isX, bool sameWidget = true)
     {

@@ -1,38 +1,27 @@
-﻿AutoScale();
-SetBackgroundColor("cyan");
-
-clicks = 0;
-WriteConsole("clicks=", clicks);
-
-locClickme = GetLocation("ROOT", "CENTER", "ROOT", "CENTER");
-AddButton(locClickme, "buttonClickme", "Click me", 200, 80);
-AddAction(buttonClickme,  "clickme_click");
-SetFontSize(buttonClickme, 12);
-
-locVersionLabel = GetLocation(buttonClickme, "ALIGN_LEFT", buttonClickme, "TOP");
-AddLabel(locVersionLabel, "versionLabel", "", 360, 60);
-SetFontSize(versionLabel, 12);
-
-locSizeLabel = GetLocation(buttonClickme, "CENTER", buttonClickme, "BOTTOM");
-AddLabel(locSizeLabel, "sizeLabel", "", 360, 60);
-SetFontSize(sizeLabel, 10);
-
-locOrientationLabel = GetLocation(buttonClickme, "RIGHT", buttonClickme, "CENTER");
-AddLabel(locOrientationLabel, "orientationLabel", "", 160, 80);
-SetFontSize(orientationLabel, 10);
-
-function clickme_click(sender, arg) {
-  clicks++;
-  if (clicks == 1) {
-    SetText(versionLabel, "Hello, " + _DEVICE_INFO_ + ", " +
-                          _VERSION_INFO_, "left");
-  } elif (clicks == 2) {
-    SetText(sizeLabel, "Size: " + DisplayWidth + "x" + DisplayHeight +
-                       ". Locale: " + GetDeviceLocale(), "center");
-  } elif (clicks == 3) {
-    SetText(orientationLabel, "Orientation: " + Orientation, "center");
-  } else {
-    SetText(buttonClickme, "Clicks: " + clicks, "center");
-  }
+﻿/*if (!SQLDBExists("cscsdemo.db1")) {
+  create="CREATE TABLE [Items] (Id integer, Symbol ntext);";
+  SQLNonQuery(create);
 }
+SQLInit("cscsdemo.db1");
 
+query = "SELECT * FROM Items";
+SQLQuery(query);
+
+data = {3, "MSFT"}; 
+SQLInsert("Items", "id,Symbol", data);
+
+*/
+AutoScale();
+SetBackgroundColor("light_green");
+
+locTextEdit = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
+AddTextEdit(locTextEdit, "textEdit", "Your name", 320, 80);
+
+locButton = GetLocation(textEdit, "RIGHT", textEdit, "CENTER", 10);
+AddButton(locButton, "buttonHi", "Hello", 160, 80);
+
+function buttonHi_click(sender, arg) {
+  name = getText(textEdit);
+  msg = name != "" ? "Hello, " + name + "!" : "Hello, World!";
+  AlertDialog("My Great App", msg);
+}

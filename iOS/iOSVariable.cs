@@ -168,6 +168,8 @@ namespace scripting.iOS
             if (widgetFunc == null)
             {
                 widgetFunc = new iOSVariable(type, widgetName, widget);
+                widgetFunc.AddAction(widgetName, widgetName + "_click");
+
             }
             //iOSVariable widgetFunc = new iOSVariable(type, widgetName, widget);
             SetValues(widgetFunc, initArg);
