@@ -1,5 +1,6 @@
 ﻿using System;
 using SplitAndMerge;
+using System.Collections.Generic;
 
 #if __ANDROID__
 using scripting.Droid;
@@ -31,6 +32,7 @@ namespace scripting
             ParserFunction.RegisterFunction("AddSfStepper", new AddWidgetFunction("SfStepper"));
             ParserFunction.RegisterFunction("AddSfBusyIndicator", new AddWidgetFunction("SfBusyIndicator"));
             ParserFunction.RegisterFunction("AddSfSplineGraph", new AddWidgetFunction("SfSplineGraph"));
+            ParserFunction.RegisterFunction("AddSfColumnGraph", new AddWidgetFunction("SfColumnGraph"));
             ParserFunction.RegisterFunction("AddSfDoughnutGraph", new AddWidgetFunction("SfDoughnutGraph"));
             ParserFunction.RegisterFunction("AddSfCalendar", new AddWidgetFunction("SfCalendar"));
             ParserFunction.RegisterFunction("AddSfAppointment", new AddAppointmentFunction());
@@ -66,7 +68,23 @@ namespace scripting
             ParserFunction.RegisterFunction("SfSetPdfFont", new SetPdfFont());
             ParserFunction.RegisterFunction("SfSavePdf", new SavePdf());
 
+            ParserFunction.RegisterFunction("InitSyncfusion", new SyncfusionInitFunction());
+            ParserFunction.RegisterFunction("Login", new Proxy.LoginFunction());
+            ParserFunction.RegisterFunction("GetDataFromServer", new Proxy.GetServerDataFunction());
+            ParserFunction.RegisterFunction("AddOrderedData", new Proxy.AddOrderedDataFunction());
             CommonFunctions.RunScript(fileName);
+        }
+    }
+    internal class SyncfusionInitFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+
+            string licenseKey = Utils.GetSafeString(args, 0, "OTU1OTRAMzEzNzJlMzEyZTMwQ29abC8wTnI5eVUvM3d2Skt1TmJSZGFzd1pxZ3RtK3NOWldNTU8vdU1ETT0=");
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(licenseKey);
+
+            return Variable.EmptyInstance;
         }
     }
 }

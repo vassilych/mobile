@@ -228,6 +228,9 @@
       <HintPath>..\packages\Syncfusion.Xamarin.DocIO.16.1.0.26\lib\Xamarin.iOS10\Syncfusion.DocIO.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Data.Sqlite" />
+    <Reference Include="Syncfusion.Licensing">
+      <HintPath>..\packages\Syncfusion.Licensing.17.2.0.51\lib\Xamarin.iOS10\Syncfusion.Licensing.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -2106,9 +2109,6 @@
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\tooth.png">
       <Link>Resources\drawable\tooth.png</Link>
-    </BundleResource>
-    <BundleResource Include="..\scripting\Resources\drawable\brain.png">
-      <Link>Resources\drawable\brain.png</Link>
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\parents.png">
       <Link>Resources\drawable\parents.png</Link>
@@ -4979,6 +4979,45 @@
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\remote.cscs">
       <Link>Resources\remote.cscs</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\dividends2.png">
+      <Link>Resources\drawable\dividends2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\dividends.png">
+      <Link>Resources\drawable\dividends.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\connect.png">
+      <Link>Resources\drawable\connect.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\brain_act.png">
+      <Link>Resources\drawable\brain_act.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\about.png">
+      <Link>Resources\drawable\about.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\brain2.png">
+      <Link>Resources\drawable\brain2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\USD.png">
+      <Link>Resources\drawable\USD.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\vola.png">
+      <Link>Resources\drawable\vola.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\vola2.png">
+      <Link>Resources\drawable\vola2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\EUR.png">
+      <Link>Resources\drawable\EUR.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\GBP.png">
+      <Link>Resources\drawable\GBP.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\CHF.png">
+      <Link>Resources\drawable\CHF.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\refresh.png">
+      <Link>Resources\drawable\refresh.png</Link>
     </BundleResource>
   </ItemGroup>
   <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />

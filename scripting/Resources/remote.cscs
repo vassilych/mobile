@@ -1,0 +1,710 @@
+﻿Version      = "0.0.1";
+data         = {};
+prices       = {};
+dividends    = {};
+expDividends = {};
+stockData    = {};
+keys         = {};
+
+volaData     = {};
+volas        = {};
+selVolas     = {};
+unselVolas   = {};
+dates        = {};
+stock        = "";
+isin         = "";
+loggedIn     = false;
+busy         = false;
+busyIndex    = 0;
+busyOptions  = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe", "pulsing",
+                "movie", "print", "rectangle", "rollingball", "singlecircle", "slicedcircle", "zooming"};
+
+graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
+                "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
+                "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue"};
+prevSelection = "";
+
+InitSyncfusion();
+AutoScale(1.0);
+
+function makeBusy() {
+  makeUnbusy();
+  locBusy = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -300);
+  AddSfBusyIndicator(locBusy, "BusyIndicator", "", busySize, busySize);
+  
+  if (++busyIndex >= busyOptions.size) {
+    busyIndex = 0;
+  }
+  busyType = busyOptions[busyIndex];
+  SetValue(BusyIndicator, "type",  busyType);
+  SetValue(BusyIndicator, "color", "blue");
+  SetValue(BusyIndicator, "secondary_color", "red");
+  //SetValue(BusyIndicator, "duration", stepperValue);
+  busy = true;
+}
+
+function makeUnbusy() {
+  if (NameExists(BusyIndicator)) {
+    RemoveView(BusyIndicator);
+  }
+  busy = false;
+}
+
+function tabSelected(sender, arg) {
+  printConsole("tabSelected :" + arg);
+  if (busy || (stock == "" && arg < numberTabs - 1)) {
+    return;
+  }
+  if (arg == 1) {
+    createGraphs();
+  } elif (arg == 2) {
+    makeBusy();
+    GetDataFromServer("dividends", stock, "fillDividendsData");
+  } elif (arg == 3) {
+    makeBusy();
+    GetDataFromServer("volas", stock, "fillVolasData");
+  }
+}
+
+function aboutUs(sender, arg) {
+  deviceInfo    = _DEVICE_INFO_;
+  deviceVersion = _VERSION_INFO_;
+  AlertDialog("TrueDividends.com", "Version " + Version + "\n" +
+               deviceInfo + ": " + deviceVersion);
+}
+
+function connect(sender, arg) {
+  makeBusy();
+  username = GetText(textLogin);
+  password = GetText(textPassword);
+  
+  loggedIn = Login(username, password, "onConnect");
+}
+
+function onConnect(sender, arg) {
+  if (arg == "OK") {
+    connectionSuccess();
+    GetDataFromServer("stocks", "", "fillStocks");
+  } else {
+    SetText(labelStatus,  "Status: Disconnected");
+    SetFontColor(labelStatus, "red");
+    AlertDialog("TrueDividends.com", arg);
+    makeUnbusy();
+  }
+}
+
+function fillStocks(sender, arg) {
+  tabId = 0;
+  SelectTab(tabId);
+  
+  stocks    = {};
+  stocks.Add("Select Stock");
+  stockData = arg.Split("!");
+  for (item : stockData) {
+    parts = item.Split('|');
+    if (parts.Size < 9) {
+      continue;
+    }
+    stock         = parts[0];
+    stockName     = parts[1];
+    price         = Round(Double(parts[2]), 4);
+    prices[stock] = parts[4] + " " + price;
+    avail         = parts[8] == "True";
+    printConsole(item + ": " + avail);
+    displayName   = stockName == "" ? stock : stock + " - " + stockName;
+    displayName   += avail ? "" : " *";
+    stocks.Add(displayName);
+  }
+  
+  //locStocksLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
+  //AddLabel(locStocksLab, "labelStocks", "Stocks:", 100, 60);
+  //SetFontSize(labelStocks, fontSizeSm);
+
+  locComboStocks = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);
+  AddCombobox(locComboStocks, "allStocksWidget", "", 480, 60);
+  AddWidgetData(allStocksWidget, stocks, "stockSelected", "left");
+  SetFontSize(allStocksWidget, 14);
+  SetValue(allStocksWidget, "alignment", "center");
+
+  AddAction(allStocksWidget, "stockSelected");
+
+  makeUnbusy();
+}
+
+function stockSelected(sender, arg) {
+  if (arg.contains("Select") || prevSelection == arg) {
+    return;
+  }
+  prevSelection = arg;
+
+  makeBusy();
+  parts = arg.Split(' ');
+  stock = parts.First;
+  GetDataFromServer("optionprices", stock, "fillStockData");
+}
+
+function getBestData(stockData, pattern) {
+  keys = stockData.keys;
+  maxSize1 = maxSize2 = maxSize3 = maxSize4 = 0;
+  maxKey1  = maxKey2  = maxKey3  = maxKey4  = "";
+  for (key : keys) {
+    if (!key.Contains(pattern)) {
+      continue;
+    }
+    currentSize = stockData[key].size;
+    if (currentSize > maxSize1) {
+      if (maxSize1 > 0) {
+        maxSize2 = maxSize1;
+        maxKey2  = maxKey1;
+      }
+      maxSize1 = currentSize;
+      maxKey1  = key;
+    } elif (currentSize > maxSize2) {
+      if (maxSize2 > 0) {
+        maxSize3 = maxSize2;
+        maxKey3  = maxKey2;
+      }
+      maxSize2 = currentSize;
+      maxKey2  = key;
+    } elif (currentSize > maxSize3) {
+      if (maxSize3 > 0) {
+        maxSize4 = maxSize3;
+        maxKey4  = maxKey3;
+      }
+      maxSize3 = currentSize;
+      maxKey3  = key;
+    } elif (currentSize > maxSize4) {
+      maxSize4 = currentSize;
+      maxKey4  = key;
+    }
+  }
+  PrintConsole(pattern, "maxKeys:", maxKey1, maxKey2, maxKey3, maxKey4, "Size:", maxSize1, maxSize2, maxSize3, maxSize4);
+  result = {maxKey1, maxKey2, maxKey3, maxKey4};
+  //result = {maxKey1};
+  return result.Sort();
+} 
+
+function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
+                     primary_axis = "Strike", secondary_axis = "Price") {
+  AddSfSplineGraph(locSFGraph, graphName, "", graphWidth, graphHeight);
+
+  colorIndex = -1;
+  for (key : keys) {
+    if (++colorIndex >= graphColors.size) {
+      colorIndex = 0;
+    }
+    addDataToGraph(graphName, stockData, key, graphColors[colorIndex]);
+  }
+
+  /*if (keys.Size > 0) {
+    addDataToGraph(graphName, stockData, keys[0], "green:green");
+  }
+  if (keys.Size > 1) {
+    addDataToGraph(graphName, stockData, keys[1], "yellow:yellow");
+  }
+  if (keys.Size > 2) {
+    addDataToGraph(graphName, stockData, keys[2], "red:red");
+  }
+  if (keys.Size > 3) {
+    addDataToGraph(graphName, stockData, keys[3], "blue:blue");
+  }*/
+  
+  SetText(graphName,  graphTitle);
+  SetValue(graphName, "primary_axis",   primary_axis);
+  SetValue(graphName, "secondary_axis", secondary_axis);
+  
+  setToolTip(graphName, 100, 50, "yellow", "purple", 12, "coins", 30, 50,
+     primary_axis + ": ", secondary_axis + ": ");
+}
+
+function setToolTip(graphName, width=100, height=50,
+                    bgcolor="orange", fgcolor="dark_blue", fontSize=11,
+                    image="", imageWidth=30, imageHeight=50,
+                    xPrefix = "", yPrefix = "") {
+  SetValue(graphName, "tooltip", width + ":" + height);
+  SetValue(graphName, "tooltip_bgcolor", bgcolor);
+  SetValue(graphName, "tooltip_font", fgcolor + ":" + fontSize);
+  
+  if (image != "") {
+    SetValue(graphName, "tooltip_image", "coins");
+    SetValue(graphName, "tooltip_image_size", imageWidth + ":" + imageHeight);
+  }
+  if (xPrefix != "") {
+    SetValue(graphName, "tooltip_xprefix", xPrefix);
+  }
+  if (yPrefix != "") {
+    SetValue(graphName, "tooltip_yprefix", yPrefix);
+  }
+}
+
+function addDataToGraph(graphName, graphData, key, colors) {
+  if (key == "") {
+    return;
+  }
+  chartData = graphData[key];
+  parts = key.Split('_');
+  dataTitle = parts.Last;
+  AddWidgetData(graphName, chartData, dataTitle, colors);
+}
+
+function createGraphs() {
+  if (NameExists(SplineGraph1)) {
+    RemoveView(SplineGraph1);
+  }
+  if (NameExists(SplineGraph2)) {
+    RemoveView(SplineGraph2);
+  }
+  if (stock == "" || !data.Contains(stock)) {
+    return;
+  }
+  
+  stockData = data[stock];
+  //PrintConsole(stockData);
+  
+  keys = getBestData(stockData, "_C_");
+  if (keys[0] == "") {
+    return;
+  }
+  
+  lastPriceMsg = stock + " (ATM " + prices[stock] + ")";
+  
+  locSFGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 8);
+  createGraph(locSFGraph1, "SplineGraph1", "Call Options " + lastPriceMsg, stockData, keys);
+  
+  keys = getBestData(stockData, "_P_");
+  if (keys[0] == "") {
+    return;
+  }
+  
+  locSFGraph2 = GetLocation("ROOT", "CENTER", SplineGraph1, "BOTTOM", 0, 0);
+  createGraph(locSFGraph2, "SplineGraph2", "Put Options " + lastPriceMsg, stockData, keys);
+}
+
+function fillVolasData(sender, arg) {
+  if (NameExists(VolaGraph1)) {
+    RemoveView(VolaGraph1);
+  }  if (NameExists(VolaGraph2)) {
+    RemoveView(VolaGraph2);
+  }
+  if (NameExists(volasWidget)) {
+    RemoveView(volasWidget);
+  }
+  
+  volaData     = {};
+  selVolas     = {};
+  unselVolas   = {};
+  volas[stock] = arg;
+  PrintConsole("fillVolasData ", stock, ":", arg);
+  //CH0012221716|19.2000007629395|0.204589992761612|2019-06-21|2019-05-22   CH0012221716|22|0.234862998127937|2019-06-21|2019-05-22 CH0012221716|32|0.716309010982513|2019-06-21|2019-05-22 CH0012221716|21|0.219237998127937|2019-06-21|2019-05-22 CH0012221716|18.5|0.215332001447678|2019-06-21|2019-05-22   CH0012221716|22.5|0.267089992761612|2019-06-21|2019-05-22   CH0012221716|19.7999992370605|0.203612998127937|2019-06-21|2019-05-22   CH0012221716|17.3999996185303|0.255371004343033|2019-06-21|2019-05-22   CH0012221716|21.5|0.246582001447678|2019-06-21|2019-05-22   CH0012221716|17.6000003814697|0.252440989017487|2019-06-21|2019-05-22   CH0012221716|30|0.638184010982513|2019-06-21|2019-05-22 CH0012221716|20.5|0.204589992761612|2019-06-21|2019-05-22   CH0012221716|17.5|0.254395008087158|2019-06-21|2019-05-22   CH0012221716|19.6000003814697|0.197753995656967|2019-06-21|2019-05-22   CH0012221716|17.2000007629395|0.266113013029099|2019-06-21|2019-05-22   CH0012221716|29|0.597168028354645|2019-06-21|2019-05-22 CH0012221716|20|0.196777001023293|2019-06-21|2019-05-22 CH0012221716|16.5|0.285645008087158|2019-06-21|2019-05-22   CH0012221716|19.3999996185303|0.201660007238388|2019-06-21|2019-05-22   CH0012221716|16.7999992370605|0.278809010982513|2019-06-21|2019-05-22   CH0012221716|28|0.553223013877869|2019-06-21|2019-05-22 CH0012221716|19|0.206542998552322|2019-06-21|2019-05-22 CH0012221716|16.6000003814697|0.298339992761612|2019-06-21|2019-05-22   CH0012221716|27|0.507323980331421|2019-06-21|2019-05-22 CH0012221716|18|0.233887001872063|2019-06-21|2019-05-22 CH0012221716|24.5|0.382324010133743|2019-06-21|2019-05-22   CH0012221716|23.5|0.326660007238388|2019-06-21|2019-05-22   CH0012221716|18.7999992370605|0.208496004343033|2019-06-21|2019-05-22   CH0012221716|16.3999996185303|0.295410007238388|2019-06-21|2019-05-22   CH0012221716|26|0.459473013877869|2019-06-21|2019-05-22 CH0012221716|17|0.273925989866257|2019-06-21|2019-05-22 CH0012221716|19.5|0.200683996081352|2019-06-21|2019-05-22   CH0012221716|18.6000003814697|0.214355006814003|2019-06-21|2019-05-22   CH0012221716|26.5|0.483886986970901|2019-06-21|2019-05-22   CH0012221716|25|0.409667998552322|2019-06-21|2019-05-22 CH0012221716|16|0.335449010133743|2019-06-21|2019-05-22 CH0012221716|18.3999996185303|0.220214992761612|2019-06-21|2019-05-22   CH0012221716|25.5|0.435059010982513|2019-06-21|2019-05-22   CH0012221716|24|0.354979991912842|2019-06-21|2019-05-22 CH0012221716|15|0.435059010982513|2019-06-21|2019-05-22 CH0012221716|18.2000007629395|0.226073995232582|2019-06-21|2019-05-22   CH0012221716|23|0.297363013029099|2019-06-21|2019-05-22 CH0012221716|14|0.488770008087158|2019-06-21|2019-05-22 CH0012221716|17.7999992370605|0.236816003918648|2019-06-21|2019-05-22   CH0012221716|19.2000007629395|0.194823995232582|2019-07-19|2019-05-22   CH0012221716|26|0.330565989017487|2019-07-19|2019-05-22 CH0012221716|21|0.188964992761612|2019-07-19|2019-05-22 CH0012221716|18.3999996185303|0.207519993185997|2019-07-19|2019-05-22   CH0012221716|16.3999996185303|0.254395008087158|2019-07-19|2019-05-22   CH0012221716|22.5|0.214355006814003|2019-07-19|2019-05-22   CH0012221716|19|0.199707001447678|2019-07-19|2019-05-22 CH0012221716|17|0.240722998976707|2019-07-19|2019-05-22 CH0012221716|25.5|0.312988013029099|2019-07-19|2019-05-22   CH0012221716|20.5|0.190917998552322|2019-07-19|2019-05-22   CH0012221716|18.2000007629395|0.212402001023293|2019-07-19|2019-05-22   CH0012221716|27|0.365723013877869|2019-07-19|2019-05-22 CH0012221716|22|0.216308996081352|2019-07-19|2019-05-22 CH0012221716|18.7999992370605|0.200683996081352|2019-07-19|2019-05-22   CH0012221716|16.7999992370605|0.241698995232582|2019-07-19|2019-05-22   CH0012221716|25|0.294434010982513|2019-07-19|2019-05-22 CH0012221716|20|0.187012001872063|2019-07-19|2019-05-22 CH0012221716|18|0.218262001872063|2019-07-19|2019-05-22 CH0012221716|26.5|0.348145008087158|2019-07-19|2019-05-22   CH0012221716|21.5|0.197753995656967|2019-07-19|2019-05-22   CH0012221716|18.6000003814697|0.207519993185997|2019-07-19|2019-05-22   CH0012221716|16.6000003814697|0.248535007238388|2019-07-19|2019-05-22   CH0012221716|24.5|0.274901986122131|2019-07-19|2019-05-22   CH0012221716|19.7999992370605|0.190917998552322|2019-07-19|2019-05-22   CH0012221716|17.7999992370605|0.217285007238388|2019-07-19|2019-05-22   CH0012221716|24|0.255371004343033|2019-07-19|2019-05-22 CH0012221716|19.6000003814697|0.191894993185997|2019-07-19|2019-05-22   CH0012221716|17.6000003814697|0.227051004767418|2019-07-19|2019-05-22   CH0012221716|23.5|0.235839992761612|2019-07-19|2019-05-22   CH0012221716|19.3999996185303|0.192871004343033|2019-07-19|2019-05-22   CH0012221716|17.3999996185303|0.229980006814003|2019-07-19|2019-05-22   CH0012221716|23|0.214355006814003|2019-07-19|2019-05-22 CH0012221716|17.2000007629395|0.229980006814003|2019-07-19|2019-05-22   CH0012221716|19.2000007629395|0.20117199420929|2019-08-16|2019-05-22    CH0012221716|21.5|0.194823995232582|2019-08-16|2019-05-22   CH0012221716|18.6000003814697|0.209472998976707|2019-08-16|2019-05-22   CH0012221716|24|0.210448995232582|2019-08-16|2019-05-22 CH0012221716|19.6000003814697|0.200683996081352|2019-08-16|2019-05-22   CH0012221716|17.6000003814697|0.226073995232582|2019-08-16|2019-05-22   CH0012221716|21|0.193847998976707|2019-08-16|2019-05-22 CH0012221716|18.3999996185303|0.214355006814003|2019-08-16|2019-05-22   CH0012221716|23.5|0.193847998976707|2019-08-16|2019-05-22   CH0012221716|19.3999996185303|0.199707001447678|2019-08-16|2019-05-22   CH0012221716|17.3999996185303|0.228027001023293|2019-08-16|2019-05-22   CH0012221716|20.5|0.193847998976707|2019-08-16|2019-05-22   CH0012221716|18.2000007629395|0.218262001872063|2019-08-16|2019-05-22   CH0012221716|23|0.195801004767418|2019-08-16|2019-05-22 CH0012221716|17.2000007629395|0.231933996081352|2019-08-16|2019-05-22   CH0012221716|16.7999992370605|0.240722998976707|2019-08-16|2019-05-22   CH0012221716|20|0.199707001447678|2019-08-16|2019-05-22 CH0012221716|18|0.219237998127937|2019-08-16|2019-05-22 CH0012221716|22.5|0.200683996081352|2019-08-16|2019-05-22   CH0012221716|19|0.206542998552322|2019-08-16|2019-05-22 CH0012221716|17|0.234862998127937|2019-08-16|2019-05-22 CH0012221716|16.6000003814697|0.244628995656967|2019-08-16|2019-05-22   CH0012221716|24.5|0.226073995232582|2019-08-16|2019-05-22   CH0012221716|19.7999992370605|0.197753995656967|2019-08-16|2019-05-22   CH0012221716|17.7999992370605|0.222167998552322|2019-08-16|2019-05-22   CH0012221716|22|0.202637001872063|2019-08-16|2019-05-22 CH0012221716|18.7999992370605|0.207519993185997|2019-08-16|2019-05-22   CH0012221716|19|0.200194999575615|2019-09-20|2019-05-22 CH0012221716|28|0.276854991912842|2019-09-20|2019-05-22 CH0012221716|16|0.254395008087158|2019-09-20|2019-05-22 CH0012221716|26|0.229980006814003|2019-09-20|2019-05-22 CH0012221716|15|0.271973013877869|2019-09-20|2019-05-22 CH0012221716|18|0.213378995656967|2019-09-20|2019-05-22 CH0012221716|24|0.210448995232582|2019-09-20|2019-05-22 CH0012221716|14|0.312988013029099|2019-09-20|2019-05-22 CH0012221716|17|0.230957001447678|2019-09-20|2019-05-22 CH0012221716|22|0.196777001023293|2019-09-20|2019-05-22 CH0012221716|21|0.193847998976707|2019-09-20|2019-05-22 CH0012221716|30|0.318848013877869|2019-09-20|2019-05-22 CH0012221716|20.5|0.188964992761612|2019-09-20|2019-05-22   CH0012221716|20|0.193847998976707|2019-09-20|2019-05-22 CH0012221716|19|0.20117199420929|2019-12-20|2019-05-22  CH0012221716|27|0.224121004343033|2019-12-20|2019-05-22 CH0012221716|18|0.211426004767418|2019-12-20|2019-05-22 CH0012221716|28|0.229980006814003|2019-12-20|2019-05-22 CH0012221716|26|0.213378995656967|2019-12-20|2019-05-22 CH0012221716|17|0.222167998552322|2019-12-20|2019-05-22 CH0012221716|25|0.212402001023293|2019-12-20|2019-05-22 CH0012221716|16|0.235839992761612|2019-12-20|2019-05-22 CH0012221716|24|0.202637001872063|2019-12-20|2019-05-22 CH0012221716|15|0.255371004343033|2019-12-20|2019-05-22 CH0012221716|23|0.196777001023293|2019-12-20|2019-05-22 CH0012221716|14|0.271973013877869|2019-12-20|2019-05-22 CH0012221716|22|0.190917998552322|2019-12-20|2019-05-22 CH0012221716|12|0.319824010133743|2019-12-20|2019-05-22 CH0012221716|36|0.323729991912842|2019-12-20|2019-05-22 CH0012221716|21|0.190917998552322|2019-12-20|2019-05-22 CH0012221716|32|0.270996004343033|2019-12-20|2019-05-22 CH0012221716|20.5|0.192871004343033|2019-12-20|2019-05-22   CH0012221716|29|0.246582001447678|2019-12-20|2019-05-22 CH0012221716|20|0.192871004343033|2019-12-20|2019-05-22 CH0012221716|30|0.263184010982513|2019-12-20|2019-05-22 CH0012221716|19|0.200194999575615|2020-03-20|2019-05-22 CH0012221716|20|0.193847998976707|2020-03-20|2019-05-22 CH0012221716|30|0.221191003918648|2020-03-20|2019-05-22 CH0012221716|18|0.209472998976707|2020-03-20|2019-05-22 CH0012221716|23|0.190917998552322|2020-03-20|2019-05-22 CH0012221716|17|0.219237998127937|2020-03-20|2019-05-22 CH0012221716|16|0.229003995656967|2020-03-20|2019-05-22 CH0012221716|15|0.240722998976707|2020-03-20|2019-05-22 CH0012221716|28|0.221191003918648|2020-03-20|2019-05-22 CH0012221716|14|0.257324010133743|2020-03-20|2019-05-22 CH0012221716|26|0.203612998127937|2020-03-20|2019-05-22 CH0012221716|24|0.193847998976707|2020-03-20|2019-05-22 CH0012221716|22|0.190917998552322|2020-03-20|2019-05-22 CH0012221716|19|0.188964992761612|2020-06-19|2019-05-22 CH0012221716|29|0.199707001447678|2020-06-19|2019-05-22 CH0012221716|20|0.187987998127937|2020-06-19|2019-05-22 CH0012221716|28|0.200683996081352|2020-06-19|2019-05-22 CH0012221716|27|0.197753995656967|2020-06-19|2019-05-22 CH0012221716|18|0.192871004343033|2020-06-19|2019-05-22 CH0012221716|26|0.189941003918648|2020-06-19|2019-05-22 CH0012221716|16|0.209472998976707|2020-06-19|2019-05-22 CH0012221716|25|0.186035007238388|2020-06-19|2019-05-22 CH0012221716|14|0.227051004767418|2020-06-19|2019-05-22 CH0012221716|24|0.187987998127937|2020-06-19|2019-05-22 CH0012221716|12|0.252440989017487|2020-06-19|2019-05-22 CH0012221716|23|0.187012001872063|2020-06-19|2019-05-22 CH0012221716|10|0.283690989017487|2020-06-19|2019-05-22 CH0012221716|22|0.185058996081352|2020-06-19|2019-05-22 CH0012221716|36|0.243652001023293|2020-06-19|2019-05-22 CH0012221716|21|0.184082001447678|2020-06-19|2019-05-22 CH0012221716|32|0.205566003918648|2020-06-19|2019-05-22 CH0012221716|20.5|0.186035007238388|2020-06-19|2019-05-22   CH0012221716|18|0.198730006814003|2020-12-18|2019-05-22 CH0012221716|27|0.191894993185997|2020-12-18|2019-05-22 CH0012221716|16|0.208496004343033|2020-12-18|2019-05-22 CH0012221716|25|0.190917998552322|2020-12-18|2019-05-22 CH0012221716|12|0.246582001447678|2020-12-18|2019-05-22 CH0012221716|26|0.193847998976707|2020-12-18|2019-05-22 CH0012221716|14|0.224121004343033|2020-12-18|2019-05-22 CH0012221716|24|0.188964992761612|2020-12-18|2019-05-22 CH0012221716|10|0.273925989866257|2020-12-18|2019-05-22 CH0012221716|23|0.189941003918648|2020-12-18|2019-05-22 CH0012221716|22|0.189941003918648|2020-12-18|2019-05-22 CH0012221716|36|0.204589992761612|2020-12-18|2019-05-22 CH0012221716|21|0.190917998552322|2020-12-18|2019-05-22 CH0012221716|32|0.199707001447678|2020-12-18|2019-05-22 CH0012221716|20|0.191894993185997|2020-12-18|2019-05-22 CH0012221716|29|0.198730006814003|2020-12-18|2019-05-22 CH0012221716|19|0.190917998552322|2020-12-18|2019-05-22 CH0012221716|28|0.194823995232582|2020-12-18|2019-05-22 CH0012221716|17|0.202637001872063|2020-12-18|2019-05-22 CH0012221716|18|0.189941003918648|2021-06-18|2019-05-22 CH0012221716|20|0.188964992761612|2021-06-18|2019-05-22 CH0012221716|24|0.187012001872063|2021-06-18|2019-05-22 CH0012221716|19|0.181152001023293|2021-06-18|2019-05-22 CH0012221716|23|0.186035007238388|2021-06-18|2019-05-22 CH0012221716|22|0.187987998127937|2021-06-18|2019-05-22 CH0012221716|32|0.190917998552322|2021-06-18|2019-05-22 CH0012221716|16|0.196777001023293|2021-06-18|2019-05-22 CH0012221716|21|0.187987998127937|2021-06-18|2019-05-22 CH0012221716|28|0.188964992761612|2021-06-18|2019-05-22 CH0012221716|14|0.207519993185997|2021-06-18|2019-05-22 CH0012221716|25|0.187012001872063|2021-06-18|2019-05-22 CH0012221716|12|0.222167998552322|2021-06-18|2019-05-22 CH0012221716|18|0.19140599668026|2021-12-17|2019-05-22  CH0012221716|40|0.202637001872063|2021-12-17|2019-05-22 CH0012221716|23|0.188964992761612|2021-12-17|2019-05-22 CH0012221716|22|0.188964992761612|2021-12-17|2019-05-22 CH0012221716|32|0.192871004343033|2021-12-17|2019-05-22 CH0012221716|21|0.189941003918648|2021-12-17|2019-05-22 CH0012221716|30|0.190917998552322|2021-12-17|2019-05-22 CH0012221716|20|0.190917998552322|2021-12-17|2019-05-22 CH0012221716|29|0.188964992761612|2021-12-17|2019-05-22 CH0012221716|19|0.182128995656967|2021-12-17|2019-05-22 CH0012221716|28|0.187987998127937|2021-12-17|2019-05-22 CH0012221716|27|0.189941003918648|2021-12-17|2019-05-22 CH0012221716|16|0.196777001023293|2021-12-17|2019-05-22 CH0012221716|26|0.188964992761612|2021-12-17|2019-05-22 CH0012221716|14|0.206542998552322|2021-12-17|2019-05-22 CH0012221716|25|0.187987998127937|2021-12-17|2019-05-22 CH0012221716|12|0.218262001872063|2021-12-17|2019-05-22 CH0012221716|24|0.188964992761612|2021-12-17|2019-05-22 CH0012221716|18|0.186523005366325|2022-12-16|2019-05-22 CH0012221716|32|0.191894993185997|2022-12-16|2019-05-22 CH0012221716|16|0.186035007238388|2022-12-16|2019-05-22 CH0012221716|22|0.190917998552322|2022-12-16|2019-05-22 CH0012221716|28|0.189941003918648|2022-12-16|2019-05-22 CH0012221716|14|0.196777001023293|2022-12-16|2019-05-22 CH0012221716|21|0.192871004343033|2022-12-16|2019-05-22 CH0012221716|25|0.189941003918648|2022-12-16|2019-05-22 CH0012221716|12|0.206542998552322|2022-12-16|2019-05-22 CH0012221716|20|0.193847998976707|2022-12-16|2019-05-22 CH0012221716|24|0.189941003918648|2022-12-16|2019-05-22 CH0012221716|40|0.192871004343033|2022-12-16|2019-05-22 CH0012221716|19|0.171387001872063|2022-12-16|2019-05-22 CH0012221716|23|0.190917998552322|2022-12-16|2019-05-22 CH0012221716|36|0.191894993185997|2022-12-16|2019-05-22 CH0012221716|16|0.194335997104645|2023-12-15|2019-05-22 CH0012221716|24|0.190917998552322|2023-12-15|2019-05-22 CH0012221716|18|0.179198995232582|2023-12-15|2019-05-22 CH0012221716|20|0.193847998976707|2023-12-15|2019-05-22 CH0012221716|14|0.195801004767418|2023-12-15|2019-05-22 CH0012221716|12|0.204589992761612|2023-12-15|2019-05-22 CH0012221716|32|0.191894993185997|2023-12-15|2019-05-22 CH0012221716|28|0.189941003918648|2023-12-15|2019-05-22
+
+  title          = key = "Volatilities";
+  isin           = "";
+  points         = arg.Split("\t");
+  dates          = {};
+  
+  prevX = ""; prevY = "";
+  nbPast = 0; nbFuture = 0;
+  for (point : points) {
+    parts      = point.Split("|");
+    if (parts.size < 4) {
+      continue;
+    }
+    PrintConsole("Processing [", point, "] size=", parts.size);
+    isin       = parts[0];
+    date       = parts[3];
+    key        = date;
+    if (!dates.contains(date)) {
+      dates.Add(date);
+    }
+    x          = Round(double(parts[1]), 2);
+    y          = Round(double(parts[2]), 2);
+    if (!x.contains(".")) {
+      x = x + ".0";
+    } 
+
+    AddOrderedData(volaData, key, x, y);
+  }
+
+  dates.Sort();
+
+  for (date : dates) {
+    unselVolas.Add(date);
+  }
+  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 28);
+  AddCombobox(locComboVolas, "volasWidget", "", 480, 60);
+  comboData = dates;
+  PrintConsole(dates.Size, " dates received: [", dates, "]");
+  comboData.Add("Select Volatilities", 0);
+  AddWidgetData(volasWidget, comboData, "volaSelected", "left");
+  SetFontSize(volasWidget, 14);
+  SetValue(volasWidget, "alignment", "center");
+  SetValue(volasWidget, "fontcolor", "red");
+  SetValue(volasWidget, 0, "black");
+
+  AddAction(volasWidget, "volaSelected");
+  volaSelected("", "");
+
+  makeUnbusy();
+}
+
+function volaSelected(sender, arg) {
+  PrintConsole(sender, " volaSelected: [", arg, "], prevSelection=", prevSelection);
+  if (arg.contains("Select") || arg == prevSelection) {
+    return;
+  }
+  prevSelection = arg;
+
+  if (selVolas.Contains(arg)) {
+    selVolas.Remove(arg);
+    unselVolas.Add(arg);
+    SetValue(volasWidget, arg, "dark_red");
+  } elif (unselVolas.Contains(arg)) {
+    unselVolas.Remove(arg);
+    selVolas.Add(arg);
+    SetValue(volasWidget, arg, "dark_green");
+  }
+
+  if (NameExists(VolaGraph1)) {
+    RemoveView(VolaGraph1);
+  }  if (NameExists(VolaGraph2)) {
+    RemoveView(VolaGraph2);
+  }
+
+  locVolaGraph1 = GetLocation("ROOT", "CENTER", volasWidget, "BOTTOM", 0, 10);
+  //AddSfSplineGraph(locVolaGraph1, "VolaGraph1", "", graphWidth, graphHeight);
+  //SetText(VolaGraph1,  "Volatilities for " + stock  + "  " + isin);
+  //SetValue(VolaGraph1, "primary_axis",   "Strike");
+  //SetValue(VolaGraph1, "secondary_axis", "Vola");
+  //setToolTip(VolaGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "Strike: ", "Vola: ");
+  
+  //colorIndex = -1;
+  //for (date : selVolas) {
+  //  if (++colorIndex >= graphColors.size) {
+  //    colorIndex = 0;
+  //  }
+  //addDataToGraph(VolaGraph1, volaData, date, graphColors[colorIndex]);
+  //}
+  if (selVolas.Size == 0) {
+    return;
+  }
+  createGraph(locVolaGraph1, "VolaGraph1", "Volatilities for "+stock+"  "+isin, volaData, selVolas, "Strike", "Vola");
+  //printData(volaData,  selVolas[0], "Volat data:");
+  //printData(stockData, volaKeys[0], "Stock data:");
+}
+
+function printData(d, key, str = "") {
+  items = d[key];
+
+  for (elem : items) {
+    str += " " + elem;
+  }
+  PrintConsole(str);
+}
+
+function fillDividendsData(sender, arg) {
+  dividends[stock] = arg;
+  PrintConsole(arg);
+  //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
+  
+  estimatedTitle = "Estimated Dividends";
+  pastTitle      = "Past Dividends";
+  isin           = "";
+  points         = arg.Split("\t");
+  divData        = {};
+  
+  prevX = ""; prevY = "";
+  nbPast = 0; nbFuture = 0;
+  for (point : points) {
+    parts      = point.Split("|");
+    PrintConsole("Processing [", point, "] size=", parts.size);
+    isin       = parts[0];
+    x          = parts[5];
+    y          = Round(double(parts[1]), 2);
+    estimated  = Bool(parts[6]);
+    nbPast    += !estimated;
+    nbFuture  += estimated;
+    key        = estimated ? estimatedTitle : pastTitle;
+    
+    AddOrderedData(divData, key, x, y, "str");
+    //if (estimated && prevX != "") {
+    //  AddOrderedData(divData, key, prevX, prevY, "str");
+    //}
+    //prevX = x; prevY = y;
+  }
+  
+  PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
+
+  if (NameExists(DivGraph1)) {
+    RemoveView(DivGraph1);
+  }
+  if (NameExists(DivGraph2)) {
+    RemoveView(DivGraph2);
+  }
+  
+  locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 8);
+  AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
+  SetText(DivGraph1,  "Dividends for " + stock  + "  " + isin);
+
+  if (nbPast > 0) {
+    //SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
+    SetValue(DivGraph1, "secondary_axis", "Payout");
+    SetValue(DivGraph1, "string_axis", "x");
+    setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
+    addDataToGraph(DivGraph1, divData, pastTitle,      "blue:blue");
+  }
+  if (nbFuture > 0) {
+    locDivGraph2 = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
+    AddSfColumnGraph(locDivGraph2, "DivGraph2", "", graphWidth, graphHeight);
+
+    SetValue(DivGraph2, "primary_axis",   "Ex-Dividend Date");
+    SetValue(DivGraph2, "secondary_axis", "Payout");
+    SetValue(DivGraph2, "string_axis", "x");
+    setToolTip(DivGraph2, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
+
+    addDataToGraph(DivGraph2, divData, estimatedTitle, "green:green");
+  }
+  
+  makeUnbusy();
+}
+
+function fillStockData(sender, arg) {
+  tabId = 0;
+  SelectTab(tabId);
+  
+  if (NameExists(DataGrid)) {
+    RemoveView(DataGrid);
+    RemoveView(labelCcy);
+    RemoveView(imageCcy);
+    //RemoveView(labelMkt);
+  }
+  if (NameExists(SplineGraph1)) {
+    RemoveView(SplineGraph1);
+  }
+  if (NameExists(SplineGraph2)) {
+    RemoveView(SplineGraph2);
+  }
+  
+  if (arg == "") {
+    makeUnbusy();
+    return;
+  }
+  
+  //arg = "OPT ABBN P A 2019-04-19 24.0|4.05000019073486|4.44999980926514|4.23000001907349|4.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 23.0|3.09999990463257|3.40000009536743|3.23000001907349|3.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 22.0|2.15000009536743|2.35999989509583|2.23000001907349|2.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 21.0|1.19000005722046|1.30999994277954|1.23000001907349|1.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.5|0.709999978542328|0.819999992847443|0.740000009536743|0.740000009536743|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.0|0.270000010728836|0.379999995231628|0.330000013113022|0.330000013113022|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.5|0.0299999993294477|0.140000000596046|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.0|0.00999999977648258|0.0900000035762787|0.0500000007450581|0.0500000007450581|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.5|0|0.0799999982118607|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.0|0|0.00999999977648258|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.5|0|0|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.0|0|0.200000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 24.0|0|0.0199999995529652|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 23.0|0|0.00999999977648258|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 22.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 21.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.5|0.00999999977648258|0.0900000035762787|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.0|0.0199999995529652|0.129999995231628|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.5|0.280000001192093|0.389999985694885|0.379999995231628|0.379999995231628|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.0|0.720000028610229|0.819999992847443|0.810000002384186|0.810000002384186|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.5|1.19000005722046|1.30999994277954|1.28999996185303|1.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.0|1.69000005722046|1.80999994277954|1.78999996185303|1.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.5|2.13000011444092|2.32999992370605|2.28999996185303|2.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.0|0|0|2.78999996185303|2.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!";
+  printConsole("fillStockData:", arg);
+  options = arg.Split("!");
+  
+  locSFWidget = GetLocation("ROOT", "CENTER", allStocksWidget, "BOTTOM", 0, 20);
+  AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
+
+  listCols = {"Instrument", "string", "Bid", "number", "Ask", "number", "Last", "number", "Settle", "number"};
+  AddWidgetData(DataGrid, listCols, "columns");
+  colWidth = {40, 15, 15, 15, 15};
+  AddWidgetData(DataGrid, colWidth, "columnWidth");
+  
+  ccy = market = "";
+  stock = sender;
+  stockData = {};
+  processed = {};
+  
+  //OPT ANN P A 2019-04-19 49.0|0|0|4.28000020980835|4.28000020980835|EUR|EUX|per unit|4/14/2019 12:00:00 AM!
+  previousKey = "";
+  for (option : options) {
+    data = option.Split("|");
+    if (data.size < 9) {
+      continue;
+    }
+    //if (!option.Contains(' 2019-04-19 ')) {
+    //  continue;
+    //}
+    instr  = data[0];
+    bid    = Round(Double(data[1]), 4);
+    ask    = Round(Double(data[2]), 4);
+    last   = Round(Double(data[3]), 4);
+    settle = Round(Double(data[4]), 4);
+    ccy    = data[5];
+    market = data[6];
+    //typeq  = data[7];
+    //date   = data[8];
+
+    parts = instr.Split(" ");
+    if (last <= 0 || parts.size < 6) {
+      continue;
+    }
+
+    //optionData   = {instr, bid, ask, last, settle, ccy, market, typeq};
+    optionData   = {instr, bid, ask, last, settle};
+    AddWidgetData(DataGrid, optionData,  "item");
+    
+    key   = parts[1] + "_" + parts[2] + "_" + parts[4];
+    uniqueKey = key + "_" + parts[5];
+    if (processed.Contains(uniqueKey)) {
+      PrintConsole("  ALREADY EXISTS:", uniqueKey);
+      continue;
+    }
+    PrintConsole("  NEW KEY:", uniqueKey);
+    processed.Add(uniqueKey);
+    AddOrderedData(stockData, key, parts[5], last);
+    //AddToHash("stockData", parts[5], key);
+    //AddToHash("stockData", last, key);
+    /*PrintConsole("-->", parts[5], "--Last", last, " ", instr, ":", stockData);
+    if (key != previousKey) {
+      PrintConsole("New Key ", key, " Prev:", previousKey," AllSize", stockData.Size, " ", instr);
+      if (stockData.Contains(previousKey)) {
+        PrintConsole("  PrevSize ", stockData[previousKey].Size, "  NewSize ", stockData[key].Size);
+      }
+      previousKey = key;
+    }*/
+  }
+  
+  data[stock] = stockData;
+  
+  PrintConsole(stockData);
+  
+  locCcyLab = GetLocation("ROOT", "CENTER", DataGrid, "BOTTOM", -30, 24);
+  AddLabel(locCcyLab, "labelCcy", "Currency:", 180, 60);
+  SetFontSize(labelCcy, 14);
+
+  locCcyImg = GetLocation(labelCcy, "RIGHT", labelCcy, "CENTER", 10, 0);
+  AddImageView(locCcyImg, "imageCcy", ccy, 100, 100);
+
+  //locMktLab = GetLocation(imageCcy, "RIGHT", imageCcy, "CENTER", 30, 0);
+  //AddLabel(locMktLab, "labelMkt", "Market: " + market, 240, 60);
+  //SetFontSize(labelMkt, fontSizeSm);
+  makeUnbusy();
+}
+
+function optionSelected(sender, arg) {
+  GetDataFromServer("prices", arg, "fillPrices");
+}
+function fillPrices(sender, arg) {
+}
+
+function showError(msg) {
+  SetText(labelLoading,  msg);
+  SetFontColor(labelLoading, "red");
+  ShowView(labelLoading);
+  SetText(labelStatus2,  "Disconnected");
+  SetFontColor(labelStatus2, "red");
+  HideView(labelRefresh);
+  HideView(buttonRefresh);
+  resetButtons();
+  
+  ShowToast(msg, 10, "white", "red");
+}
+
+function hideImage(sender, arg) {
+  HideView(arg);
+}
+
+function connectionSuccess() {
+  SetText(labelStatus2,  "Connected");
+  SetFontColor(labelStatus, "dark_green");
+
+  SelectTab(numberTabs - 1);
+
+  timenow = Now("HH:mm:ss");
+  SetText(labelRefresh, timenow);
+  ShowView(labelRefresh);
+  ShowView(buttonRefresh);
+}
+
+function resetButtons() {
+  for (button : allButtons) {
+    if (type(button, true) == "Button") {
+      Enable(button, true, false);
+      SetText(button, "Load", false);
+    }
+  }
+}
+
+//--------- GUI Code Starts Here ----------------
+
+fontSizeSm   = 12;
+loginLabelH  = 60;
+loginLabelW  = 200;
+tokenCount   = 0;
+graphWidth   = 610;
+graphHeight  = 470;
+tableWidth   = 580;
+tableHeight  = 720;
+busySize     = 400;
+
+isiPhoneX    = isiPhoneX();
+isAndroid    = isAndroid();
+if (isiPhoneX) {
+  graphHeight   = graphWidth;
+}
+
+SetBackgroundColor("cyan");
+
+numberTabs = 5;
+AddOrSelectTab("Options",      "learn.png",     "learn2.png");
+AddOrSelectTab("Analysys",     "brain_act.png", "brain2.png");
+AddOrSelectTab("Dividends",    "dividends.png", "dividends2.png");
+AddOrSelectTab("Volatilities", "vola.png",      "vola2.png");
+AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+
+locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
+AddLabel(locLoading, "labelLoading", "", 580, 160);
+AlignText(labelLoading, "center");
+
+locCancel = GetLocation("ROOT", "CENTER", labelLoading, "BOTTOM", 0, -30);
+AddButton(locCancel, "buttonCancel", "", 140, 140);
+AddAction(buttonCancel, "cancel_search");
+AddBorder(buttonCancel, 0);
+SetImage(buttonCancel, "cancel");
+HideView(buttonCancel);
+
+locUserLab = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 0);
+AddLabel(locUserLab, "labelLogin", "Login:", 140, 60);
+SetFontSize(labelLogin, fontSizeSm);
+
+locTextUsername = GetLocation(labelLogin, "RIGHT", labelLogin, "CENTER", 10, -10);
+AddTextEdit(locTextUsername, "textLogin", "", loginLabelW, loginLabelH);
+SetText(textLogin, "test");
+SetFontSize(textLogin, fontSizeSm);
+
+locConnect = GetLocation(textLogin, "RIGHT", textLogin, "CENTER", 30, 40);
+AddButton(locConnect, "buttonConnect", "", 200, 100);
+AddAction(buttonConnect, "connect");
+SetImage(buttonConnect, "connect");
+
+locKeyLab = GetLocation("ROOT", "LEFT", textLogin, "BOTTOM", 10, 0);
+AddLabel(locKeyLab, "labelKey", "Password:", 140, 60);
+SetFontSize(labelKey, fontSizeSm);
+
+locKey = GetLocation(labelKey, "RIGHT", labelKey, "CENTER", 10, -10);
+AddTextEdit(locKey, "textPassword", "", loginLabelW, loginLabelH);
+SetText(textPassword, "test");
+SetFontSize(textPassword, fontSizeSm);
+SetSecure(textPassword);
+
+locStatus = GetLocation("ROOT", "LEFT", labelKey, "BOTTOM", 10, 40);
+AddLabel(locStatus, "labelStatus", "Status:", 120, 180);
+SetFontSize(labelStatus, fontSizeSm);
+AlignText(labelStatus, "left");
+
+locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", 30, 0);
+AddLabel(locStatus2, "labelStatus2", "Disconnected", 160, 180);
+SetFontSize(labelStatus2, fontSizeSm);
+SetFontColor(labelStatus2, "red");
+AlignText(labelStatus2, "left");
+
+locLabelRefresh = GetLocation(labelStatus2, "RIGHT", labelStatus, "CENTER", 0);
+AddLabel(locLabelRefresh, "labelRefresh", "", 140, 60);
+SetFontColor(labelRefresh, "dark_green");
+
+locButRefresh = GetLocation(labelRefresh, "RIGHT", labelRefresh, "CENTER", 4);
+AddButton(locButRefresh, "buttonRefresh", "", 120, 100);
+AddAction(buttonRefresh, "connect");
+SetImage(buttonRefresh, "refresh");
+AddBorder(buttonRefresh, 0);
+HideView(buttonRefresh);
+
+locAboutUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 4, -12);
+AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
+SetImage(buttonAboutUs, "about");
+AddAction(buttonAboutUs, "aboutUs");
+AddBorder(buttonAboutUs, 0);
+
+OnTabSelected("tabSelected");

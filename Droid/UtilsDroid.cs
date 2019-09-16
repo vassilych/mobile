@@ -124,14 +124,14 @@ namespace scripting.Droid
                     {
                         if (isX)
                         {
-                            location.TranslationX += (refLocation.Width - location.Width) / 2;
+                            //location.TranslationX += (refLocation.Width - location.Width) / 2;
                             return LayoutRules.AlignLeft;
                         }
                         else
                         {
-                            int delta = (refLocation.Height - location.Height) / 2;
-                            location.TranslationY += delta;
-                            return LayoutRules.AlignTop;// .AlignBaseline;
+                            //int delta = (refLocation.Height - location.Height) / 2;
+                            //location.TranslationY += delta;
+                            return LayoutRules.LeftOf;// .AlignBaseline;
                         }
                     }
                 case "ALIGN_LEFT":

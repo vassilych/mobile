@@ -191,6 +191,9 @@
     </Reference>
     <Reference Include="Mono.Data.Sqlite" />
     <Reference Include="System.Data" />
+    <Reference Include="Syncfusion.Licensing">
+      <HintPath>..\packages\Syncfusion.Licensing.17.2.0.51\lib\MonoAndroid10\Syncfusion.Licensing.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
@@ -757,9 +760,6 @@
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\braid.png">
       <Link>Resources\drawable\braid.png</Link>
-    </AndroidResource>
-    <AndroidResource Include="..\scripting\Resources\drawable\brain.png">
-      <Link>Resources\drawable\brain.png</Link>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\branch.png">
       <Link>Resources\drawable\branch.png</Link>
@@ -4937,6 +4937,45 @@
     <AndroidResource Include="..\scripting\Resources\drawable\zucchini.png">
       <Link>Resources\drawable\zucchini.png</Link>
     </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vola.png">
+      <Link>Resources\drawable\vola.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vola2.png">
+      <Link>Resources\drawable\vola2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\dividends2.png">
+      <Link>Resources\drawable\dividends2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\dividends.png">
+      <Link>Resources\drawable\dividends.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\connect.png">
+      <Link>Resources\drawable\connect.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\about.png">
+      <Link>Resources\drawable\about.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\CHF.png">
+      <Link>Resources\drawable\CHF.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\GBP.png">
+      <Link>Resources\drawable\GBP.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\brain2.png">
+      <Link>Resources\drawable\brain2.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\brain_act.png">
+      <Link>Resources\drawable\brain_act.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\EUR.png">
+      <Link>Resources\drawable\EUR.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\USD.png">
+      <Link>Resources\drawable\USD.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\refresh.png">
+      <Link>Resources\drawable\refresh.png</Link>
+    </AndroidResource>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -4987,6 +5026,9 @@
     </AndroidAsset>
     <AndroidAsset Include="..\scripting\Resources\test.cscs">
       <Link>Assets\test.cscs</Link>
+    </AndroidAsset>
+    <AndroidAsset Include="..\scripting\Resources\remote.cscs">
+      <Link>Assets\remote.cscs</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>

@@ -345,6 +345,10 @@ namespace scripting.iOS
         public static void AddTab(string text, string selectedImageName, string notSelectedImageName = null)
         {
             var selImage = UtilsiOS.LoadImage(selectedImageName);
+            if (selImage == null)
+            {
+                throw new ArgumentException("Image [" + selectedImageName + "] not found.");
+            }
             selImage = selImage.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
 
             UIViewController tab = new UIViewController();
@@ -355,6 +359,10 @@ namespace scripting.iOS
             if (notSelectedImageName != null)
             {
                 var image = UtilsiOS.LoadImage(notSelectedImageName);
+                if (image == null)
+                {
+                    throw new ArgumentException("Image [" + notSelectedImageName + "] not found.");
+                }
                 image = image.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
                 tab.TabBarItem.Image = image;
             }

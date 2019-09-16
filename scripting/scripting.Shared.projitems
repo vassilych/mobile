@@ -43,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Precompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomClasses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SQLLite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />
@@ -84,6 +85,20 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\busyIndicators.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\ads.cscs" />
     <None Include="$(MSBuildThisFileDirectory)Resources\remote.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\brain_act.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\brain2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\dividends.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\dividends2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\vola.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\vola2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\GBP.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\CHF.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\USD.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\EUR.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\coins.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\connect.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\about.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />
