@@ -1392,6 +1392,8 @@ namespace scripting.Droid
             string buttonCancel = Utils.GetSafeString(args, 4);
             string actionCancel = Utils.GetSafeString(args, 5);
 
+            msg = msg.Replace(@"\\n", @"\n").Replace(@"\\t", @"\t");            
+
             AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.TheView);
             dialog.SetMessage(msg).
                    SetTitle(title);

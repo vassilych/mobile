@@ -69,7 +69,7 @@ function tabSelected(sender, arg) {
 function aboutUs(sender, arg) {
   deviceInfo    = _DEVICE_INFO_;
   deviceVersion = _VERSION_INFO_;
-  AlertDialog("TrueDividends.com", "Version " + Version + "\n" +
+  AlertDialog("TrueDividends.com", "Version " + Version + "  " +
                deviceInfo + ": " + deviceVersion);
 }
 
@@ -86,8 +86,8 @@ function onConnect(sender, arg) {
     connectionSuccess();
     GetDataFromServer("stocks", "", "fillStocks");
   } else {
-    SetText(labelStatus,  "Status: Disconnected");
-    SetFontColor(labelStatus, "red");
+    SetText(labelStatus2,  "Disconnected");
+    SetFontColor(labelStatus2, "red");
     AlertDialog("TrueDividends.com", arg);
     makeUnbusy();
   }
@@ -328,7 +328,11 @@ function fillVolasData(sender, arg) {
   dates.Sort();
 
   for (date : dates) {
-    unselVolas.Add(date);
+    if (selVolas.Size <= 1) {
+      selVolas.Add(date);
+    } else {
+      unselVolas.Add(date);
+    }
   }
   locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 28);
   AddCombobox(locComboVolas, "volasWidget", "", 480, 60);
@@ -460,6 +464,7 @@ function fillDividendsData(sender, arg) {
     SetValue(DivGraph2, "secondary_axis", "Payout");
     SetValue(DivGraph2, "string_axis", "x");
     setToolTip(DivGraph2, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
+    SetText(DivGraph2,  "Estimated Dividends for " + stock);
 
     addDataToGraph(DivGraph2, divData, estimatedTitle, "green:green");
   }
@@ -598,7 +603,7 @@ function hideImage(sender, arg) {
 
 function connectionSuccess() {
   SetText(labelStatus2,  "Connected");
-  SetFontColor(labelStatus, "dark_green");
+  SetFontColor(labelStatus2, "dark_green");
 
   SelectTab(numberTabs - 1);
 
@@ -684,27 +689,27 @@ AddLabel(locStatus, "labelStatus", "Status:", 120, 180);
 SetFontSize(labelStatus, fontSizeSm);
 AlignText(labelStatus, "left");
 
-locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", 30, 0);
+locStatus2 = GetLocation(labelStatus, "RIGHT", labelKey, "BOTTOM", 30, 40);
 AddLabel(locStatus2, "labelStatus2", "Disconnected", 160, 180);
 SetFontSize(labelStatus2, fontSizeSm);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
 
-locLabelRefresh = GetLocation(labelStatus2, "RIGHT", labelStatus, "CENTER", 0);
+locLabelRefresh = GetLocation(labelStatus2, "RIGHT", labelKey, "BOTTOM", 0, 40);
 AddLabel(locLabelRefresh, "labelRefresh", "", 140, 60);
 SetFontColor(labelRefresh, "dark_green");
 
-locButRefresh = GetLocation(labelRefresh, "RIGHT", labelRefresh, "CENTER", 4);
+locButRefresh = GetLocation(labelRefresh, "RIGHT", labelKey, "BOTTOM", 4, 40);
 AddButton(locButRefresh, "buttonRefresh", "", 120, 100);
 AddAction(buttonRefresh, "connect");
+AddBorder(buttonRefresh, 1);
 SetImage(buttonRefresh, "refresh");
-AddBorder(buttonRefresh, 0);
 HideView(buttonRefresh);
 
 locAboutUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 4, -12);
 AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
-SetImage(buttonAboutUs, "about");
 AddAction(buttonAboutUs, "aboutUs");
-AddBorder(buttonAboutUs, 0);
+AddBorder(buttonAboutUs, 1);
+SetImage(buttonAboutUs, "about");
 
 OnTabSelected("tabSelected");

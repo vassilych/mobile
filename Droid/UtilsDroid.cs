@@ -129,9 +129,8 @@ namespace scripting.Droid
                         }
                         else
                         {
-                            //int delta = (refLocation.Height - location.Height) / 2;
-                            //location.TranslationY += delta;
-                            return LayoutRules.AlignBaseline;
+                            location.TranslationY += (refLocation.Height - location.Height) / 2;
+                            return LayoutRules.AlignTop;// .AlignBaseline;
                         }
                     }
                 case "ALIGN_LEFT":
