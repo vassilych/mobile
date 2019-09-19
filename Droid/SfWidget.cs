@@ -1501,6 +1501,11 @@ namespace scripting.Droid
             };
         }
 
+        public override void Clear()
+        {
+            m_model.Clear();
+        }
+
         public override void AdjustTranslation(DroidVariable location, bool isX, bool sameWidget = true)
         {
             ScreenSize screenSize = UtilsDroid.GetScreenSize();

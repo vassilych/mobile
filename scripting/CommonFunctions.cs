@@ -85,6 +85,7 @@ namespace scripting
             ParserFunction.RegisterFunction("Relative", new RelativeSizeFunction());
             ParserFunction.RegisterFunction("ShowHideKeyboard", new ShowHideKeyboardFunction());
             ParserFunction.RegisterFunction("IsKeyboard", new IsKeyboardFunction());
+            ParserFunction.RegisterFunction("ClearWidget", new ClearWidgetDataFunction());
 
             ParserFunction.RegisterFunction("AddAction", new AddActionFunction());
             ParserFunction.RegisterFunction("AllowedOrientation", new AllowedOrientationFunction());
@@ -187,7 +188,7 @@ namespace scripting
             return contents;
         }
 
-        public static void RunOnMainThread(string strAction, string arg1, string arg2)
+        public static void RunOnMainThread(string strAction, string arg1, string arg2 = null, string arg3 = null)
         {
 #if  __ANDROID__
             scripting.Droid.MainActivity.TheView.RunOnUiThread(() =>
@@ -196,7 +197,7 @@ namespace scripting
             scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
             {
 #endif
-                UIVariable.GetAction(strAction, arg1, arg2);
+                UIVariable.GetAction(strAction, arg1, arg2, arg3);
 #if __ANDROID__ || __IOS__
             });
 #endif
@@ -230,21 +231,47 @@ namespace scripting
             });
 #endif
         }
-    }
 
+        public static void RunFunctionOnMainThread(ParserFunction func, ParsingScript script)
+        {
+#if __ANDROID__
+            scripting.Droid.MainActivity.TheView.RunOnUiThread(() =>
+            {
+#elif __IOS__
+            scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+            {
+#endif
+                func.GetValue(script);
+#if __ANDROID__ || __IOS__
+            });
+#endif
+        }
+    }
 
     public class RunOnMainFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
+            string funcName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
+            var scriptPointer = script.Pointer;
+
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name);
 
-            string funcName = Utils.GetSafeString(args, 0);
-            string arg1     = Utils.GetSafeString(args, 1);
-            string arg2     = Utils.GetSafeString(args, 2);
+            string arg1     = Utils.GetSafeString(args, 0, null);
+            string arg2     = Utils.GetSafeString(args, 1, null);
+            string arg3     = Utils.GetSafeString(args, 2, null);
 
-            CommonFunctions.RunOnMainThread(funcName, arg1, arg2);
+            ParserFunction func = ParserFunction.GetFunction(funcName, script);
+            Utils.CheckNotNull(funcName, func, script);
+
+            if (func is CustomFunction)
+            {
+                CommonFunctions.RunOnMainThread(func as CustomFunction, arg1, arg2, arg3);
+                return Variable.EmptyInstance;
+            }
+
+            script.Pointer = scriptPointer;
+            CommonFunctions.RunFunctionOnMainThread(func, script);
             return Variable.EmptyInstance;
         }
     }

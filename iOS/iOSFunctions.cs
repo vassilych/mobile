@@ -225,6 +225,22 @@ namespace scripting.iOS
             return Variable.EmptyInstance;
         }
     }
+
+    public class ClearWidgetDataFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+            Utils.CheckNotNull(widget, m_name, script, 0);
+
+            widget.Clear();
+            return Variable.EmptyInstance;
+        }
+    }
+
     public class MoveViewFunction : ParserFunction
     {
         bool m_isAbsolute;

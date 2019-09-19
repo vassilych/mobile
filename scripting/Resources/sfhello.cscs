@@ -1,24 +1,152 @@
-﻿/*if (!SQLDBExists("cscsdemo.db1")) {
-  create="CREATE TABLE [Items] (Id integer, Symbol ntext);";
-  SQLNonQuery(create);
-}
-SQLInit("cscsdemo.db1");
-
-query = "SELECT * FROM Items";
-SQLQuery(query);
-
-data = {3, "MSFT"}; 
-SQLInsert("Items", "id,Symbol", data);
-
-*/
-AutoScale();
+﻿AutoScale();
 SetBackgroundColor("light_green");
 
-locTextEdit = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-AddTextEdit(locTextEdit, "textEdit", "Your name", 320, 80);
+baseURL       = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=";
+apikey        = "Y12T0TY5EUS6BC5F";
+stocks        = {"MSFT", "AAPL", "GOOG", "FB", "AMZN" };
+totalStocks   = stocks.Size;
+loadedStocks  = 0;
+//query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data GROUP BY Symbol ORDER BY Stamp DESC LIMIT " + totalStocks + ";";
+query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data ORDER BY Stamp DESC LIMIT 15;";
 
-locButton = GetLocation(textEdit, "RIGHT", textEdit, "CENTER", 10);
-AddButton(locButton, "buttonHi", "Hello", 160, 80);
+DBName        = "cscsdemo.db";
+errorMsg      = "";
+
+if (!SQLDBExists(DBName)) {
+  create="CREATE TABLE [Data] (Symbol ntext, Low real, High real, Close real, Volume real, Stamp text DEFAULT CURRENT_TIMESTAMP);";
+  SQLNonQuery(create);
+}
+SQLInit(DBName);
+
+function getDataFromDB() {
+  results = SQLQuery(query);
+  refresh = "";
+  for (i = 1; i < results.Size; i++) {
+    vals       = results[i];
+    if (vals.Size < 6) {
+      reportError("Incomplete DB Value: " + vals);
+      continue;
+    }
+    stock      = vals[0] + vals[5];
+    low        = Round(vals[1], 2);
+    high       = Round(vals[2], 2); 
+    close      = Round(vals[3], 2);
+    volume     = Round(vals[4], 2);
+    if (refresh == "") {
+      refresh    = vals[5];
+    }
+
+    stockData  = {stock, low, high, close, volume};
+    AddWidgetData(DataGrid, stockData, "item");
+  }
+  SetText(labelRefresh, "DB Last Refresh: " + refresh);
+}
+
+function reportError(msg) {
+  if (msg.StartsWith("{") && msg.EndsWith("}")) {
+    msg = msg.Substring(1, msg.Size - 2);
+  }
+  errorMsg = msg.Trim();
+
+  PrintConsole(errorMsg);
+  RunOnMain(SetText, labelError, errorMsg);
+}
+
+function OnSuccess( object, errorCode, text )
+{
+    printConsole("Loading ", object);
+    //if (object == "MSFT") { PrintConsole(text); }
+    jsonFromText  = GetVariableFromJSON( text );
+    if (jsonFromText.Size < 2) {
+      PrintConsole(jsonFromText[0] + ":" + jsonFromText[0].Size);
+      if (jsonFromText[0].Size > 1) {
+        text = jsonFromText[0];
+      }
+      OnFailure( object, errorCode, text );
+      return;
+    }
+    metaData      = jsonFromText[0];
+    result        = jsonFromText[1];
+
+    symbol        = metaData["2. Symbol"];
+    //lastRefreshed = metaData["3. Last Refreshed"];
+    allDates      = result.keys;
+
+    dateData   = result[allDates[0]];
+    high       = Round(dateData["2. high"],  2); 
+    low        = Round(dateData["3. low"],   2);
+    close      = Round(dateData["4. close"], 2);
+    volume     = dateData["5. volume"]; 
+    stockData  = {symbol, low, high, close, volume};
+    SQLInsert("Data", "Symbol,Low,High,Close,Volume", stockData);
+
+    if (++loadedStocks >= totalStocks) {
+      RunOnMain(getDataFromDB);
+    } else {
+      getData(stocks[loadedStocks]);
+    }
+}
+
+function OnFailure( object, errorCode, text )
+{
+  reportError(text);
+}
+
+function buttonRefresh_click(object, arg) {
+  SetText(labelRefresh, "Loading ...");
+  SetText(labelError, "");
+  ClearWidget(DataGrid);
+  loadedStocks = 0;
+  getData(stocks[loadedStocks]);
+  //for (stock : stocks) {
+  //  getData(stock);
+  //}
+}
+
+function getData(symbol) {
+  stockUrl  = baseURL + symbol + "&apikey=" + apikey;
+  WebRequest( "GET", stockUrl, "", symbol, "OnSuccess", "OnFailure" );
+}
+
+graphHeight  = 460;
+graphWidth   = 626;
+isAndroid    = IsAndroid();
+if (IsAndroid()) {
+  graphHeight = 870;
+}
+
+locLabel = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);
+AddLabel(locLabel, "labelRefresh", "", 480, 60);
+SetFontSize(labelRefresh, 14);
+AlignText(labelRefresh, "center");
+
+locSFWidget = GetLocation("ROOT", "CENTER", labelRefresh, "BOTTOM", 0, 10);
+AddSfDataGrid(locSFWidget,  "DataGrid", "", graphWidth, graphHeight);
+SetValue(DataGrid, "allow_swap",   true);
+SetValue(DataGrid, "allow_resize", true);
+SetValue(DataGrid, "allow_sort",   true);
+
+listCols = {"Symbol", "string", "Low", "number", "High", "number", "Close", "number", "Volume", "number"};
+AddWidgetData(DataGrid, listCols, "columns");
+colWidth = {17, 19, 19, 19, 26};
+AddWidgetData(DataGrid, colWidth, "columnWidth");
+
+locButton = GetLocation("ROOT", "CENTER", DataGrid, "BOTTOM", 0, 10);
+AddButton(locButton, "buttonRefresh", "Refresh", 160, 80);
+
+locLabelError = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -40);
+AddLabel(locLabelError, "labelError", "", 600, 160);
+SetFontSize(labelError, 13);
+SetFontColor(labelError, "red");
+AlignText(labelError, "center");
+
+getDataFromDB();
+
+//locTextEdit = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
+//AddTextEdit(locTextEdit, "textEdit", "Your name", 320, 80);
+
+//locButton = GetLocation(textEdit, "RIGHT", textEdit, "CENTER", 10);
+//AddButton(locButton, "buttonHi", "Hello", 160, 80);
 
 function buttonHi_click(sender, arg) {
   name = getText(textEdit);

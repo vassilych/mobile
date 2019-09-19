@@ -737,6 +737,7 @@ namespace scripting.iOS
 
             ViewX = m_chart;
         }
+
         public override void AddData(List<string> data, string varName, string title, string extra)
         {
             if (m_grid != null)
@@ -1328,6 +1329,11 @@ namespace scripting.iOS
             {
                 UIVariable.GetAction(strAction, varName, arg2);
             };
+        }
+
+        public override void Clear()
+        {
+            m_model.Clear();
         }
     }
     public class AddAppointmentFunction : ParserFunction

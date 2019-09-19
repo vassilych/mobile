@@ -252,6 +252,11 @@ namespace scripting.iOS
             }
             return false;
         }
+
+        public virtual void Clear()
+        {
+        }
+
         public virtual double GetValue()
         {
             double result = 0;

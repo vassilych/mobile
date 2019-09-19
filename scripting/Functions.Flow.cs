@@ -1388,13 +1388,18 @@ namespace SplitAndMerge
                 }
 
                 Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices, script);
+                if (script.Prev == '.')
+                {
+                    script.Backward();
+                }
+
                 if (script.TryCurrent() != '.')
                 {
                     return result;
                 }
-
                 script.Forward();
-                m_propName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
+
+                m_propName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
                 Variable propValue = result.GetProperty(m_propName, script);
                 Utils.CheckNotNull(propValue, m_propName, script);
                 return propValue;
@@ -1438,6 +1443,10 @@ namespace SplitAndMerge
                 }
 
                 Variable result = Utils.ExtractArrayElement(m_value, m_arrayIndices, script);
+                if (script.Prev == '.')
+                {
+                    script.Backward();
+                }
                 if (script.TryCurrent() != '.')
                 {
                     return result;

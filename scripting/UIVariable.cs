@@ -123,9 +123,13 @@ namespace SplitAndMerge
             return Constants.TypeToString(Type);
         }
 
-        public static Variable GetAction(string funcName, string senderName, string eventArg)
+        public static Variable GetAction(string funcName, string senderName = null,
+                               string eventArg1 = null, string eventArg2 = null)
         {
-            var task = CustomFunction.Run(funcName, new Variable(senderName), new Variable(eventArg));
+            var arg1 = senderName == null ? null : new Variable(senderName);
+            var arg2 = eventArg1  == null ? null : new Variable(eventArg1);
+            var arg3 = eventArg2  == null ? null : new Variable(eventArg2);
+            var task = CustomFunction.Run(funcName, arg1, arg2, arg3);
             return task == null ? Variable.EmptyInstance : task.Result;
         }
     }

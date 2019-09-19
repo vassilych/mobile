@@ -1005,5 +1005,9 @@ namespace scripting.Droid
             }
             return true;
         }
+
+        public virtual void Clear()
+        {
+        }
     }
 }

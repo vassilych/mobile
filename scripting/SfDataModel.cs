@@ -186,6 +186,11 @@ namespace SplitAndMerge
             m_data.RemoveAt(rowIndex);
             OnPropertyChanged("DataPoints");
         }
+        public void Clear()
+        {
+            m_data.Clear();
+            OnPropertyChanged("DataPoints");
+        }
         public DataPoint GetPoint(int rowIndex)
         {
             if (rowIndex < 0 || rowIndex >= m_data.Count)

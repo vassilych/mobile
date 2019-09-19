@@ -270,6 +270,22 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
+
+    public class ClearWidgetDataFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+            Utils.CheckNotNull(widget, m_name, script, 0);
+
+            widget.Clear();
+            return Variable.EmptyInstance;
+        }
+    }
+
     public class AddWidgetImagesFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -967,6 +983,7 @@ namespace scripting.Droid
     {
         protected override Variable Evaluate(ParsingScript script)
         {
+            var rest = script.Rest;
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name);
 

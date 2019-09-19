@@ -702,14 +702,12 @@ SetFontColor(labelRefresh, "dark_green");
 locButRefresh = GetLocation(labelRefresh, "RIGHT", labelKey, "BOTTOM", 4, 40);
 AddButton(locButRefresh, "buttonRefresh", "", 120, 100);
 AddAction(buttonRefresh, "connect");
-AddBorder(buttonRefresh, 1);
 SetImage(buttonRefresh, "refresh");
 HideView(buttonRefresh);
 
 locAboutUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 4, -12);
 AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
 AddAction(buttonAboutUs, "aboutUs");
-AddBorder(buttonAboutUs, 1);
 SetImage(buttonAboutUs, "about");
 
 OnTabSelected("tabSelected");
