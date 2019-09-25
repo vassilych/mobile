@@ -124,7 +124,7 @@ namespace scripting
             ParserFunction.RegisterFunction("OpenUrl", new OpenURLFunction());
             ParserFunction.RegisterFunction("WebRequest", new WebRequestFunction());
 
-            ParserFunction.RegisterFunction("Enable", new EnableFunction());
+            ParserFunction.RegisterFunction("EnableWidget", new EnableFunction());
             ParserFunction.RegisterFunction("SetSecure", new MakeSecureFunction());
             ParserFunction.RegisterFunction("SaveToPhotos", new SaveToPhotosFunction());
 
@@ -145,11 +145,20 @@ namespace scripting
             ParserFunction.RegisterFunction("RunOnMain", new RunOnMainFunction());
             ParserFunction.RegisterFunction("PrintConsole", new PrintConsoleFunction());
 
+            ParserFunction.RegisterFunction("time:year", new MyDateTimeFunction("yyyy"));
+            ParserFunction.RegisterFunction("time:month", new MyDateTimeFunction("MM"));
+            ParserFunction.RegisterFunction("time:day", new MyDateTimeFunction("dd"));
+            ParserFunction.RegisterFunction("time:hour", new MyDateTimeFunction("HH"));
+            ParserFunction.RegisterFunction("time:minute", new MyDateTimeFunction("mm"));
+            ParserFunction.RegisterFunction("time:second", new MyDateTimeFunction("ss"));
+            ParserFunction.RegisterFunction("time:millis", new MyDateTimeFunction("fff"));
+
             SQLLite.Init();
         }
 
         public static void RunScript(string fileName)
         {
+            Interpreter.Instance.Init();
             RegisterFunctions();
 
 #if __ANDROID__
@@ -253,7 +262,7 @@ namespace scripting
         protected override Variable Evaluate(ParsingScript script)
         {
             string funcName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-            var scriptPointer = script.Pointer;
+            var initPointer = script.Pointer;
 
             List<Variable> args = script.GetFunctionArgs();
 
@@ -270,8 +279,10 @@ namespace scripting
                 return Variable.EmptyInstance;
             }
 
-            script.Pointer = scriptPointer;
-            CommonFunctions.RunFunctionOnMainThread(func, script);
+            ParsingScript tempScript = script.GetTempScript(script.String, initPointer);
+            PrintConsoleFunction.Print("RunOnMain rest=" + tempScript.Rest);
+            CommonFunctions.RunFunctionOnMainThread(func, tempScript);
+            //Thread.Sleep(100);
             return Variable.EmptyInstance;
         }
     }
@@ -564,30 +575,6 @@ namespace scripting
             return new Variable(results);
         }
     }
-    public class WebRequestFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name);
-            string uri = args[0].AsString();
-
-            string responseFromServer = "";
-            WebRequest request = WebRequest.Create(uri);
-
-            using (WebResponse response = request.GetResponse())
-            {
-                Console.WriteLine("{0} status: {1}", uri,
-                                  ((HttpWebResponse)response).StatusDescription);
-                using (StreamReader sr = new StreamReader(response.GetResponseStream()))
-                {
-                    responseFromServer = sr.ReadToEnd();
-                }
-            }
-
-            return new Variable(responseFromServer);
-        }
-    }
 
     public class GetLocalIpFunction : ParserFunction
     {
@@ -793,6 +780,23 @@ namespace scripting
             }
             System.Diagnostics.Debug.WriteLine("");
             return Variable.EmptyInstance;
+        }
+        public static void Print(string msg)
+        {
+            string timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+            System.Diagnostics.Debug.WriteLine(timestamp + " " + Environment.CurrentManagedThreadId + " " + msg);
+        }
+    }
+    public class MyDateTimeFunction : ParserFunction
+    {
+        string m_format;
+        public MyDateTimeFunction(string format)
+        {
+            m_format = format;
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            return new Variable(DateTime.Now.ToString(m_format));
         }
     }
 }

@@ -7,10 +7,11 @@ stocks        = {"MSFT", "AAPL", "GOOG", "FB", "AMZN" };
 totalStocks   = stocks.Size;
 loadedStocks  = 0;
 //query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data GROUP BY Symbol ORDER BY Stamp DESC LIMIT " + totalStocks + ";";
-query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data ORDER BY Stamp DESC LIMIT 15;";
+query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data ORDER BY Stamp DESC LIMIT " + totalStocks + ";";
 
 DBName        = "cscsdemo.db";
 errorMsg      = "";
+guiLocked     = false;
 
 if (!SQLDBExists(DBName)) {
   create="CREATE TABLE [Data] (Symbol ntext, Low real, High real, Close real, Volume real, Stamp text DEFAULT CURRENT_TIMESTAMP);";
@@ -24,10 +25,11 @@ function getDataFromDB() {
   for (i = 1; i < results.Size; i++) {
     vals       = results[i];
     if (vals.Size < 6) {
-      reportError("Incomplete DB Value: " + vals);
-      continue;
+      errorMsg = "Incomplete DB Value: " + vals;
+      RunOnMain(reportError, errorMsg);
+      return;
     }
-    stock      = vals[0] + vals[5];
+    stock      = vals[0];
     low        = Round(vals[1], 2);
     high       = Round(vals[2], 2); 
     close      = Round(vals[3], 2);
@@ -40,16 +42,23 @@ function getDataFromDB() {
     AddWidgetData(DataGrid, stockData, "item");
   }
   SetText(labelRefresh, "DB Last Refresh: " + refresh);
+  lockGui(false);
+}
+
+function lockGui(lockIt = true) {
+   guiLocked = lockIt;
+   EnableWidget(buttonRefresh, !lockIt);
+   PrintConsole("GUI LOCKED: " + lockIt);
 }
 
 function reportError(msg) {
   if (msg.StartsWith("{") && msg.EndsWith("}")) {
     msg = msg.Substring(1, msg.Size - 2);
   }
-  errorMsg = msg.Trim();
 
-  PrintConsole(errorMsg);
-  RunOnMain(SetText, labelError, errorMsg);
+  PrintConsole(msg);
+  SetText(labelError, msg);
+  lockGui(false);
 }
 
 function OnSuccess( object, errorCode, text )
@@ -89,10 +98,18 @@ function OnSuccess( object, errorCode, text )
 
 function OnFailure( object, errorCode, text )
 {
-  reportError(text);
+  errorMsg = text.Trim();
+  RunOnMain(reportError, errorMsg);
 }
 
 function buttonRefresh_click(object, arg) {
+  if (guiLocked) {
+    PrintConsole("GUI ALREADY LOCKED");
+    return;
+  }
+  PrintConsole("GUI NOT LOCKED");
+  lockGui();
+
   SetText(labelRefresh, "Loading ...");
   SetText(labelError, "");
   ClearWidget(DataGrid);
@@ -110,9 +127,8 @@ function getData(symbol) {
 
 graphHeight  = 460;
 graphWidth   = 626;
-isAndroid    = IsAndroid();
 if (IsAndroid()) {
-  graphHeight = 870;
+  graphHeight = 420;
 }
 
 locLabel = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);

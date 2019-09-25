@@ -990,7 +990,8 @@ namespace SplitAndMerge
             Variable result = Precompiler.AsyncMode ?
                 m_precompiler.RunAsync(argsStr, argsNum, argsArrStr, argsArrNum, argsMapStr, argsMapNum, argsVar, false) :
                 m_precompiler.Run(argsStr, argsNum, argsArrStr, argsArrNum, argsMapStr, argsMapNum, argsVar, false);
-            ParserFunction.PopLocalVariables();
+
+            ParserFunction.PopLocalVariables(m_stackLevel.Id);
 
             return result;
         }

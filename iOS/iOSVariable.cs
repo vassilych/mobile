@@ -61,6 +61,7 @@ namespace scripting.iOS
                     //widget = new UIButton(UIButtonType.System);
                     ((UIButton)widget).SetTitleColor(UIColor.Black, UIControlState.Normal);
                     ((UIButton)widget).SetTitle(initArg, UIControlState.Normal);
+                    ((UIButton)widget).ShowsTouchWhenHighlighted = true;
                     AddBorderFunction.AddBorder(widget);
                     break;
                 case "Label":

@@ -983,7 +983,7 @@ namespace scripting.Droid
     {
         protected override Variable Evaluate(ParsingScript script)
         {
-            var rest = script.Rest;
+            PrintConsoleFunction.Print("SetTextFunction rest=" + script.Rest);
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name);
 
@@ -1980,10 +1980,15 @@ namespace scripting.Droid
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 0, m_name, true);
+            Utils.CheckArgs(args.Count, 2, m_name);
 
-            string productId = args[0].AsString();
-            return Variable.EmptyInstance;
+            DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+            Utils.CheckNotNull(widget, m_name, script, 0);
+
+            bool enable = Utils.GetSafeInt(args, 1, 1) == 1;
+            bool isSet = widget.Enable(enable);
+
+            return new Variable(isSet);
         }
     }
     public class SaveToPhotosFunction : ParserFunction

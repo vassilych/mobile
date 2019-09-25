@@ -929,6 +929,12 @@ namespace scripting.Droid
                 AddAction(varName, title);
             }
         }
+        public virtual bool Enable(bool enable)
+        {
+            ViewX.Enabled = enable;
+            return true;
+        }
+
         public virtual void AddImages(List<string> images, string varName, string title)
         {
             if (ViewX is Spinner)
