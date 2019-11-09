@@ -53,6 +53,7 @@ namespace scripting
             ParserFunction.RegisterFunction("AddBorder", new AddBorderFunction());
             ParserFunction.RegisterFunction("AutoScale", new AutoScaleFunction());
             ParserFunction.RegisterFunction("SetBaseWidth", new SetBaseWidthFunction());
+            ParserFunction.RegisterFunction("SetBaseHeight", new SetBaseHeightFunction());
             ParserFunction.RegisterFunction("AddLongClick", new AddLongClickFunction());
             ParserFunction.RegisterFunction("AddSwipe", new AddSwipeFunction());
             ParserFunction.RegisterFunction("AddDragAndDrop", new AddDragAndDropFunction());
@@ -296,8 +297,8 @@ namespace scripting
 
             double original = Utils.GetSafeDouble(args, 0);
             double multiplier = Utils.GetSafeDouble(args, 1);
-            double relative = AutoScaleFunction.TransformSize(original,
-                                AutoScaleFunction.GetRealScreenSize(), multiplier);
+            double relative = AutoScaleFunction.TransformSizeW(original,
+                                AutoScaleFunction.GetRealScreenSize(true), multiplier);
 
             return new Variable(relative);
         }
@@ -305,7 +306,8 @@ namespace scripting
 
     public class AutoScaleFunction : ParserFunction
     {
-        public static int BASE_WIDTH = 640;
+        public static int BASE_WIDTH  = 640;
+        public static int BASE_HEIGHT = 960;
 
         public static double ScaleX { get; private set; }
         public static double ScaleY { get; private set; }
@@ -362,11 +364,41 @@ namespace scripting
 
             return size;
         }
+        public static double TransformSizeW(double size, int screenWidth, double extra)
+        {
+            if (extra == 0.0)
+            {
+                extra = ScaleX;
+                if (extra == 0.0)
+                {
+                    return size;
+                }
+            }
+            double newSize = (size * screenWidth / BASE_WIDTH);
+            size += (newSize - size) * extra;
+
+            return size;
+        }
+        public static double TransformSizeH(double size, int screenHeight, double extra)
+        {
+            if (extra == 0.0)
+            {
+                extra = ScaleY;
+                if (extra == 0.0)
+                {
+                    return size;
+                }
+            }
+            double newSize = (size * screenHeight / BASE_HEIGHT);
+            size += (newSize - size) * extra;
+
+            return size;
+        }
         public static int GetRealScreenSize(bool width = true)
         {
 #if __ANDROID__
-      var size = UtilsDroid.GetScreenSize();
-      return width ? size.Width : size.Height;
+            var size = UtilsDroid.GetScreenSize();
+            return width ? size.Width : size.Height;
 #elif __IOS__
             return width ? (int)UtilsiOS.GetRealScreenWidth() : (int)UtilsiOS.GetRealScreenHeight();
 #endif
@@ -487,6 +519,22 @@ namespace scripting
             AutoScaleFunction.BASE_WIDTH = baseWidth;
 
             return new Variable(baseWidth);
+        }
+    }
+    public class SetBaseHeightFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            int baseHeight = Utils.GetSafeInt(args, 0);
+
+            Utils.CheckPosInt(args[0], script);
+
+            AutoScaleFunction.BASE_HEIGHT = baseHeight;
+
+            return new Variable(baseHeight);
         }
     }
     public class GetRandomFunction : ParserFunction
@@ -661,11 +709,13 @@ namespace scripting
       deviceName   = Android.OS.Build.Brand;
       string model = Android.OS.Build.Model;
       if (!model.Contains("Android")) {
-        // Simulators have "Android" in both, Brand and Model.
+        // Simulators may have "Android" in both, Brand and Model.
         deviceName += " " + model;
       }
+      deviceName = deviceName.Replace("google", "Simulator");
 #elif __IOS__
             deviceName = UtilsiOS.GetDeviceName();
+            deviceName = deviceName.Replace("Simulator", "iPhone");
 #endif
             return new Variable(deviceName);
         }
@@ -677,7 +727,7 @@ namespace scripting
             string version = "";
 
 #if __ANDROID__
-      version = Android.OS.Build.VERSION.Release + " - " + 
+      version = "Android " + Android.OS.Build.VERSION.Release + " - " + 
                 Android.OS.Build.VERSION.Sdk;
 #elif __IOS__
             version = UIKit.UIDevice.CurrentDevice.SystemName + " " +

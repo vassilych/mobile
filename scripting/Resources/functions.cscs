@@ -107,6 +107,7 @@ function get_word(voiceInd, index) {
   if (word == "" && voiceInd > 0) {
       word  = words[voiceInd - 1][index];
   }
+  PrintConsole("get_word " + voiceInd +"," + index + ":" + word);
 
   return word;
 }
@@ -282,13 +283,15 @@ function is_pic_available() {
 
 function set_button_data(button, wordIndex) {
   SetBackgroundColor(button, "transparent");
-  pic = "";
+  pic = ""; img = "";
   if (is_pic_available() && (button == buttonCenter || quizType == 0)) {
     pic = get_word(0, wordIndex);
   }
 
-  img = SetImage(button, pic);
-  //WriteConsole("img=", img, ", pic=", pic, ", category=", category, ", quizType=", quizType, ", wordIndex=", wordIndex);
+  if (pic != "") {
+    img = SetImage(button, pic);
+    //WriteConsole("img=", img, ", pic=", pic, ", category=", category, ", quizType=", quizType, ", wordIndex=", wordIndex);
+  }
   if (img == "") {
     AddBorder(button, 1, 0);
     text = get_word_transcript(voiceNativeIndex, wordIndex);

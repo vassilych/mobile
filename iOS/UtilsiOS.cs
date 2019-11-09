@@ -223,6 +223,12 @@ namespace scripting.iOS
             var adjusted = iOSApp.AdjustSize(width);
             return (int)adjusted;
         }
+        public static int GetAdjustedScreenHeight()
+        {
+            var height = GetRealScreenHeight();
+            var adjusted = height;// iOSApp.AdjustSize(height);
+            return (int)adjusted;
+        }
         public static double WidthMultiplier()
         {
             var size = GetNativeScreenSize();

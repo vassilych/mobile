@@ -1,6 +1,6 @@
 ﻿AutoScale();
 SetBackgroundColor("light_green");
-
+/*
 baseURL       = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=";
 apikey        = "Y12T0TY5EUS6BC5F";
 stocks        = {"MSFT", "AAPL", "GOOG", "FB", "AMZN" };
@@ -9,7 +9,7 @@ loadedStocks  = 0;
 //query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data GROUP BY Symbol ORDER BY Stamp DESC LIMIT " + totalStocks + ";";
 query         = "SELECT Symbol,Low,High,Close,Volume,DATETIME(Stamp,'localtime') as Stamp FROM Data ORDER BY Stamp DESC LIMIT " + totalStocks + ";";
 
-DBName        = "cscsdemo.db";
+DBName        = "cscsdemo.db2";
 errorMsg      = "";
 guiLocked     = false;
 
@@ -104,10 +104,8 @@ function OnFailure( object, errorCode, text )
 
 function buttonRefresh_click(object, arg) {
   if (guiLocked) {
-    PrintConsole("GUI ALREADY LOCKED");
     return;
   }
-  PrintConsole("GUI NOT LOCKED");
   lockGui();
 
   SetText(labelRefresh, "Loading ...");
@@ -115,9 +113,6 @@ function buttonRefresh_click(object, arg) {
   ClearWidget(DataGrid);
   loadedStocks = 0;
   getData(stocks[loadedStocks]);
-  //for (stock : stocks) {
-  //  getData(stock);
-  //}
 }
 
 function getData(symbol) {
@@ -157,12 +152,15 @@ SetFontColor(labelError, "red");
 AlignText(labelError, "center");
 
 getDataFromDB();
+*/
+locLabelText = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10);
+AddLabel(locLabelText, "labelText", "Welcome " + _DEVICE_INFO_ + " " + _VERSION_INFO_ + " User!", 600, 100);
 
-//locTextEdit = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-//AddTextEdit(locTextEdit, "textEdit", "Your name", 320, 80);
+locTextEdit = GetLocation("ROOT", "LEFT", labelText, "BOTTOM", 10);
+AddTextEdit(locTextEdit, "textEdit", "Your name", 320, 80);
 
-//locButton = GetLocation(textEdit, "RIGHT", textEdit, "CENTER", 10);
-//AddButton(locButton, "buttonHi", "Hello", 160, 80);
+locButton = GetLocation(textEdit, "RIGHT", textEdit, "CENTER", 10);
+AddButton(locButton, "buttonHi", "Hello", 160, 80);
 
 function buttonHi_click(sender, arg) {
   name = getText(textEdit);

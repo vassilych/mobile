@@ -49,7 +49,6 @@ namespace SplitAndMerge
                 allowRemoteConnections = false;
             }
 
-            allowRemoteConnections = true;
             IPAddress localAddr = allowRemoteConnections ? IPAddress.Any : IPAddress.Parse("127.0.0.1");
             Console.Write("Starting a server on {0}:{1}... ", localAddr.ToString(), port);
 

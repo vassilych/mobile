@@ -630,6 +630,7 @@ namespace scripting.Droid
     }
     public class SetBackgroundColorFunction : ParserFunction
     {
+        public Color BGColor = Color.Transparent;
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
@@ -648,7 +649,8 @@ namespace scripting.Droid
 
             if (varName.Equals("ROOT"))
             {
-                MainActivity.TheLayout.RootView.SetBackgroundColor(UtilsDroid.String2Color(strColor));
+                BGColor = UtilsDroid.String2Color(strColor);
+                MainActivity.TheLayout.RootView.SetBackgroundColor(BGColor);
             }
             else
             {

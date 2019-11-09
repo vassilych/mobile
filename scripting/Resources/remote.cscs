@@ -11,6 +11,7 @@ volas        = {};
 selVolas     = {};
 unselVolas   = {};
 dates        = {};
+markets      = {};
 stock        = "";
 isin         = "";
 loggedIn     = false;
@@ -84,7 +85,8 @@ function connect(sender, arg) {
 function onConnect(sender, arg) {
   if (arg == "OK") {
     connectionSuccess();
-    GetDataFromServer("stocks", "", "fillStocks");
+    //GetDataFromServer("stocks", "", "fillStocks");
+    GetDataFromServer("regional", "US", "fillStocks");
   } else {
     SetText(labelStatus2,  "Disconnected");
     SetFontColor(labelStatus2, "red");
@@ -120,10 +122,17 @@ function fillStocks(sender, arg) {
   //AddLabel(locStocksLab, "labelStocks", "Stocks:", 100, 60);
   //SetFontSize(labelStocks, fontSizeSm);
 
-  locComboStocks = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);
-  AddCombobox(locComboStocks, "allStocksWidget", "", 480, 60);
+  markets = { "CH", "DE", "US" };
+  locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 30);
+  AddCombobox(locComboMarkets, "allMarketsWidget", "", 200, 60);
+  AddWidgetData(allMarketsWidget, markets, "stockSelected", "left");
+  SetFontSize(allMarketsWidget, 13);
+  SetValue(allMarketsWidget, "alignment", "left");
+
+  locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 30);
+  AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
   AddWidgetData(allStocksWidget, stocks, "stockSelected", "left");
-  SetFontSize(allStocksWidget, 14);
+  SetFontSize(allStocksWidget, 13);
   SetValue(allStocksWidget, "alignment", "center");
 
   AddAction(allStocksWidget, "stockSelected");
@@ -309,7 +318,7 @@ function fillVolasData(sender, arg) {
     if (parts.size < 4) {
       continue;
     }
-    PrintConsole("Processing [", point, "] size=", parts.size);
+    PrintConsole("Processing Vola [", point, "] size=", parts.size);
     isin       = parts[0];
     date       = parts[3];
     key        = date;
@@ -328,7 +337,7 @@ function fillVolasData(sender, arg) {
   dates.Sort();
 
   for (date : dates) {
-    if (selVolas.Size <= 1) {
+    if (selVolas.Size <= 2) {
       selVolas.Add(date);
     } else {
       unselVolas.Add(date);
@@ -420,6 +429,9 @@ function fillDividendsData(sender, arg) {
   nbPast = 0; nbFuture = 0;
   for (point : points) {
     parts      = point.Split("|");
+    if (parts.size < 7) {
+      continue;
+    }
     PrintConsole("Processing [", point, "] size=", parts.size);
     isin       = parts[0];
     x          = parts[5];
@@ -546,7 +558,7 @@ function fillStockData(sender, arg) {
       PrintConsole("  ALREADY EXISTS:", uniqueKey);
       continue;
     }
-    PrintConsole("  NEW KEY:", uniqueKey);
+    //PrintConsole("  NEW KEY:", uniqueKey);
     processed.Add(uniqueKey);
     AddOrderedData(stockData, key, parts[5], last);
     //AddToHash("stockData", parts[5], key);
@@ -628,16 +640,18 @@ fontSizeSm   = 12;
 loginLabelH  = 60;
 loginLabelW  = 200;
 tokenCount   = 0;
-graphWidth   = 610;
-graphHeight  = 470;
-tableWidth   = 580;
-tableHeight  = 720;
 busySize     = 400;
 
+graphWidth   = 620;
+graphHeight  = 460;
+tableWidth   = 620;
+tableHeight  = 660;
+
 isiPhoneX    = isiPhoneX();
-isAndroid    = isAndroid();
+//isAndroid    = isAndroid();
 if (isiPhoneX) {
-  graphHeight   = graphWidth;
+  graphHeight  = graphWidth = 610;
+  tableHeight  = 720;
 }
 
 SetBackgroundColor("cyan");
@@ -646,7 +660,7 @@ numberTabs = 5;
 AddOrSelectTab("Options",      "learn.png",     "learn2.png");
 AddOrSelectTab("Analysys",     "brain_act.png", "brain2.png");
 AddOrSelectTab("Dividends",    "dividends.png", "dividends2.png");
-AddOrSelectTab("Volatilities", "vola.png",      "vola2.png");
+AddOrSelectTab("Volas", "vola.png",      "vola2.png");
 AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
@@ -708,6 +722,7 @@ HideView(buttonRefresh);
 locAboutUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 4, -12);
 AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
 AddAction(buttonAboutUs, "aboutUs");
+AddBorder(buttonAboutUs, 0);
 SetImage(buttonAboutUs, "about");
 
 OnTabSelected("tabSelected");

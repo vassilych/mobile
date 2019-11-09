@@ -19,64 +19,6 @@ namespace SplitAndMerge
             ParserFunction.RegisterFunction("SQLNonQuery", new SqlLiteNonQueryFunction());
             ParserFunction.RegisterFunction("SQLInsert", new SqlLiteInsertFunction());
         }
-
-        public static SqliteConnection connection;
-        public static void DoSomeDataAccess()
-        {
-            // determine the path for the database file
-            string dbPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-                "adodemo.db3");
-
-            bool exists = File.Exists(dbPath);
-
-            if (!exists)
-            {
-                Console.WriteLine("Creating database");
-                // Need to create the database before seeding it with some data
-                Mono.Data.Sqlite.SqliteConnection.CreateFile(dbPath);
-                connection = new SqliteConnection("Data Source=" + dbPath);
-
-                var commands = new[] {
-                    "CREATE TABLE [Items] (_id ntext, Symbol ntext);",
-                    "INSERT INTO [Items] ([_id], [Symbol]) VALUES ('1', 'AAPL')",
-                    "INSERT INTO [Items] ([_id], [Symbol]) VALUES ('2', 'GOOG')",
-                    "INSERT INTO [Items] ([_id], [Symbol]) VALUES ('3', 'MSFT')"
-                };
-                // Open the database connection and create table with data
-                connection.Open();
-                foreach (var command in commands)
-                {
-                    using (var c = connection.CreateCommand())
-                    {
-                        c.CommandText = command;
-                        var rowcount = c.ExecuteNonQuery();
-                        Console.WriteLine("\tExecuted " + command);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("Database already exists");
-                // Open connection to existing database file
-                connection = new SqliteConnection("Data Source=" + dbPath);
-                connection.Open();
-            }
-
-            // query the database to prove data was inserted!
-            using (var contents = connection.CreateCommand())
-            {
-                contents.CommandText = "SELECT [_id], [Symbol] from [Items]";
-                contents.CommandText = "SELECT _id, Symbol from Items";
-                var r = contents.ExecuteReader();
-                Console.WriteLine("Reading data");
-                while (r.Read())
-                    Console.WriteLine("\tKey={0}; Value={1}",
-                                      r["_id"].ToString(),
-                                      r["Symbol"].ToString());
-            }
-            connection.Close();
-        }
     }
 
     public class SqlLiteFunction : ParserFunction

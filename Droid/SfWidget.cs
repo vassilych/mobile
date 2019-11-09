@@ -879,7 +879,7 @@ namespace scripting.Droid
         {
             m_chart = new SfChart(m_context);
 
-            m_chart.SetBackgroundColor(Color.White);
+            m_chart.SetBackgroundColor(Color.Transparent);
             m_chart.Title.Text = "Graph";
             m_chart.Title.TextSize = 15;
 
