@@ -624,7 +624,8 @@ namespace scripting.iOS
                 }
                 m_picker.Model = model;
 
-                SetText(data[0], extra, true /* triggered */);
+                int selRow = model.SelectedRow < model.Data.Count ? model.SelectedRow : 0;
+                SetText(data[selRow], extra, true /* triggered */);
             }
         }
         public virtual void AddImages(List<UIImage> images, string varName, string title)
@@ -821,6 +822,10 @@ namespace scripting.iOS
             }
             m_picker.Select((int)row, 0, true);
             //model?.Selected(m_picker, (int)row, 0);
+            if (string.IsNullOrEmpty(text) && row < model.Data.Count)
+            {
+                text = model.Data[row];
+            }
             ActionDelegate?.Invoke(WidgetName, text);
 
             m_button?.SetTitle(text, UIControlState.Normal);
@@ -1235,6 +1240,10 @@ namespace scripting.iOS
                     case "text2":
                         m_button2.SetTitle(arg2 + "\t", UIControlState.Normal);
                         break;
+                    case "":
+                    case "value":
+                        SetComboboxText("", (int)Utils.ConvertToDouble(arg2));
+                        break;
                     default:
                         double row;
                         if (!Utils.CanConvertToDouble(arg1, out row) || row < 0)
@@ -1247,10 +1256,6 @@ namespace scripting.iOS
                         }
                         model.SetColor((int)row, UtilsiOS.String2Color(arg2));
                         break;
-                }
-                if (string.IsNullOrEmpty(arg1) || arg1 == "value")
-                {
-                    SetComboboxText("", (int)Utils.ConvertToDouble(arg2));
                 }
             }
             else if (m_viewX is UISwitch)

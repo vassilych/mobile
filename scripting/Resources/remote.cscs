@@ -23,7 +23,13 @@ busyOptions  = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe"
 graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
                 "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue"};
-prevSelection = "";
+
+markets = { "CH", "DE", "US" };
+market  = markets[0];
+
+prevStockSelection  = "";
+prevMarketSelection = "";
+prevVolaSelection   = "";
 
 InitSyncfusion();
 AutoScale(1.0);
@@ -85,8 +91,8 @@ function connect(sender, arg) {
 function onConnect(sender, arg) {
   if (arg == "OK") {
     connectionSuccess();
-    //GetDataFromServer("stocks", "", "fillStocks");
-    GetDataFromServer("regional", "US", "fillStocks");
+    //GetDataFromServer("stocks",   "", "fillStocks");
+    GetDataFromServer("regional", "CH", "fillStocks");
   } else {
     SetText(labelStatus2,  "Disconnected");
     SetFontColor(labelStatus2, "red");
@@ -99,7 +105,10 @@ function fillStocks(sender, arg) {
   tabId = 0;
   SelectTab(tabId);
   
-  stocks    = {};
+  stocks              = {};
+  prevStockSelection  = "";
+  prevVolaSelection   = "";
+
   stocks.Add("Select Stock");
   stockData = arg.Split("!");
   for (item : stockData) {
@@ -112,44 +121,61 @@ function fillStocks(sender, arg) {
     price         = Round(Double(parts[2]), 4);
     prices[stock] = parts[4] + " " + price;
     avail         = parts[8] == "True";
-    printConsole(item + ": " + avail);
+    //printConsole(item + ": " + avail);
     displayName   = stockName == "" ? stock : stock + " - " + stockName;
     displayName   += avail ? "" : " *";
     stocks.Add(displayName);
   }
   
-  //locStocksLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-  //AddLabel(locStocksLab, "labelStocks", "Stocks:", 100, 60);
-  //SetFontSize(labelStocks, fontSizeSm);
+  AddWidgetData(allStocksWidget, stocks);
+  SetValue(allStocksWidget, "value", 0);
 
-  markets = { "CH", "DE", "US" };
-  locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 30);
-  AddCombobox(locComboMarkets, "allMarketsWidget", "", 200, 60);
-  AddWidgetData(allMarketsWidget, markets, "stockSelected", "left");
-  SetFontSize(allMarketsWidget, 13);
-  SetValue(allMarketsWidget, "alignment", "left");
-
-  locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 30);
-  AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
-  AddWidgetData(allStocksWidget, stocks, "stockSelected", "left");
-  SetFontSize(allStocksWidget, 13);
-  SetValue(allStocksWidget, "alignment", "center");
-
-  AddAction(allStocksWidget, "stockSelected");
-
+  printConsole(item + " Added " + stocks.size + " stocks.");
   makeUnbusy();
 }
 
 function stockSelected(sender, arg) {
-  if (arg.contains("Select") || prevSelection == arg) {
+  if (arg.contains("Select") || prevStockSelection == arg) {
     return;
   }
-  prevSelection = arg;
+  prevStockSelection = arg;
+
+  if (NameExists(DataGrid)) {
+    RemoveView(DataGrid);
+    RemoveView(labelCcy);
+    RemoveView(imageCcy);
+  }
+  if (NameExists(VolaGraph1)) {
+    RemoveView(VolaGraph1);
+  }  if (NameExists(VolaGraph2)) {
+    RemoveView(VolaGraph2);
+  }
 
   makeBusy();
   parts = arg.Split(' ');
   stock = parts.First;
   GetDataFromServer("optionprices", stock, "fillStockData");
+  printConsole("Requested data for " + stock + ". Market: " + market);
+}
+
+function marketSelected(sender, arg) {
+  if (arg.contains("Select") || prevMarketSelection == arg) {
+    return;
+  }
+  prevMarketSelection = arg;
+
+  makeBusy();
+  if (NameExists(DataGrid)) {
+    RemoveView(DataGrid);
+    RemoveView(labelCcy);
+    RemoveView(imageCcy);
+  }
+
+  parts  = arg.Split(' ');
+  market = parts.First;
+  PrintConsole("marketSelected:", market, ". arg:", arg);
+
+  GetDataFromServer("regional", market, "fillStocks");
 }
 
 function getBestData(stockData, pattern) {
@@ -204,20 +230,7 @@ function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
     }
     addDataToGraph(graphName, stockData, key, graphColors[colorIndex]);
   }
-
-  /*if (keys.Size > 0) {
-    addDataToGraph(graphName, stockData, keys[0], "green:green");
-  }
-  if (keys.Size > 1) {
-    addDataToGraph(graphName, stockData, keys[1], "yellow:yellow");
-  }
-  if (keys.Size > 2) {
-    addDataToGraph(graphName, stockData, keys[2], "red:red");
-  }
-  if (keys.Size > 3) {
-    addDataToGraph(graphName, stockData, keys[3], "blue:blue");
-  }*/
-  
+    
   SetText(graphName,  graphTitle);
   SetValue(graphName, "primary_axis",   primary_axis);
   SetValue(graphName, "secondary_axis", secondary_axis);
@@ -318,7 +331,7 @@ function fillVolasData(sender, arg) {
     if (parts.size < 4) {
       continue;
     }
-    PrintConsole("Processing Vola [", point, "] size=", parts.size);
+    //PrintConsole("Processing Vola [", point, "] size=", parts.size);
     isin       = parts[0];
     date       = parts[3];
     key        = date;
@@ -346,7 +359,6 @@ function fillVolasData(sender, arg) {
   locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 28);
   AddCombobox(locComboVolas, "volasWidget", "", 480, 60);
   comboData = dates;
-  PrintConsole(dates.Size, " dates received: [", dates, "]");
   comboData.Add("Select Volatilities", 0);
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
   SetFontSize(volasWidget, 14);
@@ -357,15 +369,17 @@ function fillVolasData(sender, arg) {
   AddAction(volasWidget, "volaSelected");
   volaSelected("", "");
 
+  PrintConsole("Finished processing " + volaData.Size + " Volas. Dates received: [", dates, "]");
   makeUnbusy();
 }
 
 function volaSelected(sender, arg) {
-  PrintConsole(sender, " volaSelected: [", arg, "], prevSelection=", prevSelection);
-  if (arg.contains("Select") || arg == prevSelection) {
+  PrintConsole(sender, " volaSelected: [", arg, "], prevVolaSelection=", prevVolaSelection);
+  if (arg.contains("Select")){// || arg == prevVolaSelection) {
+    PrintConsole("No need to reload Volas, prevVolaSelection=", prevVolaSelection);
     return;
   }
-  prevSelection = arg;
+  prevVolaSelection = arg;
 
   if (selVolas.Contains(arg)) {
     selVolas.Remove(arg);
@@ -384,25 +398,12 @@ function volaSelected(sender, arg) {
   }
 
   locVolaGraph1 = GetLocation("ROOT", "CENTER", volasWidget, "BOTTOM", 0, 10);
-  //AddSfSplineGraph(locVolaGraph1, "VolaGraph1", "", graphWidth, graphHeight);
-  //SetText(VolaGraph1,  "Volatilities for " + stock  + "  " + isin);
-  //SetValue(VolaGraph1, "primary_axis",   "Strike");
-  //SetValue(VolaGraph1, "secondary_axis", "Vola");
-  //setToolTip(VolaGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "Strike: ", "Vola: ");
-  
-  //colorIndex = -1;
-  //for (date : selVolas) {
-  //  if (++colorIndex >= graphColors.size) {
-  //    colorIndex = 0;
-  //  }
-  //addDataToGraph(VolaGraph1, volaData, date, graphColors[colorIndex]);
-  //}
+
+  printConsole("Redrawing " + selVolas.Size + " Volas for " + stock);
   if (selVolas.Size == 0) {
     return;
   }
   createGraph(locVolaGraph1, "VolaGraph1", "Volatilities for "+stock+"  "+isin, volaData, selVolas, "Strike", "Vola");
-  //printData(volaData,  selVolas[0], "Volat data:");
-  //printData(stockData, volaKeys[0], "Stock data:");
 }
 
 function printData(d, key, str = "") {
@@ -432,7 +433,7 @@ function fillDividendsData(sender, arg) {
     if (parts.size < 7) {
       continue;
     }
-    PrintConsole("Processing [", point, "] size=", parts.size);
+    //PrintConsole("Processing Dividend [", point, "] size=", parts.size);
     isin       = parts[0];
     x          = parts[5];
     y          = Round(double(parts[1]), 2);
@@ -524,6 +525,7 @@ function fillStockData(sender, arg) {
   processed = {};
   
   //OPT ANN P A 2019-04-19 49.0|0|0|4.28000020980835|4.28000020980835|EUR|EUX|per unit|4/14/2019 12:00:00 AM!
+  //IBM|IBM|137.914993286133|137.160003662109|USD|US|US4592001014|11/7/2019 12:00:00 AM|True: 1
   previousKey = "";
   for (option : options) {
     data = option.Split("|");
@@ -558,7 +560,6 @@ function fillStockData(sender, arg) {
       PrintConsole("  ALREADY EXISTS:", uniqueKey);
       continue;
     }
-    //PrintConsole("  NEW KEY:", uniqueKey);
     processed.Add(uniqueKey);
     AddOrderedData(stockData, key, parts[5], last);
     //AddToHash("stockData", parts[5], key);
@@ -571,11 +572,10 @@ function fillStockData(sender, arg) {
       }
       previousKey = key;
     }*/
-  }
+}
   
   data[stock] = stockData;
-  
-  PrintConsole(stockData);
+  //PrintConsole(stockData);
   
   locCcyLab = GetLocation("ROOT", "CENTER", DataGrid, "BOTTOM", -30, 24);
   AddLabel(locCcyLab, "labelCcy", "Currency:", 180, 60);
@@ -588,6 +588,8 @@ function fillStockData(sender, arg) {
   //AddLabel(locMktLab, "labelMkt", "Market: " + market, 240, 60);
   //SetFontSize(labelMkt, fontSizeSm);
   makeUnbusy();
+
+  printConsole("Finished fillStockData for " + stock + ", market: " + market);
 }
 
 function optionSelected(sender, arg) {
@@ -660,8 +662,25 @@ numberTabs = 5;
 AddOrSelectTab("Options",      "learn.png",     "learn2.png");
 AddOrSelectTab("Analysys",     "brain_act.png", "brain2.png");
 AddOrSelectTab("Dividends",    "dividends.png", "dividends2.png");
-AddOrSelectTab("Volas", "vola.png",      "vola2.png");
+AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
 AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+
+SelectTab(0);
+
+locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 30);
+AddCombobox(locComboMarkets, "allMarketsWidget", "", 200, 60);
+AddWidgetData(allMarketsWidget, markets);
+SetFontSize(allMarketsWidget, 13);
+SetValue(allMarketsWidget, "alignment", "center");
+AddAction(allMarketsWidget, "marketSelected");
+
+locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 30);
+AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
+SetFontSize(allStocksWidget, 13);
+SetValue(allStocksWidget, "alignment", "center");
+AddAction(allStocksWidget, "stockSelected");
+
+SelectTab(numberTabs - 1);
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
 AddLabel(locLoading, "labelLoading", "", 580, 160);
