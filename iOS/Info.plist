@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>ch.cscs.vk</string>
+	<string>ch.mydividends.vk</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
@@ -32,6 +32,7 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -44,19 +45,27 @@
 	<string>en</string>
 	<key>CFBundleLocalizations</key>
 	<array/>
-	<key>XSLaunchImageAssets</key>
-	<string>Assets.xcassets/LaunchImage.launchimage</string>
-	<key>XSAppIconAssets</key>
-	<string>Assets.xcassets/AppIcon.appiconset</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photos</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to photos</string>
-	<key>CFBundleName</key>
-	<string>CSCS</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.3</string>
+	<string>0.0.4</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>0.1</string>
+	<key>CFBundleName</key>
+	<string>MyDividends.com</string>
+	<key>CFBundleDisplayName</key>
+	<string>MyDividends</string>
+	<key>UILaunchStoryboardName</key>
+	<string>Main</string>
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>XSAppIconAssets</key>
+	<string>Assets.xcassets/AppIcon.appiconset</string>
+	<key>XSLaunchImageAssets</key>
+	<string>Assets.xcassets/LaunchImage.launchimage</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-5365456490909700~2481398691</string>
 </dict>
 </plist>

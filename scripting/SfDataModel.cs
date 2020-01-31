@@ -344,7 +344,9 @@ namespace SplitAndMerge
         public override string ToString()
         {
             StringBuilder result = new StringBuilder();
+#pragma warning disable CS0162 // Unreachable code detected
             for (int i = 0; i < MAX_COLS; i++)
+#pragma warning restore CS0162 // Unreachable code detected
             {
                 var part = GetStringValue(i);
                 if (string.IsNullOrEmpty(part))

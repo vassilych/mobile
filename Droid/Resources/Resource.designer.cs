@@ -229,6 +229,49 @@ namespace scripting.Droid
 			global::Syncfusion.SfImageEditor.Android.Resource.String.saving = global::scripting.Droid.Resource.String.saving;
 		}
 		
+		public partial class Fraction
+		{
+			
+			// aapt resource value: 0x7F080000
+			public const int lb_browse_header_unselect_alpha = 2131230720;
+			
+			// aapt resource value: 0x7F080001
+			public const int lb_browse_rows_scale = 2131230721;
+			
+			// aapt resource value: 0x7F080002
+			public const int lb_focus_zoom_factor_large = 2131230722;
+			
+			// aapt resource value: 0x7F080003
+			public const int lb_focus_zoom_factor_medium = 2131230723;
+			
+			// aapt resource value: 0x7F080004
+			public const int lb_focus_zoom_factor_small = 2131230724;
+			
+			// aapt resource value: 0x7F080005
+			public const int lb_focus_zoom_factor_xsmall = 2131230725;
+			
+			// aapt resource value: 0x7F080006
+			public const int lb_search_bar_speech_orb_max_level_zoom = 2131230726;
+			
+			// aapt resource value: 0x7F080007
+			public const int lb_search_orb_focused_zoom = 2131230727;
+			
+			// aapt resource value: 0x7F080008
+			public const int lb_view_active_level = 2131230728;
+			
+			// aapt resource value: 0x7F080009
+			public const int lb_view_dimmed_level = 2131230729;
+			
+			static Fraction()
+			{
+				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
+			}
+			
+			private Fraction()
+			{
+			}
+		}
+		
 		public partial class Animation
 		{
 			

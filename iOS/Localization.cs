@@ -50,11 +50,13 @@ namespace scripting.iOS
 
     public static string GetText(string key)
     {
-      string text = m_bundle.LocalizedString(key, key);
-      if (text == key && DeviceLanguageCode != "en" && !key.Contains(":")) {
+#pragma warning disable CS0618 // Type or member is obsolete
+            string text = m_bundle.LocalizedString(key, key);
+            if (text == key && DeviceLanguageCode != "en" && !key.Contains(":")) {
         text = m_bundle.LocalizedString(key + ":", key).Replace(":", "");
-      }
-      return text;
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            return text;
     }
 
     public static string GetDeviceLangCode()
