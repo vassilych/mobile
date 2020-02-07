@@ -1977,6 +1977,31 @@ namespace scripting.Droid
             return new Variable(isSet);
         }
     }
+    public class NumKeyboardFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
+            Utils.CheckNotNull(widget, m_name, script, 0);
+
+            View view = widget.ViewX;
+            Utils.CheckNotNull(view, m_name, script);
+
+            bool isSet = false;
+
+            if (view is TextView)
+            {
+                //((TextView)view).Beh = UIKeyboardType.NumberPad; ;
+                //isSet = true;
+            }
+
+            return new Variable(isSet);
+        }
+    }
+
     public class EnableFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
