@@ -597,6 +597,7 @@ namespace scripting.iOS
             m_stepper.Maximum = (nfloat)maxValue;
             m_stepper.Culture = NSLocale.CurrentLocale; //new NSLocale("en_US");
             m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(m_data, 3);
+            m_stepper.IsEditable = false;
 
             //m_stepper.BackgroundColor = UIColor.White;
             //m_stepper.UpdownButtonColor = UIColor.Clear;

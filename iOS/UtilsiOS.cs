@@ -172,6 +172,11 @@ namespace scripting.iOS
             // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828
             // 8: 1334x750, 8 Plus: 1920x1080, SE,5: 1136x640, 4s: 960x640
         }
+        public static bool IsiPhoneXR()
+        {
+            CGSize screen = UtilsiOS.GetNativeScreenSize();
+            return screen.Height == 1792;
+        }
 
         public static bool IsiPhonePlus()
         {
@@ -179,6 +184,7 @@ namespace scripting.iOS
             var width = bounds.Width;
             var height = bounds.Height;
             if (width == 1242 && height == 2208)
+
             { // Special hack for wrong size on 6+, 7+, 8+
                 return true;
             }

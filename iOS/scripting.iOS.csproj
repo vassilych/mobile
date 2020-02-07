@@ -5036,6 +5036,9 @@
     <BundleResource Include="..\scripting\Resources\drawable\refresh.png">
       <Link>Resources\drawable\refresh.png</Link>
     </BundleResource>
+    <BundleResource Include="..\scripting\Resources\script.cscs">
+      <Link>Resources\script.cscs</Link>
+    </BundleResource>
   </ItemGroup>
   <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

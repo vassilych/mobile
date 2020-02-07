@@ -201,7 +201,11 @@ namespace scripting.iOS
         {
             double newSize = size;
 
-            if (UtilsiOS.IsiPhoneX())
+            if (UtilsiOS.IsiPhoneXR())
+            {
+                newSize = size / 1.1f;
+            }
+            else if (UtilsiOS.IsiPhoneX())
             {
                 newSize = size / 1.5f;
             }
@@ -441,6 +445,11 @@ namespace scripting.iOS
                 // landsacpe
             }
             base.ViewDidLoad();
+
+            var g = new UITapGestureRecognizer(() => View.EndEditing(true));
+            g.CancelsTouchesInView = false; //for iOS5
+
+            View.AddGestureRecognizer(g);
         }
     }
 }

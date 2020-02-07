@@ -86,6 +86,7 @@ namespace scripting
             ParserFunction.RegisterFunction("Relative", new RelativeSizeFunction());
             ParserFunction.RegisterFunction("ShowHideKeyboard", new ShowHideKeyboardFunction());
             ParserFunction.RegisterFunction("IsKeyboard", new IsKeyboardFunction());
+            ParserFunction.RegisterFunction("NumKeyboard", new NumKeyboardFunction());
             ParserFunction.RegisterFunction("ClearWidget", new ClearWidgetDataFunction());
 
             ParserFunction.RegisterFunction("AddAction", new AddActionFunction());

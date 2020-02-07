@@ -450,12 +450,38 @@ namespace scripting.iOS
             return new Variable(isSet);
         }
     }
+
+    public class NumKeyboardFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
+            Utils.CheckNotNull(widget, m_name, script, 0);
+
+            UIView view = widget.ViewX;
+            Utils.CheckNotNull(view, m_name, script);
+
+            bool isSet = false;
+
+            if (view is UITextField)
+            {
+                ((UITextField)view).KeyboardType = UIKeyboardType.NumberPad; ;
+                isSet = true;
+            }
+
+            return new Variable(isSet);
+        }
+    }
+
     public class EnableFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
+            Utils.CheckArgs(args.Count, 1, m_name);
 
             bool checkNull = Utils.GetSafeInt(args, 2, 1) == 1;
 
