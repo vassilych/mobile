@@ -39,6 +39,8 @@ namespace SplitAndMerge
         //bool m_assigmentExpression;
         bool m_lastStatementReturn;
 
+        bool m_scriptInCSharp;
+
         ParsingScript m_parentScript;
         public string CSharpCode { get; private set; }
 
@@ -48,7 +50,8 @@ namespace SplitAndMerge
         Func<List<string>, List<double>, List<List<string>>, List<List<double>>,
              List<Dictionary<string, string>>, List<Dictionary<string, double>>, List<Variable>, Task<Variable>> m_compiledFuncAsync;
 
-        static List<string> s_namespaces = new List<string>();
+        static List<string> s_definitions = new List<string>();
+        static List<string> s_namespaces  = new List<string>();
 
         public static bool AsyncMode { get; set; } = true;
 
@@ -78,9 +81,21 @@ namespace SplitAndMerge
             return retType;
         }
 
+        public static void AddDefinition(string def)
+        {
+            s_definitions.Add(def);
+        }
         public static void AddNamespace(string ns)
         {
             s_namespaces.Add(ns);
+        }
+        public static void ClearDefinitions()
+        {
+            s_definitions.Clear();
+        }
+        public static void ClearNamespaces()
+        {
+            s_namespaces.Clear();
         }
 
         public Precompiler(string functionName, string[] args, Dictionary<string, Variable> argsMap,
@@ -94,14 +109,16 @@ namespace SplitAndMerge
             m_parentScript = parentScript;
         }
 
-        public void Compile()
+        public void Compile(bool scriptInCSharp = false)
         {
-            var CompilerParams = new CompilerParameters();
+            m_scriptInCSharp = scriptInCSharp;
 
-            CompilerParams.GenerateInMemory = true;
-            CompilerParams.TreatWarningsAsErrors = false;
-            CompilerParams.GenerateExecutable = false;
-            CompilerParams.CompilerOptions = "/optimize";
+            var compilerParams = new CompilerParameters();
+
+            compilerParams.GenerateInMemory = true;
+            compilerParams.TreatWarningsAsErrors = false;
+            compilerParams.GenerateExecutable = false;
+            compilerParams.CompilerOptions = "/optimize";
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly asm in assemblies)
@@ -115,14 +132,17 @@ namespace SplitAndMerge
                 var uri = new Uri(asmName.CodeBase);
                 if (uri != null && File.Exists(uri.LocalPath))
                 {
-                    CompilerParams.ReferencedAssemblies.Add(uri.LocalPath);
+                    compilerParams.ReferencedAssemblies.Add(uri.LocalPath);
                 }
             }
+
+            m_cscsCode = Utils.ConvertToScript(m_originalCode, out _);
+            RemoveIrrelevant(m_cscsCode);
 
             CSharpCode = ConvertScript();
 
             var provider = new CSharpCodeProvider();
-            var compile = provider.CompileAssemblyFromSource(CompilerParams, CSharpCode);
+            CompilerResults compile = provider.CompileAssemblyFromSource(compilerParams, CSharpCode);
 
             if (compile.Errors.HasErrors)
             {
@@ -348,14 +368,38 @@ namespace SplitAndMerge
 
             m_converted.AppendLine("using System; using System.Collections; using System.Collections.Generic; using System.Collections.Specialized; " +
                                    "using System.Globalization; using System.Linq; using System.Linq.Expressions; using System.Reflection; " +
-                                   "using System.Text; using System.Threading; using System.Threading.Tasks; using static System.Math;");
+                                   "using System.Text; using System.Threading; using System.Threading.Tasks;");// using static System.Math;");
             for (int i = 0; i < s_namespaces.Count; i++)
             {
-                m_converted.AppendLine(s_namespaces[i]);
+                var ns = s_namespaces[i].Trim();
+                if (!ns.StartsWith("using "))
+                {
+                    ns = "using " + ns;
+                }
+                if (!ns.EndsWith(";"))
+                {
+                    ns += ";";
+                }
+
+                m_converted.AppendLine(ns);
             }
             m_converted.AppendLine("namespace SplitAndMerge {\n" +
                                    "  public partial class Precompiler {");
 
+            for (int i = 0; i < s_definitions.Count; i++)
+            {
+                var def = s_definitions[i].Trim();
+                if (!def.StartsWith("static ") && !def.Contains(" static "))
+                {
+                    def = "static " + def;
+                }
+                if (!def.EndsWith(";"))
+                {
+                    def += ";";
+                }
+
+                m_converted.AppendLine(def);
+            }
             if (AsyncMode)
             {
                 m_converted.AppendLine("    public static async Task<Variable> " + m_functionName);
@@ -385,16 +429,14 @@ namespace SplitAndMerge
             m_newVariables.Add(PARSER_TEMP_VAR);
             m_newVariables.Add(VARIABLE_TEMP_VAR);
 
-            m_cscsCode = Utils.ConvertToScript(m_originalCode, out _);
-            RemoveIrrelevant(m_cscsCode);
-
             m_statements = TokenizeScript(m_cscsCode);
             m_statementId = 0;
             while (m_statementId < m_statements.Count)
             {
                 m_currentStatement = m_statements[m_statementId];
                 m_nextStatement = m_statementId < m_statements.Count - 1 ? m_statements[m_statementId + 1] : "";
-                string converted = ProcessStatement(m_currentStatement, m_nextStatement, true);
+                string converted = m_scriptInCSharp ? ProcessCSStatement(m_currentStatement, m_nextStatement, true) :
+                                   ProcessStatement(m_currentStatement, m_nextStatement, true);
                 if (!string.IsNullOrWhiteSpace(converted))
                 {
                     m_converted.Append(m_depth + converted);
@@ -444,13 +486,59 @@ namespace SplitAndMerge
             return false;
         }
 
+        string ProcessCSStatement(string statement, string nextStatement, bool addNewVars = true)
+        {
+            if (string.IsNullOrWhiteSpace(statement) || ProcessSpecialCases(statement))
+            {
+                return "";
+            }
+            List<string> tokens = TokenizeStatement(statement, true);
+            var first = tokens[0];
+
+            m_lastStatementReturn = first == "return";
+            if (m_lastStatementReturn)
+            {
+                if (tokens.Count <= 2)
+                {
+                    return CreateReturnStatement("Variable.EmptyInstance");
+                }
+                return CreateReturnStatement(statement.Substring(7));
+            }
+
+            string result = "";
+            string suffix = "";
+            bool isArray = false;
+
+            m_tokenId = 0;
+            while (m_tokenId < tokens.Count)
+            {
+                string token = tokens[m_tokenId];
+                string functionName = GetFunctionName(token, ref suffix, ref isArray);
+
+                if (!suffix.Contains('.') && m_argsMap.TryGetValue(functionName, out _))
+                {
+                    string actualName = m_paramMap[functionName];
+                    token = " " + actualName + ReplaceArgsInString(suffix);
+                    if (first == "int" || first == "long")
+                    {
+                        token = "(" + first + ")" + token;
+                    }
+                }
+                result += token;
+                m_tokenId++;
+            }
+            result += ";\n";
+
+            return result;
+        }
+
         string ProcessStatement(string statement, string nextStatement, bool addNewVars = true)
         {
             if (string.IsNullOrWhiteSpace(statement) || ProcessSpecialCases(statement))
             {
                 return "";
             }
-            List<string> tokens = TokenizeStatement(statement);
+            List<string> tokens = TokenizeStatement(statement, false);
             List<string> statementVars = new List<string>();
 
             string result = "";
@@ -1220,10 +1308,22 @@ namespace SplitAndMerge
 
             int startIndex = 0;
             int i = 0;
+            bool inQuotes = false;
+            char previous = Constants.EMPTY;
+
             while (i < scriptText.Length)
             {
                 char ch = scriptText[i];
-                if (Constants.STATEMENT_SEPARATOR.IndexOf(ch) >= 0)
+                previous = i> 0 ? scriptText[i - 1] : previous;
+                
+                if (ch == '"' && previous != '\\')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (inQuotes)
+                {
+                }
+                else if (Constants.STATEMENT_SEPARATOR.IndexOf(ch) >= 0)
                 {
                     if (i > startIndex)
                     {
@@ -1249,7 +1349,7 @@ namespace SplitAndMerge
             return tokens;
         }
 
-        public static List<string> TokenizeStatement(string statement)
+        public static List<string> TokenizeStatement(string statement, bool scriptInCSharp)
         {
             List<string> tokens = new List<string>();
 
@@ -1259,7 +1359,8 @@ namespace SplitAndMerge
             char previous = Constants.EMPTY;
             while (i < statement.Length)
             {
-                if (statement[i] == '"' && previous != '\\')
+                var ch = statement[i];
+                if (ch == '"' && previous != '\\')
                 {
                     inQuotes = !inQuotes;
                 }
@@ -1269,7 +1370,8 @@ namespace SplitAndMerge
                 else
                 {
                     string candidate = Utils.ValidAction(statement.Substring(i));
-                    if (candidate == null && (Constants.STATEMENT_TOKENS.IndexOf(statement[i]) >= 0))
+                    if (candidate == null && (Constants.STATEMENT_TOKENS.IndexOf(statement[i]) >= 0 ||
+                                             (scriptInCSharp && (ch == '(' || ch == ')' || ch == ','))))
                     {
                         candidate = statement[i].ToString();
                     }
@@ -1287,7 +1389,7 @@ namespace SplitAndMerge
                         continue;
                     }
                 }
-                previous = statement[i];
+                previous = ch;
                 i++;
             }
 
@@ -1317,14 +1419,14 @@ namespace SplitAndMerge
                 MethodInfo myMethod = mathType.GetMethod(candidate);
                 if (myMethod != null)
                 {
-                    corrected = candidate;
+                    corrected = "Math." + candidate;
                     return true;
                 }
                 return false;
             }
             catch (AmbiguousMatchException)
             {
-                corrected = candidate;
+                corrected = "Math." + candidate;
                 return true;
             }
         }

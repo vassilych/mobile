@@ -13,7 +13,6 @@ unselVolas   = {};
 minVolaPrice = {};
 maxVolaPrice = {};
 dates        = {};
-markets      = {};
 isin         = "";
 loggedIn     = false;
 busy         = false;
@@ -25,8 +24,11 @@ graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
                 "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue"};
 
-markets = { "CH", "DE", "US" };
-market  = markets[0];
+markets = { "Market", "CH", "DE", "US" };
+market  = "";
+
+stocksHeader = "Select Stock";
+volaHeader   = "Select Volatilities";
 
 prevStockSelection  = "";
 prevMarketSelection = "";
@@ -102,14 +104,17 @@ function connect(sender, arg) {
 function onConnect(sender, arg) {
   if (arg == "OK") {
     connectionSuccess();
-    //GetDataFromServer("stocks",   "", "fillStocks");
-    GetDataFromServer("regional", "CH", "fillStocks");
+    if (stock != "") {
+      stockSelected(sender, stock);
+      return;
+    }
+    //GetDataFromServer("regional", "CH", "fillStocks");
   } else {
     SetText(labelStatus2,  "Disconnected");
     SetFontColor(labelStatus2, "red");
     AlertDialog("TrueDividends.com", arg);
-    makeUnbusy();
   }
+  makeUnbusy();
 }
 
 function fillStocks(sender, arg) {
@@ -120,7 +125,7 @@ function fillStocks(sender, arg) {
   prevStockSelection  = "";
   prevVolaSelection   = "";
 
-  stocks.Add("Select Stock");
+  stocks.Add(stocksHeader);
   stockData = arg.Split("!");
   for (item : stockData) {
     parts = item.Split('|');
@@ -140,14 +145,15 @@ function fillStocks(sender, arg) {
   
   AddWidgetData(allStocksWidget, stocks);
   //SetValue(allStocksWidget, "value", 0);
-  SetText(allStocksWidget, "Select Stock");
+  SetText(allStocksWidget, stocksHeader);
 
   printConsole(item + " Added " + stocks.size + " stocks.");
-  stockSelected(sender, stock);
+  //stockSelected(sender, stock);
+  makeUnbusy();
 }
 
 function stockSelected(sender, arg) {
-  if (arg == "" || arg.contains("Select") || prevStockSelection == arg) {
+  if (arg == "" || arg == stocksHeader || prevStockSelection == arg) {
     makeUnbusy();
     return;
   }
@@ -174,7 +180,7 @@ function stockSelected(sender, arg) {
 }
 
 function marketSelected(sender, arg) {
-  if (arg.contains("Select") || prevMarketSelection == arg) {
+  if (arg == stocksHeader || prevMarketSelection == arg) {
     return;
   }
   prevMarketSelection = arg;
@@ -189,8 +195,9 @@ function marketSelected(sender, arg) {
   parts  = arg.Split(' ');
   market = parts.First;
   PrintConsole("marketSelected:", market, ". arg:", arg);
-
-  GetDataFromServer("regional", market, "fillStocks");
+  if (market != markets[0]) {
+    GetDataFromServer("regional", market, "fillStocks");
+  }
 }
 
 function getBestData(stockData, pattern) {
@@ -310,7 +317,7 @@ function createGraphs() {
     return;
   }
   
-  lastPriceMsg = stock + " (ATM " + prices[stock] + ")";
+  lastPriceMsg = stock + (prices.Contains(stock) ? " (ATM " + prices[stock] + ")" : "");
   
   locSFGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 8);
   createGraph(locSFGraph1, "SplineGraph1", "Call Options " + lastPriceMsg, stockData, keys);
@@ -388,10 +395,10 @@ function fillVolasData(sender, arg) {
       unselVolas.Add(date);
     }
   }
-  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 26);
+  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);
   AddCombobox(locComboVolas, "volasWidget", "", 480, 60);
   comboData = dates;
-  comboData.Add("Select Volatilities", 0);
+  comboData.Add(volaHeader, 0);
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
   SetFontSize(volasWidget, 14);
   SetValue(volasWidget, "alignment", "center");
@@ -470,7 +477,7 @@ function fillVolaParams(sender, arg) {
 
 function volaSelected(sender, arg) {
   PrintConsole(sender, " volaSelected: [", arg, "], prevVolaSelection=", prevVolaSelection);
-  if (arg.contains("Select")){// || arg == prevVolaSelection) {
+  if (arg == volaHeader) {// || arg == prevVolaSelection) {
     PrintConsole("No need to reload Volas, prevVolaSelection=", prevVolaSelection);
     makeUnbusy();
     return;
@@ -498,6 +505,7 @@ function volaSelected(sender, arg) {
 
   printConsole("Redrawing " + selVolas.Size + " Volas for " + stock);
   if (selVolas.Size == 0) {
+    makeUnbusy();
     return;
   }
 
@@ -613,9 +621,11 @@ function fillStockData(sender, arg) {
   locSFWidget = GetLocation("ROOT", "CENTER", allStocksWidget, "BOTTOM", 0, 20);
   AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
 
-  listCols = {"Instrument", "string", "Bid", "number", "Ask", "number", "Last", "number", "Settle", "number"};
+  //listCols = {"Instrument", "string", "Bid", "number", "Ask", "number", "Last", "number", "Settle", "number"};
+  //colWidth = {40, 15, 15, 15, 15};
+  listCols = {"Instrument", "string", "Settle", "number"};
+  colWidth = {70, 30};
   AddWidgetData(DataGrid, listCols, "columns");
-  colWidth = {40, 15, 15, 15, 15};
   AddWidgetData(DataGrid, colWidth, "columnWidth");
   
   ccy = market = "";
@@ -646,8 +656,8 @@ function fillStockData(sender, arg) {
       continue;
     }
 
-    //optionData   = {instr, bid, ask, last, settle, ccy, market, typeq};
-    optionData   = {instr, bid, ask, last, settle};
+    //optionData   = {instr, bid, ask, last, settle};
+    optionData   = {instr, settle};
     AddWidgetData(DataGrid, optionData,  "item");
 
     key   = parts[1] + "_" + parts[0] + "_" + parts[3];
@@ -754,16 +764,16 @@ AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 
 SelectTab(0);
 
-locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 30);
+locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 40);
 AddCombobox(locComboMarkets, "allMarketsWidget", "", 200, 60);
 AddWidgetData(allMarketsWidget, markets);
-SetFontSize(allMarketsWidget, 13);
+SetFontSize(allMarketsWidget, 12);
 SetValue(allMarketsWidget, "alignment", "center");
 AddAction(allMarketsWidget, "marketSelected");
 
-locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 30);
+locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 40);
 AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
-SetFontSize(allStocksWidget, 13);
+SetFontSize(allStocksWidget, 12);
 SetValue(allStocksWidget, "alignment", "center");
 AddAction(allStocksWidget, "stockSelected");
 

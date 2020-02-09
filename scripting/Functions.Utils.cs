@@ -840,4 +840,91 @@ namespace SplitAndMerge
             return elapsed >= 0 ? new Variable(elapsed) : new Variable(elapsedStr);
         }
     }
+
+    class EncodeFileFunction : ParserFunction
+    {
+        bool m_encode = true;
+
+        public EncodeFileFunction(bool encode = true)
+        {
+            m_encode = encode;
+        }
+
+        public static string EncodeText(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            var intermidiate = System.Convert.ToBase64String(plainTextBytes);
+
+
+            //return intermidiate;
+            return plainText;
+        }
+
+        public static string DecodeText(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            var intermidiate = System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+
+
+            return intermidiate;
+        }
+
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name, true);
+            string filename = args[0].AsString();
+            string pathname = script.GetFilePath(filename);
+
+            return EncodeDecode(pathname, m_encode);
+        }
+
+        public static Variable EncodeDecode(string pathname, bool encode)
+        {
+            string text = Utils.GetFileText(pathname);
+            string newText = "";
+
+            try
+            {
+                newText = encode ? EncodeText(text) : DecodeText(text);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.Message);
+                return Variable.EmptyInstance;
+            }
+
+            Utils.WriteFileText(pathname, newText);
+            return new Variable(pathname);
+        }
+    }
+    class IncludeFileSecure : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name, true);
+
+            string filename = args[0].AsString();
+            string pathname = script.GetFilePath(filename);
+
+            EncodeFileFunction.EncodeDecode(pathname, false);
+            ParsingScript tempScript = IncludeFile.GetIncludeFileScript(script, filename);
+            string includeScript = tempScript.String;
+            EncodeFileFunction.EncodeDecode(pathname, true);
+
+            Variable result = null;
+            if (script.Debugger != null)
+            {
+                result = script.Debugger.StepInIncludeIfNeeded(tempScript).Result;
+            }
+
+            while (tempScript.Pointer < includeScript.Length)
+            {
+                result = tempScript.Execute();
+                tempScript.GoToNextStatement();
+            }
+            return result == null ? Variable.EmptyInstance : result;
+        }
+    }
 }

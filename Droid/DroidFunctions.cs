@@ -1994,8 +1994,10 @@ namespace scripting.Droid
 
             if (view is TextView)
             {
-                //((TextView)view).Beh = UIKeyboardType.NumberPad; ;
-                //isSet = true;
+                isSet = true;
+                ((TextView)view).InputType = Android.Text.InputTypes.ClassNumber |
+                    Android.Text.InputTypes.NumberFlagSigned |
+                    Android.Text.InputTypes.NumberFlagDecimal;
             }
 
             return new Variable(isSet);

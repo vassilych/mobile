@@ -32,12 +32,16 @@ namespace scripting.iOS
         {
             get
             {
-                return SelectedRow >= 0 && SelectedRow < m_names.Count ? m_names[SelectedRow] : "";
+                return SelectedRow >= 0 && m_names != null && SelectedRow < m_names.Count ? m_names[SelectedRow] : "";
             }
         }
 
         public int StringToRow(string text, int defaultRow = 0)
         {
+            if (m_names == null)
+            {
+                return defaultRow;
+            }
             int result = m_names.FindIndex((obj) => obj.Equals(text));
             if (result < 0)
             {
@@ -48,7 +52,7 @@ namespace scripting.iOS
         }
         public string RowToString(int row)
         {
-            return row >= 0 && row < m_names.Count ? m_names[row] : "";
+            return m_names != null && row >= 0 && row < m_names.Count ? m_names[row] : "";
         }
 
         public RowSelectedDel RowSelected;

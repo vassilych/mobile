@@ -1,5 +1,4 @@
-﻿a=10;
-//ImportFile("imaging.cscs");
+﻿//ImportFile("script.cscs");
 //ImportFile("speech.cscs");
 //ImportFile("sfscript.cscs");
 //ImportFile("sfhello.cscs");

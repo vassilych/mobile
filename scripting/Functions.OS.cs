@@ -854,8 +854,50 @@ namespace SplitAndMerge
         }
     }
 
+    class EditCompiledEntry : ParserFunction
+    {
+        internal enum EditMode { ADD_DEFINITION, ADD_NAMESPACE, CLEAR_DEFINITIONS, CLEAR_NAMESPACES };
+        EditMode m_mode;
+
+        internal EditCompiledEntry(EditMode mode)
+        {
+            m_mode = mode;
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            string item = Utils.GetSafeString(args, 0);
+#if __ANDROID__ == false && __IOS__ == false
+
+            switch(m_mode)
+            {
+                case EditMode.ADD_DEFINITION:
+                    Precompiler.AddDefinition(item);
+                    break;
+                case EditMode.ADD_NAMESPACE:
+                    Precompiler.AddNamespace(item);
+                    break;
+                case EditMode.CLEAR_DEFINITIONS:
+                    Precompiler.ClearDefinitions();
+                    break;
+                case EditMode.CLEAR_NAMESPACES:
+                    Precompiler.ClearNamespaces();
+                    break;
+            }
+#endif
+            return Variable.EmptyInstance;
+        }
+    }
+
     class CompiledFunctionCreator : ParserFunction
     {
+        bool m_scriptInCSharp;
+
+        public CompiledFunctionCreator(bool scriptInCSharp)
+        {
+            m_scriptInCSharp = scriptInCSharp;
+        }
+
         protected override Variable Evaluate(ParsingScript script)
         {
             string funcReturn, funcName;
@@ -873,7 +915,7 @@ namespace SplitAndMerge
             string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
 
             Precompiler precompiler = new Precompiler(funcName, args, argsMap, body, script);
-            precompiler.Compile();
+            precompiler.Compile(m_scriptInCSharp);
 
             CustomCompiledFunction customFunc = new CustomCompiledFunction(funcName, body, args, precompiler, argsMap, script);
             customFunc.ParentScript = script;
