@@ -99,6 +99,11 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\connect.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\about.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\refresh.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\stop.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\start.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\go.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\wrong.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\correct.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />
