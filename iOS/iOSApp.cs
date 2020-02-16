@@ -246,6 +246,10 @@ namespace scripting.iOS
         }
         public static void SelectTab(int selectedTab)
         {
+            if (selectedTab < 0 || selectedTab >= m_tabs.Count)
+            {
+                return;
+            }
             Instance.m_selectedTab = selectedTab;
             Instance.SelectedIndex = Instance.m_selectedTab;
 

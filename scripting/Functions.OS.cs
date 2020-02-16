@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace SplitAndMerge
 {
-    // Prints passed list of arguments
+    // Prints passed list of argumentsand
     class PrintFunction : ParserFunction
     {
         internal PrintFunction(bool newLine = true)
@@ -319,7 +319,7 @@ namespace SplitAndMerge
             newValue.Reset();
             newValue.String = arg1 + arg2;
 
-            ParserFunction.AddGlobalOrLocalVariable(varName, new GetVarFunction(newValue));
+            ParserFunction.AddGlobalOrLocalVariable(varName, new GetVarFunction(newValue), script);
 
             return newValue;
         }
@@ -867,9 +867,10 @@ namespace SplitAndMerge
         {
             List<Variable> args = script.GetFunctionArgs();
             string item = Utils.GetSafeString(args, 0);
+
 #if __ANDROID__ == false && __IOS__ == false
 
-            switch(m_mode)
+            switch (m_mode)
             {
                 case EditMode.ADD_DEFINITION:
                     Precompiler.AddDefinition(item);
@@ -885,17 +886,20 @@ namespace SplitAndMerge
                     break;
             }
 #endif
+
             return Variable.EmptyInstance;
         }
     }
 
     class CompiledFunctionCreator : ParserFunction
     {
-        bool m_scriptInCSharp;
+        bool m_scriptInCSharp = false;
 
         public CompiledFunctionCreator(bool scriptInCSharp)
         {
+#if UNITY_EDITOR == false && UNITY_STANDALONE == false && _ANDROID__ == false && __IOS__ == false
             m_scriptInCSharp = scriptInCSharp;
+#endif
         }
 
         protected override Variable Evaluate(ParsingScript script)

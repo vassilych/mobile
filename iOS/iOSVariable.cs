@@ -365,6 +365,11 @@ namespace scripting.iOS
                 UIPickerView picker = ViewX as UIPickerView;
                 picker.UserInteractionEnabled = enable;
             }
+            else if (ViewX is UISegmentedControl)
+            {
+                UISegmentedControl control = ViewX as UISegmentedControl;
+                control.UserInteractionEnabled = enable;
+            }
             else
             {
                 return false;
@@ -1068,6 +1073,14 @@ namespace scripting.iOS
                 TypePickerViewModel model = picker.Model as TypePickerViewModel;
                 model?.SetFont(newFont);
             }
+            else if (m_viewX is UISegmentedControl)
+            {
+                UISegmentedControl control = ((UISegmentedControl)m_viewX);
+                var uita = new UITextAttributes();
+                uita.Font = newFont;
+                control.SetTitleTextAttributes(uita, UIControlState.Normal);
+                control.SetTitleTextAttributes(uita, UIControlState.Selected);
+            }
         }
 
         public virtual bool SetFont(string name, double size = 0)
@@ -1184,6 +1197,18 @@ namespace scripting.iOS
             else if (ViewX is UITextView)
             {
                 ((UITextView)ViewX).TextColor = color;
+            }
+            else if (m_viewX is UISegmentedControl)
+            {
+                UISegmentedControl control = ((UISegmentedControl)m_viewX);
+                var uitaOld = new UITextAttributes();
+                uitaOld.TextColor = UIColor.Black;
+
+                var uita = new UITextAttributes();
+                uita.TextColor = color;
+                control.SelectedSegmentTintColor = UIColor.Green;
+                control.SetTitleTextAttributes(uita, UIControlState.Normal);
+                control.SetTitleTextAttributes(uitaOld, UIControlState.Selected);
             }
             else
             {

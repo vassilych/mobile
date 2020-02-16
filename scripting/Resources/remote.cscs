@@ -1,8 +1,11 @@
-﻿Version      = "0.1";
+﻿Version      = "0.1.2";
+AppName      = "TrueDividends.com";
+
 data         = {};
 prices       = {};
 dividends    = {};
 expDividends = {};
+stddevs      = {};
 stockData    = {};
 keys         = {};
 
@@ -26,6 +29,7 @@ graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "
 
 markets = { "Market", "CH", "DE", "US" };
 market  = "";
+starting = true;
 
 stocksHeader = "Select Stock";
 volaHeader   = "Select Volatilities";
@@ -69,7 +73,8 @@ function tabSelected(sender, arg) {
   if (busy || (stock == "" && arg < numberTabs - 1)) {
     return;
   }
-  if (arg == 1) {
+  if (arg == 0) {
+  } elif (arg == 1) {
     createGraphs();
   } elif (arg == 2) {
     makeBusy();
@@ -83,7 +88,7 @@ function tabSelected(sender, arg) {
 function aboutUs(sender, arg) {
   deviceInfo    = _DEVICE_INFO_;
   deviceVersion = _VERSION_INFO_;
-  AlertDialog("TrueDividends.com", "Version " + Version + "  " +
+  AlertDialog(AppName, "Version " + Version + "  " +
                deviceInfo + ": " + deviceVersion);
 }
 
@@ -105,15 +110,48 @@ function onConnect(sender, arg) {
   if (arg == "OK") {
     connectionSuccess();
     if (stock != "") {
-      stockSelected(sender, stock);
+      //stockSelected(sender, stock);
+      //GetDataFromServer("stockstddev", stock, "onStockData");
+      GetDataFromServer("stockinfo", stock, "onStockData");
       return;
     }
-    //GetDataFromServer("regional", "CH", "fillStocks");
   } else {
     SetText(labelStatus2,  "Disconnected");
     SetFontColor(labelStatus2, "red");
-    AlertDialog("TrueDividends.com", arg);
+    AlertDialog(AppName, arg);
   }
+  makeUnbusy();
+}
+
+function onStockData(sender, arg) {
+  PrintConsole("OnStockData: " + arg);
+  // CH0012221716|23.0300006866455|0.0932817980647087|2020-01-29|2020-05-06|CHF 0.957409977912903 on 2020-05-06
+
+  stockData = arg.Split("|");
+  size = stockData.Size();
+  if (stockData.Size < 7) {
+    makeUnbusy();
+    return;
+  }
+  SetText(textIsin,    stockData[0]);
+  SetText(textClose,   stockData[1]);
+  SetText(textStd,     stockData[2]);
+  SetText(textUpdate,  stockData[3]);
+  SetText(textLastDiv, stockData[5]);
+  SetText(textNextDiv, stockData[6]);
+
+  ShowView(labelIsin);
+  ShowView(textIsin);
+  ShowView(labelClose);
+  ShowView(textClose);
+  ShowView(labelLastDiv);
+  ShowView(textLastDiv);
+  ShowView(labelNextDiv);
+  ShowView(textNextDiv);
+  ShowView(labelStd);
+  ShowView(textStd);
+  ShowView(labelUpdate);
+  ShowView(textUpdate);
   makeUnbusy();
 }
 
@@ -149,7 +187,16 @@ function fillStocks(sender, arg) {
 
   printConsole(item + " Added " + stocks.size + " stocks.");
   //stockSelected(sender, stock);
+
+    if (starting) {
+      HideView(allMarketsWidget2);
+      ShowView(allMarketsWidget);
+      ShowView(allStocksWidget);
+      starting = false;
+    }
+
   makeUnbusy();
+  ShowToast(stocks.size + " stocks loaded for " + market, 10, "white", "blue");
 }
 
 function stockSelected(sender, arg) {
@@ -159,6 +206,7 @@ function stockSelected(sender, arg) {
   }
   prevStockSelection = arg;
 
+  stock = arg;
   printConsole("stockSelected: [" + stock + "]");
 
   if (NameExists(DataGrid)) {
@@ -350,7 +398,6 @@ function fillVolasData(sender, arg) {
   points         = arg.Split("\t");
   dates          = {};
   
-  prevX = ""; prevY = "";
   nbPast = 0; nbFuture = 0;
   PrintConsole("  looping over  ", points.Size, " vola points.");
   count = 0;
@@ -522,18 +569,56 @@ function printData(d, key, str = "") {
   PrintConsole(str);
 }
 
+function fillStdDevData(sender, arg) {
+  stddevs[stock] = arg;
+  PrintConsole(arg);
+  title = "Standard Deviation for " + stock;
+
+  points         = arg.Split("!");
+  stdData        = {};
+  
+  for (point : points) {
+    parts      = point.Split("|");
+    if (parts.size < 4) {
+      continue;
+    }
+    //AAPL|0.450625985860825|320.029998779297|2020-05-10|2020-02-09|2020-02-09
+    PrintConsole("Processing [", point, "] size=", parts.size);
+    x          = parts[3];
+    y          = Round(double(parts[1]), 4);    
+    AddOrderedData(stdData, title, x, y, "str");
+  }
+  
+  PrintConsole("Loaded ", stdData.size, " stddevs points.");
+
+  if (NameExists(StdGraph)) {
+    RemoveView(StdGraph);
+  }
+
+  locStdGraph = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
+  AddSfColumnGraph(locStdGraph, "StdGraph", "", graphWidth, graphHeight);
+
+  SetValue(StdGraph, "primary_axis",   "Date");
+  SetValue(StdGraph, "secondary_axis", "StdDev");
+  SetValue(StdGraph, "string_axis", "x");
+  setToolTip(StdGraph, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
+  //SetText(StdGraph,  title);
+
+  addDataToGraph(StdGraph, stdData, title, "blue:blue");
+  makeUnbusy();
+}
+
 function fillDividendsData(sender, arg) {
   dividends[stock] = arg;
   PrintConsole(arg);
   //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
   
   estimatedTitle = "Estimated Dividends";
-  pastTitle      = "Past Dividends";
+  pastTitle      = "Dividends";
   isin           = "";
   points         = arg.Split("\t");
   divData        = {};
   
-  prevX = ""; prevY = "";
   nbPast = 0; nbFuture = 0;
   for (point : points) {
     parts      = point.Split("|");
@@ -547,13 +632,10 @@ function fillDividendsData(sender, arg) {
     estimated  = Bool(parts[6]);
     nbPast    += !estimated;
     nbFuture  += estimated;
-    key        = estimated ? estimatedTitle : pastTitle;
+    //key        = estimated ? estimatedTitle : pastTitle;
+    key        = pastTitle;
     
     AddOrderedData(divData, key, x, y, "str");
-    //if (estimated && prevX != "") {
-    //  AddOrderedData(divData, key, prevX, prevY, "str");
-    //}
-    //prevX = x; prevY = y;
   }
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
@@ -569,13 +651,16 @@ function fillDividendsData(sender, arg) {
   AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
   SetText(DivGraph1,  "Dividends for " + stock  + "  " + isin);
 
-  if (nbPast > 0) {
-    //SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
+  if (divData.Size > 0) {
+    SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
     SetValue(DivGraph1, "secondary_axis", "Payout");
     SetValue(DivGraph1, "string_axis", "x");
     setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
-    addDataToGraph(DivGraph1, divData, pastTitle,      "blue:blue");
+    addDataToGraph(DivGraph1, divData, pastTitle,      "orange:orange");
   }
+  GetDataFromServer("stockstddev", stock, "fillStdDevData");
+  return;
+
   if (nbFuture > 0) {
     locDivGraph2 = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
     AddSfColumnGraph(locDivGraph2, "DivGraph2", "", graphWidth, graphHeight);
@@ -759,29 +844,107 @@ numberTabs = 5;
 AddOrSelectTab("Options",      "learn.png",     "learn2.png");
 AddOrSelectTab("Analysys",     "brain_act.png", "brain2.png");
 AddOrSelectTab("Dividends",    "dividends.png", "dividends2.png");
-AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
+AddOrSelectTab("StdDev",       "vola.png",      "vola2.png");
 AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 
 SelectTab(0);
 
-locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 6, 40);
-AddCombobox(locComboMarkets, "allMarketsWidget", "", 200, 60);
+locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
+AddCombobox(locComboMarkets, "allMarketsWidget", "", 220, 60);
 AddWidgetData(allMarketsWidget, markets);
 SetFontSize(allMarketsWidget, 12);
 SetValue(allMarketsWidget, "alignment", "center");
 AddAction(allMarketsWidget, "marketSelected");
+HideView(allMarketsWidget);
+
+locComboMarkets2 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 40);
+AddCombobox(locComboMarkets2, "allMarketsWidget2", "", 260, 60);
+AddWidgetData(allMarketsWidget2, markets);
+AddAction(allMarketsWidget2, "marketSelected");
 
 locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 40);
 AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
 SetFontSize(allStocksWidget, 12);
 SetValue(allStocksWidget, "alignment", "center");
 AddAction(allStocksWidget, "stockSelected");
+HideView(allStocksWidget);
+
 
 SelectTab(numberTabs - 1);
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
 AddLabel(locLoading, "labelLoading", "", 580, 160);
 AlignText(labelLoading, "center");
+
+locStockLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
+AddLabel(locStockLab, "labelStock", "Favorite Stock:", 180, 60);
+SetFontSize(labelStock, fontSizeSm);
+
+locStock = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
+AddTextEdit(locStock, "textStock", "AAPL", loginLabelW, loginLabelH);
+SetText(textStock, stock);
+SetFontSize(textStock, fontSizeSm);
+
+locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
+AddLabel(locIsinLab, "labelIsin", "ISIN:", 180, 60);
+SetFontSize(labelIsin, fontSizeSm);
+
+locIsin = GetLocation(labelIsin, "RIGHT", labelIsin, "CENTER", 10);
+AddLabel(locIsin, "textIsin", "", loginLabelW, loginLabelH);
+SetFontSize(textIsin, fontSizeSm);
+
+locCloseLab = GetLocation("ROOT", "LEFT", labelIsin, "BOTTOM", 10, 10);
+AddLabel(locCloseLab, "labelClose", "Close:", 180, 60);
+SetFontSize(labelClose, fontSizeSm);
+
+locClose = GetLocation(labelClose, "RIGHT", labelClose, "CENTER", 10);
+AddLabel(locClose, "textClose", "", loginLabelW, loginLabelH);
+SetFontSize(textClose, fontSizeSm);
+
+locLastDivLab = GetLocation("ROOT", "LEFT", labelClose, "BOTTOM", 10, 10);
+AddLabel(locLastDivLab, "labelLastDiv", "Last Dividend:", 180, 60);
+SetFontSize(labelLastDiv, fontSizeSm);
+
+locLastDiv = GetLocation(labelLastDiv, "RIGHT", labelLastDiv, "CENTER", 10);
+AddLabel(locLastDiv, "textLastDiv", "", 300, loginLabelH);
+SetFontSize(textLastDiv, fontSizeSm);
+
+locNextDivLab = GetLocation("ROOT", "LEFT", labelLastDiv, "BOTTOM", 10, 10);
+AddLabel(locNextDivLab, "labelNextDiv", "Next Dividend:", 180, 60);
+SetFontSize(labelNextDiv, fontSizeSm);
+
+locDiv = GetLocation(labelNextDiv, "RIGHT", labelNextDiv, "CENTER", 10);
+AddLabel(locDiv, "textNextDiv", "", 300, loginLabelH);
+SetFontSize(textNextDiv, fontSizeSm);
+
+locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
+AddLabel(locStdLab, "labelStd", "Standard Deviation:", 180, 60);
+SetFontSize(labelStd, fontSizeSm);
+
+locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
+AddLabel(locStd, "textStd", "", loginLabelW, loginLabelH);
+SetFontSize(textStd, fontSizeSm);
+
+locUpdateLab = GetLocation("ROOT", "LEFT", labelStd, "BOTTOM", 10, 10);
+AddLabel(locUpdateLab, "labelUpdate", "Last Update:", 180, 60);
+SetFontSize(labelUpdate, fontSizeSm);
+
+locUpdate = GetLocation(labelUpdate, "RIGHT", labelUpdate, "CENTER", 10);
+AddLabel(locUpdate, "textUpdate", "", loginLabelW, loginLabelH);
+SetFontSize(textUpdate, fontSizeSm);
+
+HideView(labelIsin);
+HideView(textIsin);
+HideView(labelClose);
+HideView(textClose);
+HideView(labelLastDiv);
+HideView(textLastDiv);
+HideView(labelNextDiv);
+HideView(textNextDiv);
+HideView(labelStd);
+HideView(textStd);
+HideView(labelUpdate);
+HideView(textUpdate);
 
 locCancel = GetLocation("ROOT", "CENTER", labelLoading, "BOTTOM", 0, -30);
 AddButton(locCancel, "buttonCancel", "", 140, 140);
@@ -813,15 +976,6 @@ AddTextEdit(locKey, "textPassword", "", loginLabelW, loginLabelH);
 SetText(textPassword, "test");
 SetFontSize(textPassword, fontSizeSm);
 SetSecure(textPassword);
-
-locStockLab = GetLocation("ROOT", "LEFT", textLogin, "TOP", 10, -10);
-AddLabel(locStockLab, "labelStock", "Favorite Stock:", 180, 60);
-SetFontSize(labelStock, fontSizeSm);
-
-locStock = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, -10);
-AddTextEdit(locStock, "textStock", "AAPL", loginLabelW, loginLabelH);
-SetText(textStock, stock);
-SetFontSize(textStock, fontSizeSm);
 
 locStatus = GetLocation("ROOT", "LEFT", labelKey, "BOTTOM", 10, 40);
 AddLabel(locStatus, "labelStatus", "Status:", 120, 180);
