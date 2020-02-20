@@ -96,7 +96,8 @@ function connect(sender, arg) {
   makeBusy();
   username = GetText(textLogin);
   password = GetText(textPassword);
-  stock = GetText(textStock);
+  stock = GetText(textStock).Upper;
+  SetText(textStock, stock);
 
   SetSetting("stock", stock);
   ShowHideKeyboard(textStock, false);
@@ -188,12 +189,10 @@ function fillStocks(sender, arg) {
   printConsole(item + " Added " + stocks.size + " stocks.");
   //stockSelected(sender, stock);
 
-    if (starting) {
-      HideView(allMarketsWidget2);
-      ShowView(allMarketsWidget);
-      ShowView(allStocksWidget);
-      starting = false;
-    }
+  SetText(allMarketsWidget, market);
+  HideView(allMarketsWidget2);
+  ShowView(allMarketsWidget);
+  ShowView(allStocksWidget);
 
   makeUnbusy();
   ShowToast(stocks.size + " stocks loaded for " + market, 10, "white", "blue");
@@ -245,6 +244,11 @@ function marketSelected(sender, arg) {
   PrintConsole("marketSelected:", market, ". arg:", arg);
   if (market != markets[0]) {
     GetDataFromServer("regional", market, "fillStocks");
+  } else {
+    ShowView(allMarketsWidget2);
+    HideView(allMarketsWidget);
+    HideView(allStocksWidget);
+    makeUnbusy();
   }
 }
 
@@ -842,15 +846,15 @@ SetBackgroundColor("cyan");
 
 numberTabs = 5;
 AddOrSelectTab("Options",      "learn.png",     "learn2.png");
-AddOrSelectTab("Analysys",     "brain_act.png", "brain2.png");
-AddOrSelectTab("Dividends",    "dividends.png", "dividends2.png");
-AddOrSelectTab("StdDev",       "vola.png",      "vola2.png");
+AddOrSelectTab("Puts, Calls",  "brain_act.png", "brain2.png");
+AddOrSelectTab("Analysys",     "dividends.png", "dividends2.png");
+AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
 AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 
 SelectTab(0);
 
 locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-AddCombobox(locComboMarkets, "allMarketsWidget", "", 220, 60);
+AddCombobox(locComboMarkets, "allMarketsWidget", "", 180, 60);
 AddWidgetData(allMarketsWidget, markets);
 SetFontSize(allMarketsWidget, 12);
 SetValue(allMarketsWidget, "alignment", "center");
