@@ -1,8 +1,6 @@
 ﻿appName = "Larissa Math App";
 VERSION = "1.0";
-bgcolor = "#1f9dd4";
-fgcolor = "white";
-SetBackgroundColor(bgcolor);
+InitSyncfusion();
 
 running = false;
 count = 0;
@@ -10,36 +8,46 @@ correct = 0;
 maxNumber = 25;
 squaresOnly = 16;
 stopwatch = 0;
-data = { {}, {}, {}, {} };
-answers = { {}, {}, {} };
+data = { {}, {}, {}, {}, {}, {}, {}, {}, {} };
+answers = { {}, {}, {}, {}, {}, {}, {}, {}  };
 
 currIndex = 0;
 rightAnswer = 0;
+currentTab = 3;
 quizEntry = "";
 
 fontSize = 26;
 fontSizeSm = 20;
 scale = 0.90;
 
+bgcolor = GetSetting("bgcolor", "string", "#1f9dd4");
+fgcolor = GetSetting("fgcolor", "string", "white");
+SetBackgroundColor(bgcolor);
+
 total      = GetSetting("total", "int", 20);
 level      = GetSetting("level", "int", 0);
 keyBest    = "";
 keyTime    = "";
 keyDate    = "";
+quizType   = 1;
+quizTypeLevel = 0; 
 
 bestResult = 0.0;
 bestTime   = "";
 bestDate   = "";
 
 explanation[0] = "Find the result of the expression";
-explanation[1] = explanation[0];
-explanation[2] = "Find value of x";
-explanation[3] = "Write number with next digits (349810 -> 450921)";
+explanation[1] = "Find x (if multiple values, then only positive)";
+explanation[2] = "Write number with next digits (349810 -> 450921)";
+
+OnTabSelected("tabSelected");
 
 AutoScale(scale);
 printConsole(now("mm:ss.fff") + " Loading data...");
 
-totalCount[3] = 1000000;
+totalCount[6]  = 10000;
+totalCount[7]  = 100000;
+totalCount[8]  = 1000000;
 
 for (i = 2; i <= 10; i++) {
   for (j = i; j <= 10; j++) {
@@ -60,8 +68,8 @@ for (i = 2; i <= 10; i++) {
 totalCount[0] = data[0].size;
 printConsole(now("mm:ss.fff") + " Loaded " + totalCount[0] + " level1: " + data[0][0] + " --> " + answers[0][0]);
 
-for (i = 11; i < maxNumber; i++) {
-  for (j = 3; j <= maxNumber; j++) {
+for (i = 11; i < 20; i++) {
+  for (j = 3; j <= 20; j++) {
     data[1].Add(i + " * " + j);
     answers[1].Add(i * j);
 
@@ -80,7 +88,27 @@ for (i = 11; i < maxNumber; i++) {
 totalCount[1] = data[1].size;
 printConsole(now("mm:ss.fff") + " Loaded " + totalCount[1] + " level2: " + data[1][0] + " --> " + answers[1][0]);
 
-for (a = -9; a <= 6; a++) {
+for (i = 16; i < 30; i++) {
+  for (j = 6; j <= 30; j++) {
+    data[2].Add(i + " * " + j);
+    answers[2].Add(i * j);
+
+    data[2].Add(i * j + " / " + j);
+    answers[2].Add(i);
+
+    if (j - i > 10 && i % 5 != 0 ) {
+      data[2].Add(i + " + " + j);
+      answers[2].Add(i + j);
+
+      data[2].Add(j + " - " + i);
+      answers[2].Add(j - i);
+    }
+  }
+}
+totalCount[2] = data[2].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[2] + " level3: " + data[2][0] + " --> " + answers[2][0]);
+
+for (a = -7; a <= 6; a++) {
   if (a == 0 || a == 1 || a == 2 || a == 4) {
     continue;
   }
@@ -95,200 +123,352 @@ for (a = -9; a <= 6; a++) {
       }
       term1 = a == -1 ? "-" : a;
       sign  = b < 0 ? "" : "+";
-      data[2].Add(term1 + "x " + sign + b + " = " + c);
-      answers[2].Add((c - b)/a);
+      data[3].Add(term1 + "x " + sign + b + " = " + c);
+      answers[3].Add((c - b)/a);
     }
   }
 }
-/*data0 = answers0 = {};
-for (i = 2; i <= 10; i++) {
-  for (j = i; j <= 10; j++) {
-    data0.Add(i + " + " + j);
-    answers0.Add(i + j);
+totalCount[3] = data[3].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[3] + " level4: " + data[3][0] +
+   " --> " + answers[3][0] + ", answers: " +  answers[3].size);
 
-    data0.Add(i + " * " + j);
-    answers0.Add(i * j);
-
-    if (j - i > 2 ) {
-      data0.Add(j + " - " + i);
-      answers0.Add(j - i);
-    }
-
-    if (i == 2) {
-      data0.Add(i * j + " : " + i);
-      answers0.Add(j);
-    }
-  }
-}
-data[0] = data0;
-answers[0] = answers0;
-totalCount[0] = data[0].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[0] + " level1: " + data[0][0] +
-   " --> " + answers[0][0] + ", answers: " +  answers[0].size);
-
-data1 = answers1 = {};
-for (i = 2; i < maxNumber; i++) {
-  for (j = i; j <= maxNumber; j++) {
-    if (i > 10 && i % 10 != 0 && j % 10 != 0) {
-      data1.Add(i + " + " + j);
-      answers1.Add(i + j);
-    }
-    if (i > 10) {
-      data1.Add(i + " * " + j);
-      answers1.Add(i * j);
-
-      data1.Add(i * j + " / " + j);
-      answers1.Add(i);
-    }
-    if (j > 2) {
-      data1.Add(i * j + " / " + j);
-      answers1.Add(i);
-    }
-    if (j - i > 10 && i > 10 && i % 5 != 0 ) {
-      data1.Add(j + " - " + i);
-      answers1.Add(j - i);
-    }
-  }
-}
-data[1] = data1;
-answers[1] = answers1;
-totalCount[1] = data[1].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[1] + " level2: " + data[1][0] +
-   " --> " + answers[1][0] + ", answers: " +  answers[1].size);
-
-data2 = answers2 = {};
-for (a = -9; a <= 6; a++) {
-  if (a == 0 || a == 1 || a == 2 || a == 4) {
-    continue;
-  }
-  for (b = -7; b <= 8; b++) {
-    if (b == 0 || b == 1 || b == 2) {
+for (x = 3; x <= 9; x++) {
+  for (a = -3; a <= 6; a++) {
+    if (a == 0 || a == 1 || a == 2 || a == 4) {
       continue;
     }
-    for (x = 2; x <= 9; x++) {
-      c = a * x + b;
-      if (c == 1) {
+    for (b = -7; b <= 7; b++) {
+      if (b == 0 || b == 1 || b == 2) {
+        continue;
+      }
+      c = a * x * x + b;
+      if (c == 1 || c == 0) {
         continue;
       }
       term1 = a == -1 ? "-" : a;
       sign  = b < 0 ? "" : "+";
-      data2.Add(term1 + "x " + sign + b + " = " + c);
-      answers2.Add((c - b)/a);
+      data[4].Add(term1 + "x² " + sign + b + " = " + c);
+      answers[4].Add(x);
     }
   }
 }
-data[2] = data2;
-answers[2] = answers2;*/
-totalCount[2] = data[2].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[2] + " level3: " + data[2][0] +
-   " --> " + answers[2][0] + ", answers: " +  answers[2].size);
+totalCount[4] = data[4].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[4] + " level5: " + data[4][0] +
+   " --> " + answers[4][0] + ", answers: " +  answers[4].size);
 
-locResult = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -150);
-AddImageView(locResult, "resultView", "", 300, 200);
-HideView(resultView);
+for (x = 2; x <= 5; x++) {
+  for (a = -3; a <= 6; a++) {
+    if (a == 0 || a == 1 || a == 2 || a == 4) {
+      continue;
+    }
+    for (b = -7; b <= 7; b++) {
+      if (b == 0 || b == 1 || b == 2) {
+        continue;
+      }
+      c = a * x * x * x + b;
+      if (c == 1 || c == 0) {
+        continue;
+      }
+      term1 = a == -1 ? "-" : a;
+      sign  = b < 0 ? "" : "+";
+      data[5].Add(term1 + "x³ " + sign + b + " = " + c);
+      answers[5].Add(x);
+    }
+  }
+}
+totalCount[5] = data[5].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[5] + " level6: " + data[5][0] +
+   " --> " + answers[5][0] + ", answers: " +  answers[5].size);
 
-locQuizLab = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 150);
-AddLabel(locQuizLab, "quizLab", "", 280, 100);
-SetFontSize(quizLab, fontSize);
-SetFontColor(quizLab, fgcolor);
-AlignText(quizLab, "center");
+// ----------- GUI Start. Expressions Tab. -----------------
+AddOrSelectTab("Expressions",  "expr_ac.png",   "expr_in.png");
 
-locQuizLab2 = GetLocation(quizLab, "RIGHT", quizLab, "CENTER");
-AddLabel(locQuizLab2, "quizLab2", "", 50, 100);
-SetFontSize(quizLab2, fontSize);
-SetFontColor(quizLab2, fgcolor);
+locCorrectLabEx = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 60);
+AddLabel(locCorrectLabEx, "correctLabEx", "", 180, 60);
+SetFontSize(correctLabEx, fontSizeSm - 2);
+SetFontColor(correctLabEx, "dark_green");
 
-locTextAnswer = GetLocation(quizLab2, "RIGHT", quizLab, "CENTER", 10);
-AddTextEdit(locTextAnswer, "textAnswer", "", 180, 100);
-SetFontSize(textAnswer, fontSize - 4);
-NumKeyboard(textAnswer);
-SetFontColor(textAnswer, fgcolor);
+locWrongLabEx = GetLocation(correctLabEx, "RIGHT", correctLabEx, "CENTER");
+AddLabel(locWrongLabEx, "wrongLabEx", "", 180, 60);
+SetFontSize(wrongLabEx, fontSizeSm - 2);
+SetFontColor(wrongLabEx, "red");
 
-locButtonAnswer = GetLocation(textAnswer, "RIGHT", textAnswer, "CENTER", 20);
-AddButton(locButtonAnswer, "buttonAnswer", "", 100, 100);
-SetImage(buttonAnswer, "go");
-AddBorder(buttonAnswer, 0);
+locTimeLabEx = GetLocation("ROOT", "RIGHT", correctLabEx, "CENTER", 0);
+AddLabel(locTimeLabEx, "timeLabEx", "", 160, 60);
+SetFontSize(timeLabEx, fontSizeSm - 2);
 
-locExplLab = GetLocation("ROOT", "CENTER", quizLab2, "TOP", 0, 0);
-AddLabel(locExplLab, "explLab", "", 580, 50);
-SetFontSize(explLab, fontSizesm - 8);
-SetFontColor(explLab, fgcolor);
-AlignText(explLab, "center");
+locButtonNewEx = GetLocation("ROOT", "CENTER", wrongLabEx, "BOTTOM", 0, 10);
+AddButton(locButtonNewEx, "buttonNewEx", "", 200, 200);
+AddBorder(buttonNewEx, 0);
+SetImage(buttonNewEx, "start");
 
-locAnswerLab = GetLocation("ROOT", "CENTER", quizLab2, "BOTTOM", 0, 20);
-AddLabel(locAnswerLab, "answerLab", "", 500, 60);
-AlignText(answerLab, "center");
-SetFontSize(answerLab, fontSizeSm - 2);
+locResultEx = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -200);
+AddImageView(locResultEx, "resultViewEx", "", 300, 200);
+HideView(resultViewEx);
 
-locBestLab = GetLocation("ROOT", "CENTER", answerLab, "BOTTOM", 0, 30);
-AddLabel(locBestLab, "bestLab", "", 320, 30);
-SetFontSize(bestLab, fontSizeSm - 6);
-AlignText(bestLab, "center");
-SetFontColor(bestLab, fgcolor);
+locQuizLabEx = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 150);
+AddLabel(locQuizLabEx, "quizLabEx", "", 320, 100);
+SetFontSize(quizLabEx, fontSize);
+AlignText(quizLabEx, "center");
 
-locDateLab = GetLocation("ROOT", "CENTER", bestLab, "BOTTOM", 0, 0);
-AddLabel(locDateLab, "dateLab", "", 320, 30);
-SetFontSize(dateLab, fontSizeSm - 6);
-AlignText(dateLab, "center");
-SetFontColor(dateLab, fgcolor);
+locQuizLabEx2 = GetLocation(quizLabEx, "RIGHT", quizLabEx, "CENTER");
+AddLabel(locQuizLabEx2, "quizLabEx2", "", 100, 100);
+SetFontSize(quizLabEx2, fontSize);
 
+locTextAnswerEx = GetLocation(quizLabEx2, "RIGHT", quizLabEx, "CENTER", 10);
+AddTextEdit(locTextAnswerEx, "textAnswerEx", "", 80, 100);
+SetFontSize(textAnswerEx, fontSize - 4);
+NumKeyboard(textAnswerEx);
 
-locCorrectLab = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 20);
-AddLabel(locCorrectLab, "correctLab", "", 180, 60);
-SetFontSize(correctLab, fontSizeSm - 2);
-SetFontColor(correctLab, "dark_green");
+locButtonAnswerEx = GetLocation("ROOT", "RIGHT", textAnswerEx, "CENTER", -10);
+AddButton(locButtonAnswerEx, "buttonAnswerEx", "", 100, 100);
+SetImage(buttonAnswerEx, "go");
+AddBorder(buttonAnswerEx, 0);
 
-locWrongLab = GetLocation(correctLab, "RIGHT", correctLab, "CENTER");
-AddLabel(locWrongLab, "wrongLab", "", 180, 60);
-SetFontSize(wrongLab, fontSizeSm - 2);
-SetFontColor(wrongLab, "red");
+locExplLabEx = GetLocation("ROOT", "CENTER", quizLabEx2, "TOP", 0, -20);
+AddLabel(locExplLabEx, "explLabEx", "", 580, 50);
+SetFontSize(explLabEx, fontSizesm - 6);
+AlignText(explLabEx, "center");
 
-locTimeLab = GetLocation("ROOT", "ALIGN_RIGHT", correctLab, "CENTER", 0);
-AddLabel(locTimeLab, "timeLab", "", 160, 60);
-SetFontSize(timeLab, fontSizeSm - 2);
+locAnswerLabEx = GetLocation("ROOT", "CENTER", quizLabEx2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabEx, "answerLabEx", "", 500, 60);
+AlignText(answerLabEx, "center");
+SetFontSize(answerLabEx, fontSizeSm - 2);
 
-locButtonNew = GetLocation("ROOT", "CENTER", wrongLab, "BOTTOM", 0, 10);
-AddButton(locButtonNew, "buttonNew", "", 200, 200);
-AddBorder(buttonNew, 0);
-SetImage(buttonNew, "start");
+locDateLabEx = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabEx, "dateLabEx", "", 320, 30);
+SetFontSize(dateLabEx, fontSizeSm - 6);
+AlignText(dateLabEx, "center");
 
+locBestLabEx = GetLocation("ROOT", "CENTER", dateLabEx, "TOP", 0, 0);
+AddLabel(locBestLabEx, "bestLabEx", "", 320, 30);
+SetFontSize(bestLabEx, fontSizeSm - 6);
+AlignText(bestLabEx, "center");
 
-locWordsLab = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 20, -80);
+buttonAnswer[0] = buttonAnswerEx;
+textAnswer[0] = textAnswerEx;
+quizLab[0] = quizLabEx;
+quizLab2[0] = quizLabEx2;
+correctLab[0] = correctLabEx;
+wrongLab[0] = wrongLabEx;
+answerLab[0] = answerLabEx;
+explLab[0] = explLabEx;
+buttonNew[0] = buttonNewEx;
+timeLab[0] = timeLabEx;
+resultView[0] = resultViewEx;
+bestLab[0] = bestLabEx;
+dateLab[0] = dateLabEx;
+
+// ----------- Equations -----------------
+AddOrSelectTab("Equations",    "eq_ac.png",     "eq_in.png");
+
+locCorrectLabEq = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 60);
+AddLabel(locCorrectLabEq, "correctLabEq", "", 180, 60);
+SetFontSize(correctLabEq, fontSizeSm - 2);
+SetFontColor(correctLabEq, "dark_green");
+
+locWrongLabEq = GetLocation(correctLabEq, "RIGHT", correctLabEq, "CENTER");
+AddLabel(locWrongLabEq, "wrongLabEq", "", 180, 60);
+SetFontSize(wrongLabEq, fontSizeSm - 2);
+SetFontColor(wrongLabEq, "red");
+
+locTimeLabEq = GetLocation("ROOT", "RIGHT", correctLabEq, "CENTER", 0);
+AddLabel(locTimeLabEq, "timeLabEq", "", 160, 60);
+SetFontSize(timeLabEq, fontSizeSm - 2);
+
+locButtonNewEq = GetLocation("ROOT", "CENTER", wrongLabEq, "BOTTOM", 0, 10);
+AddButton(locButtonNewEq, "buttonNewEq", "", 200, 200);
+AddBorder(buttonNewEq, 0);
+SetImage(buttonNewEq, "start");
+
+locResultEq = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -200);
+AddImageView(locResultEq, "resultViewEq", "", 300, 200);
+HideView(resultViewEq);
+
+locQuizLabEq = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 150);
+AddLabel(locQuizLabEq, "quizLabEq", "", 320, 100);
+SetFontSize(quizLabEq, fontSize);
+AlignText(quizLabEq, "center");
+
+locQuizLabEq2 = GetLocation(quizLabEq, "RIGHT", quizLabEq, "CENTER");
+AddLabel(locQuizLabEq2, "quizLabEq2", "  x=", 100, 100);
+SetFontSize(quizLabEq2, fontSize);
+
+locTextAnswerEq = GetLocation(quizLabEq2, "RIGHT", quizLabEq, "CENTER", 10);
+AddTextEdit(locTextAnswerEq, "textAnswerEq", "", 80, 100);
+SetFontSize(textAnswerEq, fontSize - 4);
+NumKeyboard(textAnswerEq);
+
+locButtonAnswerEq = GetLocation("ROOT", "RIGHT", textAnswerEq, "CENTER", -10);
+AddButton(locButtonAnswerEq, "buttonAnswerEq", "", 100, 100);
+SetImage(buttonAnswerEq, "go");
+AddBorder(buttonAnswerEq, 0);
+
+locExplLabEq = GetLocation("ROOT", "CENTER", quizLabEq2, "TOP", 0, -20);
+AddLabel(locExplLabEq, "explLabEq", "", 580, 50);
+SetFontSize(explLabEq, fontSizesm - 6);
+AlignText(explLabEq, "center");
+
+locAnswerLabEq = GetLocation("ROOT", "CENTER", quizLabEq2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabEq, "answerLabEq", "", 500, 60);
+AlignText(answerLabEq, "center");
+SetFontSize(answerLabEq, fontSizeSm - 2);
+
+locDateLabEq = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabEq, "dateLabEq", "", 320, 30);
+SetFontSize(dateLabEq, fontSizeSm - 6);
+AlignText(dateLabEq, "center");
+
+locBestLabEq = GetLocation("ROOT", "CENTER", dateLabEq, "TOP", 0, 0);
+AddLabel(locBestLabEq, "bestLabEq", "", 320, 30);
+SetFontSize(bestLabEq, fontSizeSm - 6);
+AlignText(bestLabEq, "center");
+
+buttonAnswer[1] = buttonAnswerEq;
+textAnswer[1] = textAnswerEq;
+quizLab[1] = quizLabEq;
+quizLab2[1] = quizLabEq2;
+correctLab[1] = correctLabEq;
+wrongLab[1] = wrongLabEq;
+answerLab[1] = answerLabEq;
+explLab[1] = explLabEq;
+buttonNew[1] = buttonNewEq;
+timeLab[1] = timeLabEq;
+resultView[1] = resultViewEq;
+bestLab[1] = bestLabEq;
+dateLab[1] = dateLabEq;
+
+// ------------- Memory Tab -----------
+AddOrSelectTab("Memory",       "learn.png",     "learn2.png");
+
+locCorrectLabMe = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 60);
+AddLabel(locCorrectLabMe, "correctLabMe", "", 180, 60);
+SetFontSize(correctLabMe, fontSizeSm - 2);
+SetFontColor(correctLabMe, "dark_green");
+
+locWrongLabMe = GetLocation(correctLabMe, "RIGHT", correctLabMe, "CENTER");
+AddLabel(locWrongLabMe, "wrongLabMe", "", 180, 60);
+SetFontSize(wrongLabMe, fontSizeSm - 2);
+SetFontColor(wrongLabMe, "red");
+
+locTimeLabMe = GetLocation("ROOT", "RIGHT", correctLabMe, "CENTER", 0);
+AddLabel(locTimeLabMe, "timeLabMe", "", 160, 60);
+SetFontSize(timeLabMe, fontSizeSm - 2);
+
+locButtonNewMe = GetLocation("ROOT", "CENTER", wrongLabMe, "BOTTOM", 0, 10);
+AddButton(locButtonNewMe, "buttonNewMe", "", 200, 200);
+AddBorder(buttonNewMe, 0);
+SetImage(buttonNewMe, "start");
+
+locResultMe = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, -200);
+AddImageView(locResultMe, "resultViewMe", "", 300, 200);
+HideView(resultViewMe);
+
+locQuizLabMe = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 150);
+AddLabel(locQuizLabMe, "quizLabMe", "", 280, 100);
+SetFontSize(quizLabMe, fontSize);
+AlignText(quizLabMe, "center");
+
+locQuizLabMe2 = GetLocation(quizLabMe, "RIGHT", quizLabMe, "CENTER");
+AddLabel(locQuizLabMe2, "quizLabMe2", "", 50, 100);
+SetFontSize(quizLabMe2, fontSize);
+
+locTextAnswerMe = GetLocation(quizLabMe2, "RIGHT", quizLabMe, "CENTER", 10);
+AddTextEdit(locTextAnswerMe, "textAnswerMe", "", 140, 100);
+SetFontSize(textAnswerMe, fontSize - 4);
+NumKeyboard(textAnswerMe);
+
+locButtonAnswerMe = GetLocation("ROOT", "RIGHT", textAnswerMe, "CENTER", -10);
+AddButton(locButtonAnswerMe, "buttonAnswerMe", "", 100, 100);
+SetImage(buttonAnswerMe, "go");
+AddBorder(buttonAnswerMe, 0);
+
+locExplLabMe = GetLocation("ROOT", "CENTER", quizLabMe2, "TOP", 0, -20);
+AddLabel(locExplLabMe, "explLabMe", "", 600, 50);
+SetFontSize(explLabMe, fontSizesm - 6);
+AlignText(explLabMe, "center");
+
+locAnswerLabMe = GetLocation("ROOT", "CENTER", quizLabMe2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabMe, "answerLabMe", "", 500, 60);
+AlignText(answerLabMe, "center");
+SetFontSize(answerLabMe, fontSizeSm - 2);
+
+locDateLabMe = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabMe, "dateLabMe", "", 320, 30);
+SetFontSize(dateLabMe, fontSizeSm - 6);
+AlignText(dateLabMe, "center");
+
+locBestLabMe = GetLocation("ROOT", "CENTER", dateLabMe, "TOP", 0, 0);
+AddLabel(locBestLabMe, "bestLabMe", "", 320, 30);
+SetFontSize(bestLabMe, fontSizeSm - 6);
+AlignText(bestLabMe, "center");
+
+buttonAnswer[2] = buttonAnswerMe;
+textAnswer[2] = textAnswerMe;
+quizLab[2] = quizLabMe;
+quizLab2[2] = quizLabMe2;
+correctLab[2] = correctLabMe;
+wrongLab[2] = wrongLabMe;
+answerLab[2] = answerLabMe;
+explLab[2] = explLabMe;
+buttonNew[2] = buttonNewMe;
+timeLab[2] = timeLabMe;
+resultView[2] = resultViewMe;
+bestLab[2] = bestLabMe;
+dateLab[2] = dateLabMe;
+
+// ------------- Settings -----------
+AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+
+locWordsLab = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 20, -200);
 AddLabel(locWordsLab, "wordsLab", "Entries: ", 100, 30);
 SetFontSize(wordsLab, fontSizeSm - 6);
-SetFontColor(wordsLab, fgcolor);
 
-locWordsStepper = GetLocation(wordsLab, "RIGHT", wordsLab, "CENTER", 10, 0);
+locWordsStepper = GetLocation(wordsLab, "RIGHT", wordsLab, "CENTER", 120, 0);
 AddSfStepper(locWordsStepper, "wordsStepper", "30:5:100:5", 260, 60);
 SetValue(wordsStepper, total);
 SetFontSize(wordsStepper, fontSizeSm - 6);
 AddAction(wordsStepper, "updateTotalEntries");
-SetFontColor(wordsStepper, fgcolor);
 
-locQuizLevelLab = GetLocation("ROOT", "LEFT", wordsStepper, "TOP", 20, -10);
+locQuizLevelLab = GetLocation("ROOT", "LEFT", wordsStepper, "TOP", 20, -20);
 AddLabel(locQuizLevelLab, "quizLevelLab", "Level:", 100, 80);
 SetFontSize(quizLevelLab, fontSizeSm - 6);
-SetFontColor(quizLevelLab, fgcolor);
 
-locQuizLevel = GetLocation(quizLevelLab, "RIGHT", quizLevelLab, "CENTER", 10, 0);
-AddSegmentedControl(locQuizLevel, "segQuizLevel", "Easy:Medium:Advanced:Memory", 520, 60);
+locQuizLevel = GetLocation(quizLevelLab, "RIGHT", quizLevelLab, "CENTER", 10, -20);
+//AddSegmentedControl(locQuizLevel, "segQuizLevel", "Easy:Medium:Advanced:Memory", 520, 60);
+AddSfSegmentedControl(locQuizLevel, "segQuizLevel", "AAA", 500, 50);
+AddWidgetData(segQuizLevel, { "Easy", "Medium", "Advanced" });
 SetValue(segQuizLevel, level);
+SetValue(segQuizLevel, "selbgcolor", "dark_green");
 SetFontSize(segQuizLevel, fontSizeSm - 6);
 AddAction(segQuizLevel, "updateLevel");
-SetFontColor(segQuizLevel, fgcolor);
 
-locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", 0, -12);
+locBGColor = GetLocation("ROOT", "LEFT", quizLevelLab, "TOP", 30, -60);
+AddButton(locBGColor, "buttonBGColor", "Background", 300, 160);
+SetFontSize(buttonBGColor, fontSizeSm + 11);
+SetImage(buttonBGColor, "colors");
+AlignText(buttonBGColor, "center");
+SetFontColor(buttonBGColor, "white");
+
+locFGColor = GetLocation("ROOT", "RIGHT", buttonBGColor, "CENTER", -30, 0);
+AddButton(locFGColor, "buttonFGColor", "Text Color", 300, 160);
+SetFontSize(buttonFGColor, fontSizeSm + 11);
+SetImage(buttonFGColor, "colors");
+AlignText(buttonFGColor, "center");
+SetFontColor(buttonFGColor, "white");
+
+locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", 0, -20);
 AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
 SetImage(buttonAboutUs, "about");
 AddBorder(buttonAboutUs, 0);
 
 function setBest() {
   if (bestResult > 0) {
-    SetText(bestLab, "Best: " + bestResult + "%. Time: " + bestTime + ".");
-    SetText(dateLab, bestDate);
+    SetText(bestLab[currentTab], "Best: " + bestResult + "%. Time: " + bestTime + ".");
+    SetText(dateLab[currentTab], bestDate);
   } else {
-    SetText(bestLab, "");
-    SetText(dateLab, "");
+    SetText(bestLab[currentTab], "");
+    SetText(dateLab[currentTab], "");
   }
 }
 
@@ -301,9 +481,12 @@ function updateLevel(sender, arg) {
 
 function updateTotalEntries(sender, arg) {
   total      = int(arg);
-  keyBest    = "best_" + total + "_" + level;
-  keyTime    = "time_" + total + "_" + level;
-  keyDate    = "date_" + total + "_" + level;
+  if (currentTab > 2) {
+    return;
+  }
+  keyBest    = "best_" + total + "_" + currentTab + "_" + level;
+  keyTime    = "time_" + total + "_" + currentTab + "_" + level;
+  keyDate    = "date_" + total + "_" + currentTab + "_" + level;
 
   bestResult = GetSetting(keyBest, "double", 0.0);
   bestTime   = GetSetting(keyTime, "string", "00:00");
@@ -313,9 +496,9 @@ function updateTotalEntries(sender, arg) {
 }
 
 function prepareNext() {
-  rand = GetRandom(totalCount[level]);
-  PrintConsole("prepareNext, level=", level, ", nb answers:" + answers.size, ", rand=", rand);
-  if (level == 3) {
+  rand = GetRandom(totalCount[quizTypeLevel]);
+  PrintConsole("prepareNext, quizType=", quizType, ", level=", level, ", nb answers:" + answers.size, ", rand=", rand);
+  if (quizType == 2) {
     tmp = rand;
     quizEntry = rand;
     currIndex = 0;
@@ -326,54 +509,69 @@ function prepareNext() {
       rightAnswer = next + rightAnswer;
       tmp = int(tmp/10); 
     }
-    PrintConsole("totalCount[level]/10=", totalCount[level]/10, ", res:" +(rand < totalCount[level]/10), ", rand=", rand);
-    if (rand < totalCount[level]/10) {
+    PrintConsole("totalCount[quizType]/10=", totalCount[quizTypeLevel]/10, ", res:" +(rand < totalCount[quizTypeLevel]/10), ", rand=", rand);
+    if (rand < totalCount[quizType]/10) {
       quizEntry   = "0" + quizEntry;
       rightAnswer = "1" + rightAnswer;
     }
     Schedule(3000, "memory_timer");
   } else {
     currIndex   = rand;
-    PrintConsole("level=" + level + ", currIndex=" + currIndex + ", nb answers:" + answers[2].size);
-    quizEntry   = data[level][currIndex];
-    rightAnswer = answers[level][currIndex];
+    PrintConsole("quizType=" + quizType, ", level=", level + ", currIndex=" + currIndex);
+    quizEntry   = data[quizTypeLevel][currIndex];
+    rightAnswer = answers[quizTypeLevel][currIndex];
   }
 
   printConsole("rightAnswer=" + rightAnswer + ", quizEntry=" + quizEntry + ", currIndex=" + currIndex);
-  ShowView(quizLab);
-  SetText(quizLab, quizEntry);
-  SetText(textAnswer, "");
-  EnableWidget(buttonAnswer, true);
+  ShowView(quizLab[quizType]);
+  SetText(quizLab[quizType], quizEntry);
+  SetText(textAnswer[quizType], "");
+  EnableWidget(buttonAnswer[quizType], true);
 
-  ShowHideKeyboard(textAnswer, true);
+  ShowHideKeyboard(textAnswer[quizType], true);
   count++;
   PrintConsole("prepareNext2, nb answers:" + answers.size);
 }
 
+function buttonNewEx_click(sender, arg) {
+  quizType = 0;
+  buttonNew_click(sender, arg);
+}
+function buttonNewEq_click(sender, arg) {
+  quizType = 1;
+  buttonNew_click(sender, arg);
+}
+function buttonNewMe_click(sender, arg) {
+  quizType = 2;
+  buttonNew_click(sender, arg);
+}
 function buttonNew_click(sender, arg) {
   if (running) {
     stopQuiz();
     return;
   }
+
+  quizTypeLevel = 3 * quizType + level;
+  PrintConsole("StartNewQuiz, level: " + level + ", quizType=" + quizType + ", quizTypeLevel=" + quizTypeLevel);
   count = 0;
   correct = 0;
 
-  newText = level < 2 ? "=" : "";//(level == 2 ? "x=" : "");
-  SetText(quizLab2, newText);
-  SetText(answerLab, "");
-  SetText(correctLab, "");
-  SetText(wrongLab, "");
-  SetText(explLab, explanation[level]);
-  SetText(timeLab, "00:00");
+  SetText(answerLab[quizType], "");
+  SetText(correctLab[quizType], "");
+  SetText(wrongLab[quizType], "");
+  SetText(explLab[quizType], explanation[quizType]);
+  //SetText(explLab[quizType], "ax³+bx²+cx+d");
+  SetText(timeLab[quizType], "00:00");
 
-  ShowView(buttonAnswer);
-  ShowView(textAnswer);
-  ShowView(quizLab);
-  ShowView(quizLab2);
-  ShowView(correctLab);
-  ShowView(answerLab);
-  ShowView(explLab);
-  SetImage(buttonNew, "stop");
+  ShowView(buttonAnswer[quizType]);
+  ShowView(textAnswer[quizType]);
+  ShowView(quizLab[quizType]);
+  ShowView(quizLab2[quizType]);
+  ShowView(correctLab[quizType]);
+  ShowView(wrongLab[quizType]);
+  ShowView(answerLab[quizType]);
+  ShowView(explLab[quizType]);
+  SetImage(buttonNew[quizType], "stop");
 
   running = true;
   prepareNext();
@@ -382,39 +580,75 @@ function buttonNew_click(sender, arg) {
 
   printConsole("Started new quiz with number of entries: " + total);
 }
+function buttonAnswerEx_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswerEq_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswerMe_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswer_click(sender, arg) {
+  ShowHideKeyboard(textAnswer[quizType], false);
+  answer = GetText(textAnswer[quizType]);
+  wasCorrect = (answer == rightAnswer);
+  correct += wasCorrect;
+  wrong = count - correct;
+
+  textColor = wasCorrect ? "dark_green" : "red";
+  msg = wasCorrect ? "Correct! " : "Wrong! ";
+  SetFontColor(answerLab[quizType], textColor);
+
+  sep = quizType == 0 ? " = " : (quizType == 1 ? "   x = " : " --> ");
+  msg += quizEntry + sep + rightAnswer;
+
+  SetText(answerLab[quizType], msg);
+  SetText(correctLab[quizType], "Correct: " + correct);
+  SetText(wrongLab[quizType], "Wrong: " + wrong);
+
+  delay = wasCorrect ? 1000 : 3000;
+
+  SetImage(resultView[quizType], wasCorrect ? "correct.png" : "wrong.png");
+  ShowView(resultView[quizType]);
+  EnableWidget(buttonAnswer[quizType], false);
+
+  Schedule(delay, "delayedNext");
+}
 
 function quiz_timer(sender, arg) {
   elapsed = StopWatchElapsed("mm:ss");
-  SetText(timeLab, elapsed);
+  SetText(timeLab[quizType], elapsed);
 }
 
 function memory_timer(sender, arg) {
-  HideView(quizLab);
+  HideView(quizLab[quizType]);
 }
 
 function delayedNext(sender, arg) {
   if (!checkQuizCompleted()) {
     prepareNext();
   }
-  HideView(resultView);
+  HideView(resultView[quizType]);
 }
 
 function stopQuiz() {
   running = false;
-  SetImage(buttonNew, "start");
+  SetImage(buttonNew[currentTab], "start");
 
-  HideView(quizLab);
-  HideView(quizLab2);
-  HideView(textAnswer);
-  HideView(buttonAnswer);
-  HideView(correctLab);
-  HideView(answerLab);
-  HideView(explLab);
+  HideView(quizLab[currentTab]);
+  HideView(quizLab2[currentTab]);
+  HideView(textAnswer[currentTab]);
+  HideView(buttonAnswer[currentTab]);
+  HideView(answerLab[currentTab]);
+  //HideView(correctLab[currentTab]);
+  //HideView(wrongLab[currentTab]);
+  //HideView(explLab[currentTab]);
 
   CancelSchedule("quiz_timeoutId");
   stopwatch = StopStopWatch();
 
-  ShowHideKeyboard(textAnswer, false);
+  ShowHideKeyboard(textAnswer[currentTab], false);
 }
 
 function checkQuizCompleted() {
@@ -437,7 +671,7 @@ function checkQuizCompleted() {
     extra = ". Please excercise more!";
   }
 
-  currentTime = GetText(timeLab);
+  currentTime = GetText(timeLab[quizType]);
   if (percent > bestResult || (percent == bestResult && currentTime < bestTime)) {
     bestResult = percent;
     bestTime = currentTime;
@@ -454,31 +688,50 @@ function checkQuizCompleted() {
   return true;
 }
 
-function buttonAnswer_click(sender, arg) {
-  ShowHideKeyboard(textAnswer, false);
-  answer = getText(textAnswer);
-  wasCorrect = (answer == rightAnswer);
-  correct += wasCorrect;
-  wrong = count - correct;
+function buttonBGColor_click(sender, arg) {
+  ColorPicker("Pick Background Color", bgcolor, "bgcolorChanged");
+}
+function buttonFGColor_click(sender, arg) {
+  ColorPicker("Pick Text Color", fgcolor, "fgcolorChanged");
+}
 
-  textColor = wasCorrect ? "dark_green" : "red";
-  msg = wasCorrect ? "Correct! " : "Wrong! ";
-  SetFontColor(answerLab, textColor);
+function bgcolorChanged(sender, arg) {
+  PrintConsole("BGColor chosen:" + arg);
+  bgcolor = arg;
+  SetBackgroundColor(bgcolor);
+  SetSetting("bgcolor", bgcolor);
+}
 
-  sep = level < 2 ? " = " : (level == 2 ? "   x = " : " --> ");
-  msg += quizEntry + sep + rightAnswer;
+function fgcolorChanged(sender, arg) {
+  PrintConsole("FGColor chosen:" + arg);
+  fgcolor = arg;
+  SetFontColor(segQuizLevel, fgcolor);
+  SetFontColor(wordsLab, fgcolor);
+  SetFontColor(wordsStepper, fgcolor);
+  SetFontColor(quizLevelLab, fgcolor);
 
-  SetText(answerLab, msg);
-  SetText(correctLab, "Correct: " + correct);
-  SetText(wrongLab, "Wrong: " + wrong);
+  if (currentTab < 3) {
+    SetFontColor(quizLab[currentTab], fgcolor);
+    SetFontColor(quizLab2[currentTab], fgcolor);
+    SetFontColor(textAnswer[currentTab], fgcolor);
+    SetFontColor(dateLab[currentTab], fgcolor);
+    SetFontColor(bestLab[currentTab], fgcolor);
+    SetFontColor(explLab[currentTab], fgcolor);
+  }
+  SetSetting("fgcolor", fgcolor);
+}
 
-  delay = wasCorrect ? 1000 : 3000;
-
-  SetImage(resultView, wasCorrect ? "correct.png" : "wrong.png");
-  ShowView(resultView);
-  EnableWidget(buttonAnswer, false);
-
-  Schedule(delay, "delayedNext");
+function tabSelected(sender, arg) {
+  currentTab = int(arg);
+  printConsole("tabSelected: " + currentTab);
+  fgcolorChanged(sender, fgcolor);
+  if (currentTab < 3) {
+    updateTotalEntries(sender, total);
+    SetText(explLab[currentTab], explanation[currentTab]);
+    if (!running) {
+      stopQuiz();
+    }
+  }
 }
 
 function buttonAboutUs_click(sender, arg) {
@@ -489,6 +742,4 @@ function buttonAboutUs_click(sender, arg) {
               "Developed by Vassili Kaplan");
 }
 
-setBest();
-updateTotalEntries("", total);
-stopQuiz();
+fgcolorChanged("", fgcolor);
