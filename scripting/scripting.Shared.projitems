@@ -104,6 +104,11 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\go.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\wrong.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\correct.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\eq_ac.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\eq_in.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\expr_in.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\expr_ac.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\colors.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />
