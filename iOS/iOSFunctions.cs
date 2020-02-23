@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using AdvancedColorPicker;
 using CoreAnimation;
 using CoreGraphics;
 using Foundation;
@@ -1074,6 +1075,38 @@ namespace scripting.iOS
             return Variable.EmptyInstance;
         }
     }
+    public class ConvertColorFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            nfloat r, g, b, a;
+            string hex;
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+            if (args.Count >= 3)
+            {
+                r = Utils.GetSafeInt(args, 0);
+                g = Utils.GetSafeInt(args, 1);
+                b = Utils.GetSafeInt(args, 2);
+
+                var c = UIColor.FromRGB(r, g, b);
+                hex = UtilsiOS.GetHexStringFromColor(c);
+
+                return new Variable(hex);
+            }
+            hex = Utils.GetSafeString(args, 0);
+            var color = UtilsiOS.String2Color(hex);
+            color.GetRGBA(out r, out g, out b, out a);
+
+            Variable result = new Variable(Variable.VarType.ARRAY);
+            result.AddVariable(new Variable(r));
+            result.AddVariable(new Variable(g));
+            result.AddVariable(new Variable(b));
+            result.AddVariable(new Variable(a));
+
+            return result;
+        }
+    }
     public class AlertDialogFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -1119,6 +1152,31 @@ namespace scripting.iOS
 
             controller.PresentViewController(okCancelAlertController, true, null);
             return Variable.EmptyInstance;
+        }
+    }
+    public class PickColorDialogFunction : ParserFunction
+    {
+        string m_action;
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+
+            string title = Utils.GetSafeString(args, 0, "Pick a color");
+            var initColor = UtilsiOS.String2Color(Utils.GetSafeString(args, 1, "white"));
+            m_action = Utils.GetSafeString(args, 2, "ColorPicked");
+
+            UIViewController controller = AppDelegate.GetCurrentController();
+
+            Action<UIColor> callback = new Action<UIColor>(OnColorSelected);
+            ColorPickerViewController.Present(controller, title, initColor, callback);
+
+            return Variable.EmptyInstance;
+        }
+
+        void OnColorSelected(UIColor color)
+        {
+            string colorStr = UtilsiOS.GetHexStringFromColor(color);
+            UIVariable.GetAction(m_action, "", colorStr);
         }
     }
     public class SetSizeFunction : ParserFunction
@@ -1292,12 +1350,12 @@ namespace scripting.iOS
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
+            Utils.CheckArgs(args.Count, 1, m_name);
 
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             Utils.CheckNotNull(widget, m_name, script, 0);
 
-            double fontSize = Utils.GetSafeDouble(args, 1);
+            double fontSize = Utils.GetSafeDouble(args, 1,0);
 
             bool isSet = false;
             switch (m_fontType)

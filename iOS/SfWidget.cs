@@ -18,6 +18,7 @@ using Syncfusion.SfNumericUpDown.iOS;
 using Syncfusion.SfPicker.XForms;
 //using Syncfusion.SfPicker.XForms.iOS;
 using Syncfusion.GridCommon.ScrollAxis;
+using Syncfusion.iOS.Buttons;
 
 using Xamarin.Forms.Platform.iOS;
 using Xamarin.Forms;
@@ -47,6 +48,8 @@ namespace scripting.iOS
 
         SFBusyIndicator m_busyIndicator;
 
+        SfSegmentedControl m_segmented;
+
         SfPicker m_picker;
         SFChart m_chart;
 
@@ -70,7 +73,7 @@ namespace scripting.iOS
         public enum SyncFusionType
         {
             NONE, QR_BARCODE, CODE39_BARCODE, CIRCULAR_GAUGE, DIGITAL_GAUGE, STEPPER, BUSY_INDICATOR,
-            CALENDAR, PICKER, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID
+            CALENDAR, PICKER, SEGMENTED, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID
         };
 
         public SyncFusionType SfType { get; set; }
@@ -100,6 +103,9 @@ namespace scripting.iOS
                     break;
                 case SyncFusionType.STEPPER:
                     CreateStepper();
+                    break;
+                case SyncFusionType.SEGMENTED:
+                    CreateSegmentedControl();
                     break;
                 case SyncFusionType.CIRCULAR_GAUGE:
                     CreateCircularGauge();
@@ -155,6 +161,8 @@ namespace scripting.iOS
                     return new SfWidget(SfWidget.SyncFusionType.SPLINE_GRAPH, widgetName, initArg, rect);
                 case "SfPicker":
                     return new SfWidget(SfWidget.SyncFusionType.PICKER, widgetName, initArg, rect);
+                case "SfSegmentedControl":
+                    return new SfWidget(SfWidget.SyncFusionType.SEGMENTED, widgetName, initArg, rect);
             }
             return null;
         }
@@ -164,6 +172,10 @@ namespace scripting.iOS
             if (m_stepper != null)
             {
                 m_stepper.FontSize = (nfloat)val;
+            }
+            if (m_segmented != null)
+            {
+                m_segmented.Font = UIFont.SystemFontOfSize((nfloat)val);
             }
             else
             {
@@ -581,6 +593,39 @@ namespace scripting.iOS
 
             ViewX = m_barcode;
         }
+
+        void CreateSegmentedControl()
+        {
+            m_segmented = new SfSegmentedControl();
+
+            m_segmented.CornerRadius = 20;
+            m_segmented.BorderColor = UIColor.Black;
+            m_segmented.SelectionTextColor = UIColor.White;
+            m_segmented.DisplayMode = SegmentDisplayMode.Image;
+            m_segmented.Font = UIFont.SystemFontOfSize(14);
+            m_segmented.FontIconFontColor = UIColor.Black;
+            m_segmented.VisibleSegmentsCount = 5;
+            m_segmented.SegmentHeight = 40;
+            m_segmented.BorderThickness = 1;
+            m_segmented.SegmentWidth = 20;
+
+            m_segmented.SelectionIndicatorSettings = new SelectionIndicatorSettings()
+            { Color = UIColor.Red, Position = SelectionIndicatorPosition.Fill };
+
+            m_segmented.SelectionChanged += (sender, e) =>
+            {
+                ActionDelegate?.Invoke(WidgetName, e.Index.ToString());
+            };
+
+            //m_segmented.Frame = m_rect;
+            m_segmented.Frame = new CGRect(0, 0, m_rect.Width, m_rect.Height);
+
+            var wrapperView = new UIView(m_rect);
+            wrapperView.AddSubview(m_segmented);
+
+            ViewX = wrapperView;
+        }
+
         void CreateStepper()
         {
             m_stepper = new SFNumericUpDown();
@@ -861,6 +906,16 @@ namespace scripting.iOS
                 m_strings = data;
                 m_picker.ItemsSource = data;
             }
+            else if (m_segmented != null)
+            {
+                m_strings = data;
+                var coll = new ObservableCollection<SfSegmentItem>();
+                foreach (var str in data)
+                {
+                    coll.Add(new SfSegmentItem() { Text = "A", IconFont = str });
+                }
+                m_segmented.ItemsSource = coll;
+            }
         }
 
         public override void AddImages(List<UIImage> images, string varName, string title)
@@ -869,6 +924,10 @@ namespace scripting.iOS
             if (m_picker != null && m_strings == null)
             {
                 m_picker.ItemsSource = images;
+            }
+            else if (m_segmented != null && m_strings == null)
+            {
+                m_segmented.ItemsSource = images;
             }
         }
         public override bool SetValue(string arg1, string arg2 = "")
@@ -959,6 +1018,43 @@ namespace scripting.iOS
                 {
                     case "value":
                         m_digitalGauge.Value = (NSString)arg2;
+                        break;
+                }
+            }
+            else if (m_segmented != null)
+            {
+                switch (arg1)
+                {
+                    case "value":
+                        m_segmented.SelectedIndex = (int)valueNum;
+                        break;
+                    case "bgcolor":
+                        m_segmented.BackgroundColor = UtilsiOS.String2Color(arg2);
+                        break;
+                    case "fgcolor":
+                        m_segmented.FontColor = UtilsiOS.String2Color(arg2);
+                        break;
+                    case "selcolor":
+                        m_segmented.SelectionTextColor = UtilsiOS.String2Color(arg2);
+                        break;
+                    case "selbgcolor":
+                        m_segmented.SelectionIndicatorSettings = new SelectionIndicatorSettings()
+                        { Color = UtilsiOS.String2Color(arg2), Position = SelectionIndicatorPosition.Fill };
+                        break;
+                    case "bordercolor":
+                        m_segmented.BorderColor = UtilsiOS.String2Color(arg2);
+                        break;
+                    case "borderthickness":
+                        m_segmented.BorderThickness = (int)valueNum;
+                        break;
+                    case "segwidth":
+                        m_segmented.SegmentWidth = (int)valueNum;
+                        break;
+                    case "segheight":
+                        m_segmented.SegmentHeight = (int)valueNum;
+                        break;
+                    default:
+                        m_segmented.SelectedIndex = (int)valueNum;
                         break;
                 }
             }
@@ -1305,6 +1401,10 @@ namespace scripting.iOS
             else if (m_barcode != null)
             {
                 m_barcode.TextColor = color;
+            }
+            else if (m_segmented != null)
+            {
+                m_segmented.FontColor = color;
             }
             else if (m_digitalGauge != null)
             {

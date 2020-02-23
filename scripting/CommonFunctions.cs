@@ -97,6 +97,9 @@ namespace scripting
             ParserFunction.RegisterFunction("KillMe", new KillMeFunction());
             ParserFunction.RegisterFunction("ShowToast", new ShowToastFunction());
             ParserFunction.RegisterFunction("AlertDialog", new AlertDialogFunction());
+            ParserFunction.RegisterFunction("ColorPicker", new PickColorDialogFunction());
+            ParserFunction.RegisterFunction("ConvertColor", new ConvertColorFunction());
+
             ParserFunction.RegisterFunction("Speak", new SpeakFunction());
             ParserFunction.RegisterFunction("SetupSpeech", new SpeechOptionsFunction());
             ParserFunction.RegisterFunction("VoiceRecognition", new VoiceFunction());

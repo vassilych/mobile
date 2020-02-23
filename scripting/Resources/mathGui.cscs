@@ -1,0 +1,318 @@
+﻿// ----------- GUI Start. Expressions Tab. -----------------
+AddOrSelectTab("Expressions",  "expr_ac.png",   "expr_in.png");
+
+locCorrectLabEx = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 40);
+AddLabel(locCorrectLabEx, "correctLabEx", "", 180, 60);
+SetFontSize(correctLabEx, fontSizeSm - 2);
+SetFontColor(correctLabEx, "dark_green");
+
+locWrongLabEx = GetLocation(correctLabEx, "RIGHT", correctLabEx, "CENTER");
+AddLabel(locWrongLabEx, "wrongLabEx", "", 180, 60);
+SetFontSize(wrongLabEx, fontSizeSm - 2);
+SetFontColor(wrongLabEx, "red");
+
+locTimeLabEx = GetLocation("ROOT", "RIGHT", correctLabEx, "CENTER", 0);
+AddLabel(locTimeLabEx, "timeLabEx", "", 160, 60);
+SetFontSize(timeLabEx, fontSizeSm - 2);
+
+locButtonNewEx = GetLocation("ROOT", "CENTER", wrongLabEx, "BOTTOM", 0, 20);
+AddButton(locButtonNewEx, "buttonNewEx", "", 200, 200);
+AddBorder(buttonNewEx, 0);
+SetImage(buttonNewEx, "start");
+
+locQuizLabEx = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 10, -20);
+AddLabel(locQuizLabEx, "quizLabEx", "", 400, 100);
+SetBold(quizLabEx, fontSize + 12);
+AlignText(quizLabEx, "center");
+
+locTextAnswerEx = GetLocation("ROOT", "CENTER", quizLabEx, "BOTTOM", 10, 20);
+AddTextEdit(locTextAnswerEx, "textAnswerEx", "", 160, 100);
+SetFontSize(textAnswerEx, fontSize - 2);
+NumKeyboard(textAnswerEx);
+
+locQuizLabEx2 = GetLocation(textAnswerEx, "LEFT", textAnswerEx, "CENTER", -10);
+AddLabel(locQuizLabEx2, "quizLabEx2", "", 100, 100);
+SetFontSize(quizLabEx2, fontSize);
+
+locButtonAnswerEx = GetLocation(textAnswerEx, "RIGHT", textAnswerEx, "CENTER", 20);
+AddButton(locButtonAnswerEx, "buttonAnswerEx", "", 120, 100);
+SetImage(buttonAnswerEx, "go");
+AddBorder(buttonAnswerEx, 0);
+
+locExplLabEx = GetLocation("ROOT", "CENTER", quizLabEx, "TOP", 0, -50);
+AddLabel(locExplLabEx, "explLabEx", "", 600, 100);
+SetFontSize(explLabEx, fontSizesm - 2);
+AlignText(explLabEx, "center");
+
+locResultEx = GetLocation("ROOT", "CENTER", explLabEx, "TOP", 0, -20);
+AddImageView(locResultEx, "resultViewEx", "", 300, 200);
+HideView(resultViewEx);
+
+locAnswerLabEx = GetLocation("ROOT", "CENTER", quizLabEx2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabEx, "answerLabEx", "", 500, 60);
+AlignText(answerLabEx, "center");
+SetFontSize(answerLabEx, fontSizeSm - 2);
+
+locDateLabEx = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabEx, "dateLabEx", "", 320, 30);
+SetFontSize(dateLabEx, fontSizeSm - 6);
+AlignText(dateLabEx, "center");
+
+locBestLabEx = GetLocation("ROOT", "CENTER", dateLabEx, "TOP", 0, 0);
+AddLabel(locBestLabEx, "bestLabEx", "", 320, 30);
+SetFontSize(bestLabEx, fontSizeSm - 6);
+AlignText(bestLabEx, "center");
+
+buttonAnswer[0] = buttonAnswerEx;
+textAnswer[0] = textAnswerEx;
+quizLab[0] = quizLabEx;
+quizLab2[0] = quizLabEx2;
+correctLab[0] = correctLabEx;
+wrongLab[0] = wrongLabEx;
+answerLab[0] = answerLabEx;
+explLab[0] = explLabEx;
+buttonNew[0] = buttonNewEx;
+timeLab[0] = timeLabEx;
+resultView[0] = resultViewEx;
+bestLab[0] = bestLabEx;
+dateLab[0] = dateLabEx;
+
+// ----------- Equations -----------------
+AddOrSelectTab("Equations",    "eq_ac.png",     "eq_in.png");
+
+locCorrectLabEq = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 40);
+AddLabel(locCorrectLabEq, "correctLabEq", "", 180, 60);
+SetFontSize(correctLabEq, fontSizeSm - 2);
+SetFontColor(correctLabEq, "dark_green");
+
+locWrongLabEq = GetLocation(correctLabEq, "RIGHT", correctLabEq, "CENTER");
+AddLabel(locWrongLabEq, "wrongLabEq", "", 180, 60);
+SetFontSize(wrongLabEq, fontSizeSm - 2);
+SetFontColor(wrongLabEq, "red");
+
+locTimeLabEq = GetLocation("ROOT", "RIGHT", correctLabEq, "CENTER", 0);
+AddLabel(locTimeLabEq, "timeLabEq", "", 160, 60);
+SetFontSize(timeLabEq, fontSizeSm - 2);
+
+locButtonNewEq = GetLocation("ROOT", "CENTER", wrongLabEq, "BOTTOM", 0, 20);
+AddButton(locButtonNewEq, "buttonNewEq", "", 200, 200);
+AddBorder(buttonNewEq, 0);
+SetImage(buttonNewEq, "start");
+
+locQuizLabEq = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 10, -20);
+AddLabel(locQuizLabEq, "quizLabEq", "", 450, 100);
+SetBold(quizLabEq, fontSize + 12);
+AlignText(quizLabEq, "center");
+
+locQuizLabEqF1 = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -60, -75);
+AddLabel(locQuizLabEqF1, "quizLabEqF1", " X", 90, 60);
+SetBold(quizLabEqF1, fontSize + 6);
+
+locQuizLabEqF0 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", 10, 10);
+AddImageView(locQuizLabEqF0, "quizLabEqF0", "fractions", 220, 20);
+
+locQuizLabEqF2 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", -60, 30);
+AddLabel(locQuizLabEqF2, "quizLabEqF2", "44", 90, 60);
+SetBold(quizLabEqF2, fontSize + 6);
+
+locQuizLabEqF3 = GetLocation(quizLabEqF1, "RIGHT", quizLabEqF1, "CENTER", 65, 0);
+AddLabel(locQuizLabEqF3, "quizLabEqF3", "99", 90, 60);
+SetBold(quizLabEqF3, fontSize + 6);
+
+locQuizLabEqF4 = GetLocation(quizLabEqF2, "RIGHT", quizLabEqF2, "CENTER", 65, 0);
+AddLabel(locQuizLabEqF4, "quizLabEqF4", "66", 90, 60);
+//AlignText(quizLabEqF4, "center");
+SetBold(quizLabEqF4, fontSize + 6);
+HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
+
+locTextAnswerEq = GetLocation("ROOT", "CENTER", quizLabEq, "BOTTOM", 10, 30);
+AddTextEdit(locTextAnswerEq, "textAnswerEq", "", 160, 100);
+SetFontSize(textAnswerEq, fontSize - 2);
+NumKeyboard(textAnswerEq);
+
+locQuizLabEq2 = GetLocation(textAnswerEq, "LEFT", textAnswerEq, "CENTER", -10);
+AddLabel(locQuizLabEq2, "quizLabEq2", "  x =", 100, 100);
+SetFontSize(quizLabEq2, fontSize);
+HideView(quizLabEq);
+HideView(quizLabEq2);
+
+locButtonAnswerEq = GetLocation(textAnswerEq, "RIGHT", textAnswerEq, "CENTER", 20);
+AddButton(locButtonAnswerEq, "buttonAnswerEq", "", 120, 100);
+SetImage(buttonAnswerEq, "go");
+AddBorder(buttonAnswerEq, 0);
+
+locExplLabEq = GetLocation("ROOT", "CENTER", quizLabEq, "TOP", 0, -50);
+AddLabel(locExplLabEq, "explLabEq", "", 600, 100);
+SetFontSize(explLabEq, fontSizesm - 2);
+AlignText(explLabEq, "center");
+
+locResultEq = GetLocation("ROOT", "CENTER", explLabEq, "TOP", 0, -20);
+AddImageView(locResultEq, "resultViewEq", "", 300, 200);
+HideView(resultViewEq);
+
+locAnswerLabEq = GetLocation("ROOT", "CENTER", quizLabEq2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabEq, "answerLabEq", "", 500, 60);
+AlignText(answerLabEq, "center");
+SetFontSize(answerLabEq, fontSizeSm - 2);
+
+locDateLabEq = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabEq, "dateLabEq", "", 320, 30);
+SetFontSize(dateLabEq, fontSizeSm - 6);
+AlignText(dateLabEq, "center");
+
+locBestLabEq = GetLocation("ROOT", "CENTER", dateLabEq, "TOP", 0, 0);
+AddLabel(locBestLabEq, "bestLabEq", "", 320, 30);
+SetFontSize(bestLabEq, fontSizeSm - 6);
+AlignText(bestLabEq, "center");
+
+buttonAnswer[1] = buttonAnswerEq;
+textAnswer[1] = textAnswerEq;
+quizLab[1] = quizLabEq;
+quizLab2[1] = quizLabEq2;
+correctLab[1] = correctLabEq;
+wrongLab[1] = wrongLabEq;
+answerLab[1] = answerLabEq;
+explLab[1] = explLabEq;
+buttonNew[1] = buttonNewEq;
+timeLab[1] = timeLabEq;
+resultView[1] = resultViewEq;
+bestLab[1] = bestLabEq;
+dateLab[1] = dateLabEq;
+
+// ------------- Memory Tab -----------
+AddOrSelectTab("Memory",       "learn.png",     "learn2.png");
+
+locCorrectLabMe = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 40);
+AddLabel(locCorrectLabMe, "correctLabMe", "", 180, 60);
+SetFontSize(correctLabMe, fontSizeSm);
+SetFontColor(correctLabMe, "dark_green");
+
+locWrongLabMe = GetLocation(correctLabMe, "RIGHT", correctLabMe, "CENTER");
+AddLabel(locWrongLabMe, "wrongLabMe", "", 180, 60);
+SetFontSize(wrongLabMe, fontSizeSm);
+SetFontColor(wrongLabMe, "red");
+
+locTimeLabMe = GetLocation("ROOT", "RIGHT", correctLabMe, "CENTER", 0);
+AddLabel(locTimeLabMe, "timeLabMe", "", 160, 60);
+SetFontSize(timeLabMe, fontSizeSm - 2);
+
+locButtonNewMe = GetLocation("ROOT", "CENTER", wrongLabMe, "BOTTOM", 0, 20);
+AddButton(locButtonNewMe, "buttonNewMe", "", 200, 200);
+AddBorder(buttonNewMe, 0);
+SetImage(buttonNewMe, "start");
+
+locQuizLabMe = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 10, -20);
+AddLabel(locQuizLabMe, "quizLabMe", "", 400, 100);
+SetBold(quizLabMe, fontSize + 12);
+AlignText(quizLabMe, "center");
+
+locTextAnswerMe = GetLocation("ROOT", "CENTER", quizLabMe, "BOTTOM", 10, 20);
+AddTextEdit(locTextAnswerMe, "textAnswerMe", "", 200, 100);
+SetFontSize(textAnswerMe, fontSize - 2);
+NumKeyboard(textAnswerMe);
+
+locQuizLabMe2 = GetLocation(textAnswerMe, "LEFT", textAnswerMe, "CENTER", -10);
+AddLabel(locQuizLabMe2, "quizLabMe2", "", 100, 100);
+SetFontSize(quizLabMe2, fontSize);
+
+locButtonAnswerMe = GetLocation(textAnswerMe, "RIGHT", textAnswerMe, "CENTER", 20);
+AddButton(locButtonAnswerMe, "buttonAnswerMe", "", 120, 100);
+SetImage(buttonAnswerMe, "go");
+AddBorder(buttonAnswerMe, 0);
+
+locExplLabMe = GetLocation("ROOT", "CENTER", quizLabMe, "TOP", 0, -50);
+AddLabel(locExplLabMe, "explLabMe", "", 600, 100);
+SetFontSize(explLabMe, fontSizesm - 2);
+AlignText(explLabMe, "center");
+
+locResultMe = GetLocation("ROOT", "CENTER", explLabMe, "TOP", 0, -20);
+AddImageView(locResultMe, "resultViewMe", "", 300, 200);
+HideView(resultViewMe);
+
+locAnswerLabMe = GetLocation("ROOT", "CENTER", quizLabMe2, "BOTTOM", 0, 30);
+AddLabel(locAnswerLabMe, "answerLabMe", "", 500, 60);
+AlignText(answerLabMe, "center");
+SetFontSize(answerLabMe, fontSizeSm - 2);
+
+locDateLabMe = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -80);
+AddLabel(locDateLabMe, "dateLabMe", "", 320, 30);
+SetFontSize(dateLabMe, fontSizeSm - 6);
+AlignText(dateLabMe, "center");
+
+locBestLabMe = GetLocation("ROOT", "CENTER", dateLabMe, "TOP", 0, 0);
+AddLabel(locBestLabMe, "bestLabMe", "", 320, 30);
+SetFontSize(bestLabMe, fontSizeSm - 6);
+AlignText(bestLabMe, "center");
+
+buttonAnswer[2] = buttonAnswerMe;
+textAnswer[2] = textAnswerMe;
+quizLab[2] = quizLabMe;
+quizLab2[2] = quizLabMe2;
+correctLab[2] = correctLabMe;
+wrongLab[2] = wrongLabMe;
+answerLab[2] = answerLabMe;
+explLab[2] = explLabMe;
+buttonNew[2] = buttonNewMe;
+timeLab[2] = timeLabMe;
+resultView[2] = resultViewMe;
+bestLab[2] = bestLabMe;
+dateLab[2] = dateLabMe;
+
+// ------------- Settings -----------
+AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+
+locWordsLab = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 20, -200);
+AddLabel(locWordsLab, "wordsLab", "Entries: ", 120, 30);
+SetFontSize(wordsLab, fontSizeSm - 4);
+
+locWordsStepper = GetLocation(wordsLab, "RIGHT", wordsLab, "CENTER", 100, 0);
+AddSfStepper(locWordsStepper, "wordsStepper", "30:5:100:5", 280, 60);
+SetValue(wordsStepper, total);
+SetFontSize(wordsStepper, fontSizeSm - 4);
+AddAction(wordsStepper, "updateTotalEntries");
+
+locQuizLevelLab = GetLocation("ROOT", "LEFT", wordsStepper, "TOP", 20, -20);
+AddLabel(locQuizLevelLab, "quizLevelLab", "Level:", 120, 80);
+SetFontSize(quizLevelLab, fontSizeSm - 4);
+
+locQuizLevel = GetLocation(quizLevelLab, "RIGHT", quizLevelLab, "CENTER", 10, 0);
+AddSegmentedControl(locQuizLevel, "segQuizLevel", "Easy:Medium:Advanced", 480, 60);
+//AddSfSegmentedControl(locQuizLevel, "segQuizLevel", "", 500, 50);
+//AddWidgetData(segQuizLevel, { "Easy", "Medium", "Advanced" });
+//SetValue(segQuizLevel, "selbgcolor", "dark_green");
+SetValue(segQuizLevel, level);
+SetFontSize(segQuizLevel, fontSizeSm - 4);
+AddAction(segQuizLevel, "updateLevel");
+
+locSliderLabel = GetLocation("ROOT", "LEFT", quizLevelLab, "TOP", 20, -20);
+AddLabel(locSliderLabel, "durationLab", "Memory duration", 160, 120);
+SetFontSize(durationLab, fontSizeSm - 4);
+
+locSlider = GetLocation(durationLab, "RIGHT", durationLab, "CENTER", 10, 0);
+AddSlider(locSlider, "durationSlider", "2000:1000:4000", 280, 80);
+SetValue(durationSlider, duration);
+
+locDurationMs = GetLocation(durationSlider, "RIGHT", durationLab, "CENTER", 6, 0);
+AddLabel(locDurationMs, "durationMs", "", 80, 80);
+SetText(durationMs, string(duration));
+SetFontSize(durationMs, fontSizeSm - 4);
+
+locMsLabel = GetLocation(durationMs, "RIGHT", durationMs, "CENTER", 0, 0);
+AddLabel(locMsLabel, "msLabel", "", 40, 80);
+SetText(msLabel, "ms");
+SetFontSize(msLabel, fontSizeSm - 4);
+
+locBGColor = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 30, -120);
+AddButton(locBGColor, "buttonBGColor", "", 250, 220);
+SetImage(buttonBGColor, "bgColor");
+AddBorder(buttonBGColor, 0);
+
+locFGColor = GetLocation("ROOT", "RIGHT", buttonBGColor, "CENTER", -30, 0);
+AddButton(locFGColor, "buttonFGColor", "", 250, 220);
+SetImage(buttonFGColor, "textColor");
+AddBorder(buttonFGColor, 0);
+
+locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", 0, -20);
+AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
+SetImage(buttonAboutUs, "about");
+AddBorder(buttonAboutUs, 0);

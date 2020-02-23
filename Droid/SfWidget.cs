@@ -19,6 +19,8 @@ using Com.Syncfusion.Gauges.SfCircularGauge;
 using Com.Syncfusion.Gauges.SfCircularGauge.Enums;
 using Com.Syncfusion.Gauges.SfDigitalGauge;
 using Com.Syncfusion.Numericupdown;
+using Syncfusion.XForms.Buttons;
+
 
 using SplitAndMerge;
 using System.Collections.ObjectModel;
@@ -51,6 +53,8 @@ namespace scripting.Droid
         SfDigitalGauge m_digitalGauge;
 
         SfPicker m_picker;
+
+        SfSegmentedControl m_segmented;
 
         SfCircularGauge m_circularGauge;
         NeedlePointer m_needlePointer;

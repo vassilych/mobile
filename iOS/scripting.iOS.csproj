@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Xamarin.Forms.4.4.0.991537\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.4.4.0.991537\build\Xamarin.Forms.props')" />
+  <Import Project="..\packages\Xamarin.Forms.4.4.0.991640\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.4.4.0.991640\build\Xamarin.Forms.props')" />
   <Import Project="..\packages\Xamarin.Build.Download.0.8.0\build\Xamarin.Build.Download.props" Condition="Exists('..\packages\Xamarin.Build.Download.0.8.0\build\Xamarin.Build.Download.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -117,16 +117,16 @@
       <HintPath>..\packages\Xamarin.Firebase.iOS.Analytics.6.0.4\lib\xamarinios10\Firebase.Analytics.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Core">
-      <HintPath>..\packages\Xamarin.Forms.4.4.0.991537\lib\Xamarin.iOS10\Xamarin.Forms.Core.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.4.0.991640\lib\Xamarin.iOS10\Xamarin.Forms.Core.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Platform">
-      <HintPath>..\packages\Xamarin.Forms.4.4.0.991537\lib\Xamarin.iOS10\Xamarin.Forms.Platform.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.4.0.991640\lib\Xamarin.iOS10\Xamarin.Forms.Platform.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Platform.iOS">
-      <HintPath>..\packages\Xamarin.Forms.4.4.0.991537\lib\Xamarin.iOS10\Xamarin.Forms.Platform.iOS.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.4.0.991640\lib\Xamarin.iOS10\Xamarin.Forms.Platform.iOS.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Xaml">
-      <HintPath>..\packages\Xamarin.Forms.4.4.0.991537\lib\Xamarin.iOS10\Xamarin.Forms.Xaml.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.4.0.991640\lib\Xamarin.iOS10\Xamarin.Forms.Xaml.dll</HintPath>
     </Reference>
     <Reference Include="Google.MobileAds">
       <HintPath>..\packages\Xamarin.Google.iOS.MobileAds.7.47.0\lib\xamarinios10\Google.MobileAds.dll</HintPath>
@@ -219,7 +219,13 @@
     </Reference>
     <Reference Include="Mono.Data.Sqlite" />
     <Reference Include="Syncfusion.Licensing">
-      <HintPath>..\packages\Syncfusion.Licensing.17.2.0.51\lib\Xamarin.iOS10\Syncfusion.Licensing.dll</HintPath>
+      <HintPath>..\packages\Syncfusion.Licensing.16.2.0.41\lib\Xamarin.iOS10\Syncfusion.Licensing.dll</HintPath>
+    </Reference>
+    <Reference Include="AdvancedColorPicker">
+      <HintPath>..\packages\AdvancedColorPicker.2.0.1\lib\Xamarin.iOS\AdvancedColorPicker.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Buttons.iOS">
+      <HintPath>..\packages\Syncfusion.Xamarin.Buttons.IOS.16.2.0.41\lib\Xamarin.iOS10\Syncfusion.Buttons.iOS.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -5059,6 +5065,48 @@
     <BundleResource Include="..\scripting\Resources\script.cscs">
       <Link>Resources\script.cscs</Link>
     </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\go.png">
+      <Link>Resources\drawable\go.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\wrong.png">
+      <Link>Resources\drawable\wrong.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\correct.png">
+      <Link>Resources\drawable\correct.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\eq_ac.png">
+      <Link>Resources\drawable\eq_ac.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\eq_in.png">
+      <Link>Resources\drawable\eq_in.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\expr_in.png">
+      <Link>Resources\drawable\expr_in.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\expr_ac.png">
+      <Link>Resources\drawable\expr_ac.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\colors.png">
+      <Link>Resources\drawable\colors.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\bgColor.png">
+      <Link>Resources\drawable\bgColor.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\textColor.png">
+      <Link>Resources\drawable\textColor.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\iMath.cscs">
+      <Link>Resources\iMath.cscs</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\mathGui.cscs">
+      <Link>Resources\mathGui.cscs</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\fractions.png">
+      <Link>Resources\drawable\fractions.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\fractions_light.png">
+      <Link>Resources\drawable\fractions_light.png</Link>
+    </BundleResource>
   </ItemGroup>
   <ItemGroup>
     <ITunesArtwork Include="iTunesArtwork%402x" />
@@ -5070,5 +5118,5 @@
   <Import Project="..\packages\Xamarin.Firebase.iOS.Core.6.1.0\build\Xamarin.Firebase.iOS.Core.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Core.6.1.0\build\Xamarin.Firebase.iOS.Core.targets')" />
   <Import Project="..\packages\Xamarin.Firebase.iOS.Analytics.6.0.4\build\Xamarin.Firebase.iOS.Analytics.targets" Condition="Exists('..\packages\Xamarin.Firebase.iOS.Analytics.6.0.4\build\Xamarin.Firebase.iOS.Analytics.targets')" />
   <Import Project="..\packages\Xamarin.Google.iOS.MobileAds.7.47.0\build\Xamarin.Google.iOS.MobileAds.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.MobileAds.7.47.0\build\Xamarin.Google.iOS.MobileAds.targets')" />
-  <Import Project="..\packages\Xamarin.Forms.4.4.0.991537\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.4.4.0.991537\build\Xamarin.Forms.targets')" />
+  <Import Project="..\packages\Xamarin.Forms.4.4.0.991640\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.4.4.0.991640\build\Xamarin.Forms.targets')" />
 </Project>

@@ -109,6 +109,12 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\expr_in.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\expr_ac.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\colors.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\textColor.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\bgColor.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\iMath.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\mathGui.cscs" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fractions.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fractions_light.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

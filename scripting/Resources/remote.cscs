@@ -126,6 +126,11 @@ function onConnect(sender, arg) {
 
 function onStockData(sender, arg) {
   PrintConsole("OnStockData: " + arg);
+  if (arg == "") {
+    AlertDialog(AppName, "Couldn't get data for stock " + stock);
+    makeUnbusy();
+    return;
+  }
   // CH0012221716|23.0300006866455|0.0932817980647087|2020-01-29|2020-05-06|CHF 0.957409977912903 on 2020-05-06
 
   stockData = arg.Split("|");
@@ -599,6 +604,11 @@ function fillStdDevData(sender, arg) {
     RemoveView(StdGraph);
   }
 
+  if (stdData.size == 0) {
+    makeUnbusy();
+    return;
+  }
+
   locStdGraph = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
   AddSfColumnGraph(locStdGraph, "StdGraph", "", graphWidth, graphHeight);
 
@@ -618,7 +628,7 @@ function fillDividendsData(sender, arg) {
   //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
   
   estimatedTitle = "Estimated Dividends";
-  pastTitle      = "Dividends";
+  pastTitle      = "Past Dividends";
   isin           = "";
   points         = arg.Split("\t");
   divData        = {};
@@ -629,17 +639,17 @@ function fillDividendsData(sender, arg) {
     if (parts.size < 7) {
       continue;
     }
-    //PrintConsole("Processing Dividend [", point, "] size=", parts.size);
     isin       = parts[0];
     x          = parts[5];
     y          = Round(double(parts[1]), 2);
     estimated  = Bool(parts[6]);
     nbPast    += !estimated;
     nbFuture  += estimated;
-    //key        = estimated ? estimatedTitle : pastTitle;
-    key        = pastTitle;
+    key        = estimated ? estimatedTitle : pastTitle;
+    //key        = pastTitle;
     
     AddOrderedData(divData, key, x, y, "str");
+    PrintConsole("Processed Dividend [", point, "] size=", parts.size + ", key=", key);
   }
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
@@ -660,7 +670,12 @@ function fillDividendsData(sender, arg) {
     SetValue(DivGraph1, "secondary_axis", "Payout");
     SetValue(DivGraph1, "string_axis", "x");
     setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
-    addDataToGraph(DivGraph1, divData, pastTitle,      "orange:orange");
+    if (nbPast > 0) {
+      addDataToGraph(DivGraph1, divData, pastTitle, "blue:blue");
+    } 
+    if (nbFuture > 0) {
+      addDataToGraph(DivGraph1, divData, estimatedTitle, "orange:orange");
+    } 
   }
   GetDataFromServer("stockstddev", stock, "fillStdDevData");
   return;

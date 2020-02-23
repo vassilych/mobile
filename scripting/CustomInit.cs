@@ -30,6 +30,7 @@ namespace scripting
             ParserFunction.RegisterFunction("AddSfDigitalGauge", new AddWidgetFunction("SfDigitalGauge"));
             ParserFunction.RegisterFunction("AddSfPicker", new AddWidgetFunction("SfPicker"));
             ParserFunction.RegisterFunction("AddSfStepper", new AddWidgetFunction("SfStepper"));
+            ParserFunction.RegisterFunction("AddSfSegmentedControl", new AddWidgetFunction("SfSegmentedControl"));
             ParserFunction.RegisterFunction("AddSfBusyIndicator", new AddWidgetFunction("SfBusyIndicator"));
             ParserFunction.RegisterFunction("AddSfSplineGraph", new AddWidgetFunction("SfSplineGraph"));
             ParserFunction.RegisterFunction("AddSfColumnGraph", new AddWidgetFunction("SfColumnGraph"));

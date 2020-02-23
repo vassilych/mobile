@@ -24,7 +24,7 @@ namespace SplitAndMerge
             if (variable.Value <= 0)
             {
                 ThrowErrorMsg("Expected a positive integer instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
             }
         }
 
@@ -34,7 +34,7 @@ namespace SplitAndMerge
             if (variable.Value < 0)
             {
                 ThrowErrorMsg("Expected a non-negative integer instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
             }
         }
         public static void CheckInteger(Variable variable, ParsingScript script)
@@ -43,7 +43,7 @@ namespace SplitAndMerge
             if (variable.Value % 1 != 0.0)
             {
                 ThrowErrorMsg("Expected an integer instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
             }
         }
         public static void CheckNumber(Variable variable, ParsingScript script)
@@ -51,7 +51,7 @@ namespace SplitAndMerge
             if (variable.Type != Variable.VarType.NUMBER)
             {
                 ThrowErrorMsg("Expected a number instead of [" +
-                              variable.AsString() + "].", script, script.Current.ToString());
+                              variable.AsString() + "].", script, script != null ? script.Current.ToString() : "");
             }
         }
         public static void CheckArray(Variable variable, string name)
