@@ -362,6 +362,7 @@ namespace scripting.iOS
             }
             return new Tuple<UIControlContentHorizontalAlignment, UITextAlignment>(al1, al2);
         }
+        
         public static CGColor CGColorFromHex(string hexString, double alpha = 1.0)
         {
             UIColor uicolor = String2Color(hexString, alpha);

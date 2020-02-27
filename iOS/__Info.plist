@@ -50,7 +50,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to photos</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.10</string>
+	<string>1.0.12</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleDisplayName</key>

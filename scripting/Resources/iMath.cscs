@@ -199,24 +199,37 @@ function prepareNext() {
   ShowView(quizLab[quizType]);
   HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
   fractionMode = false;
-  if (level == 0 && quizType == 1) {
-    special = GetRandom(4);
-    if (special % 2 > 0) {
+  if (quizType == 1) {
+    special = GetRandom(10);
+    if (special <= 5) {
+      numLimit = level == 0 ? 10 : level == 1 ? 5 : 3;
       fractionMode = true;
-      ratio = (GetRandom(8) + 3) / 2;
-      a = GetRandom(10) + 2;
-      c = 2 + GetRandom(10) * 2;
+      ratio = (GetRandom(numLimit - 2) + 3) / 2;
+      a = GetRandom(numLimit) + 2;
+      c = 2 + GetRandom(numLimit) * 2;
       b = c * ratio;
       rightAnswer = a * b / c;
       if (rightAnswer != Round(rightAnswer)) {
         a *= 2;
         rightAnswer *= 2;
       }
-      str1 = " X"; 
+      if (level == 0) {
+        str1 = " X";
+      } elif (level == 1) {
+        str1 = " X²";
+        a = a * a;
+        b = b * b;
+        c = c * c;
+      } elif (level == 2) {
+        str1 = " X³";
+        a = a * a * a;
+        b = b * b * b;
+        c = c * c * c;
+      }
       str2 = a < 10 ? " " + a : string(a); 
-      str3 = b < 10 ? " " + b : string(b); 
-      str4 = c < 10 ? " " + c : string(c);
-      if (special == 1) {
+      str3 = b < 10 || b.size < c.size ? " " + b : string(b); 
+      str4 = c < 10 || c.size < b.size ? " " + c : string(c);
+      if (special == 1 || special == 3) {
         tmp = str1; str1 = str2; str2 = tmp;
         tmp = str3; str3 = str4; str4 = tmp;
       }
@@ -251,9 +264,12 @@ function buttonNewMe_click(sender, arg) {
   buttonNew_click(sender, arg);
 }
 function buttonNew_click(sender, arg) {
+  thisTabRunning = (currentTab == runningTab);
   if (running) {
     stopQuiz();
-    return;
+    if (thisTabRunning) {
+      return;
+    }
   }
 
   quizTypeLevel = 3 * quizType + level;
@@ -332,7 +348,7 @@ function ShowHideViews() {
   }
 
   SetText(explLab[currentTab], explanation[currentTab]);
-  ShowView(buttonNew[currentTab], !running);
+  ShowView(buttonNew[currentTab]);//, !running);
   ShowView(explLab[currentTab]);
   HideView(buttonAnswer[currentTab]);
   HideView(quizLab[currentTab]);
@@ -460,7 +476,17 @@ function fgcolorChanged(sender, arg) {
 }
 
 function tabSelected(sender, arg) {
-  currentTab = int(arg);
+  newTab = int(arg);
+  if (running && runningTab >= 0 && newTab != runningTab) {
+    currentTab = runningTab;
+    ShowToast("Please finish or click Stop Quiz button first", 5, bgcolor, fgcolor);
+    SelectTab(currentTab);
+    return;
+  }
+  if (newTab == currentTab) {
+    return;
+  }
+  currentTab = newTab;
   printConsole("tabSelected: " + currentTab);
   fgcolorChanged(sender, fgcolor);
   if (currentTab < 3) {

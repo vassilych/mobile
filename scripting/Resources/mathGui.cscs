@@ -105,27 +105,27 @@ SetBold(quizLabEq, fontSize + 12);
 AlignText(quizLabEq, "center");
 
 locQuizLabEqF1 = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -60, -75);
-AddLabel(locQuizLabEqF1, "quizLabEqF1", " X", 90, 60);
+AddLabel(locQuizLabEqF1, "quizLabEqF1", " X", 130, 60);
 SetBold(quizLabEqF1, fontSize + 6);
 
 locQuizLabEqF0 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", 10, 10);
-AddImageView(locQuizLabEqF0, "quizLabEqF0", "fractions", 220, 20);
+AddImageView(locQuizLabEqF0, "quizLabEqF0", "fractions", 290, 26);
 
 locQuizLabEqF2 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", -60, 30);
-AddLabel(locQuizLabEqF2, "quizLabEqF2", "44", 90, 60);
+AddLabel(locQuizLabEqF2, "quizLabEqF2", "44", 130, 60);
 SetBold(quizLabEqF2, fontSize + 6);
 
-locQuizLabEqF3 = GetLocation(quizLabEqF1, "RIGHT", quizLabEqF1, "CENTER", 65, 0);
-AddLabel(locQuizLabEqF3, "quizLabEqF3", "99", 90, 60);
+locQuizLabEqF3 = GetLocation(quizLabEqF1, "RIGHT", quizLabEqF1, "CENTER", 52, 0);
+AddLabel(locQuizLabEqF3, "quizLabEqF3", "99", 130, 60);
 SetBold(quizLabEqF3, fontSize + 6);
 
-locQuizLabEqF4 = GetLocation(quizLabEqF2, "RIGHT", quizLabEqF2, "CENTER", 65, 0);
-AddLabel(locQuizLabEqF4, "quizLabEqF4", "66", 90, 60);
+locQuizLabEqF4 = GetLocation(quizLabEqF2, "RIGHT", quizLabEqF2, "CENTER", 52, 0);
+AddLabel(locQuizLabEqF4, "quizLabEqF4", "66", 130, 60);
 //AlignText(quizLabEqF4, "center");
 SetBold(quizLabEqF4, fontSize + 6);
 HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
 
-locTextAnswerEq = GetLocation("ROOT", "CENTER", quizLabEq, "BOTTOM", 10, 30);
+locTextAnswerEq = GetLocation("ROOT", "CENTER", quizLabEq, "BOTTOM", 10, 45);
 AddTextEdit(locTextAnswerEq, "textAnswerEq", "", 160, 100);
 SetFontSize(textAnswerEq, fontSize - 2);
 NumKeyboard(textAnswerEq);
@@ -289,7 +289,7 @@ AddLabel(locSliderLabel, "durationLab", "Memory duration", 160, 120);
 SetFontSize(durationLab, fontSizeSm - 4);
 
 locSlider = GetLocation(durationLab, "RIGHT", durationLab, "CENTER", 10, 0);
-AddSlider(locSlider, "durationSlider", "2000:1000:4000", 280, 80);
+AddSlider(locSlider, "durationSlider", "1500:700:4000", 280, 80);
 SetValue(durationSlider, duration);
 
 locDurationMs = GetLocation(durationSlider, "RIGHT", durationLab, "CENTER", 6, 0);

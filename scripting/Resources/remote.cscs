@@ -1,4 +1,4 @@
-﻿Version      = "0.1.2";
+﻿Version      = "0.1.3";
 AppName      = "TrueDividends.com";
 
 data         = {};
@@ -17,6 +17,7 @@ minVolaPrice = {};
 maxVolaPrice = {};
 dates        = {};
 isin         = "";
+connected    = false;
 loggedIn     = false;
 busy         = false;
 busyIndex    = 0;
@@ -30,6 +31,9 @@ graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "
 markets = { "Market", "CH", "DE", "US" };
 market  = "";
 starting = true;
+lastStockLoaded = "";
+lastVolaLoaded = "";
+lastAnalysisLoaded = "";
 
 stocksHeader = "Select Stock";
 volaHeader   = "Select Volatilities";
@@ -68,20 +72,57 @@ function makeUnbusy() {
 }
 
 function tabSelected(sender, arg) {
-  printConsole("tabSelected :" + arg);
+  newtab = int(arg);
   ShowHideKeyboard(textStock, false);
-  if (busy || (stock == "" && arg < numberTabs - 1)) {
+  if (newtab == currentTab) {
     return;
   }
-  if (arg == 0) {
-  } elif (arg == 1) {
+  if (!connected) {
+    if (newtab == numberTabs - 1) {
+      currentTab = numberTabs - 1;
+      return;
+    }
+    ShowToast("Please connect first", 5, "yellow", "dark_green");
+    SelectTab(numberTabs - 1);
+    return;
+  }
+  if (busy) {
+    ShowToast("Please wait till data is loaded", 5, "yellow", "dark_green");
+    SelectTab(currentTab);
+    return;
+  }
+  currentTab = newtab;
+  printConsole("tabSelected :" + newtab);
+
+  makeBusy();
+  if (newtab == 0) {
+    if (stock == lastStockLoaded) {
+      makeUnbusy();
+      return;
+    }
+    GetDataFromServer("optionprices", stock, "fillStockData");
+  } elif (newtab == 1) {
+    if (stock == "" || !data.Contains(stock)) {
+      makeUnbusy();
+      ShowToast("Please first load options in first tab", 7, "yellow", "dark_green");
+      SelectTab(0);
+      return;
+    }
     createGraphs();
-  } elif (arg == 2) {
-    makeBusy();
+  } elif (newtab == 2) {
+    if (stock == lastAnalysisLoaded) {
+      makeUnbusy();
+      return;
+    }
     GetDataFromServer("dividends", stock, "fillDividendsData");
-  } elif (arg == 3) {
-    makeBusy();
+  } elif (newtab == 3) {
+    if (stock == lastVolaLoaded) {
+      makeUnbusy();
+      return;
+    }
     GetDataFromServer("volas", stock, "fillVolasData");
+  } else {
+    makeUnbusy();
   }
 }
 
@@ -135,7 +176,7 @@ function onStockData(sender, arg) {
 
   stockData = arg.Split("|");
   size = stockData.Size();
-  if (stockData.Size < 7) {
+  if (stockData.Size < 8) {
     makeUnbusy();
     return;
   }
@@ -145,6 +186,7 @@ function onStockData(sender, arg) {
   SetText(textUpdate,  stockData[3]);
   SetText(textLastDiv, stockData[5]);
   SetText(textNextDiv, stockData[6]);
+  market = stockData[7];
 
   ShowView(labelIsin);
   ShowView(textIsin);
@@ -158,6 +200,7 @@ function onStockData(sender, arg) {
   ShowView(textStd);
   ShowView(labelUpdate);
   ShowView(textUpdate);
+
   makeUnbusy();
 }
 
@@ -355,6 +398,13 @@ function addDataToGraph(graphName, graphData, key, colors) {
   AddWidgetData(graphName, chartData, dataTitle, colors);
 }
 
+function loadStockWarning() {
+  makeUnbusy();
+  ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
+  SelectTab(0);
+  GetDataFromServer("optionprices", stock, "fillStockData");
+}
+
 function createGraphs() {
   if (NameExists(SplineGraph1)) {
     RemoveView(SplineGraph1);
@@ -363,6 +413,7 @@ function createGraphs() {
     RemoveView(SplineGraph2);
   }
   if (stock == "" || !data.Contains(stock)) {
+    ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
     return;
   }
   
@@ -371,6 +422,7 @@ function createGraphs() {
   
   keys = getBestData(stockData, "_C_");
   if (keys[0] == "") {
+    loadStockWarning();
     return;
   }
   
@@ -381,11 +433,13 @@ function createGraphs() {
   
   keys = getBestData(stockData, "_P_");
   if (keys[0] == "") {
+    loadStockWarning();
     return;
   }
   
   locSFGraph2 = GetLocation("ROOT", "CENTER", SplineGraph1, "BOTTOM", 0, 0);
   createGraph(locSFGraph2, "SplineGraph2", "Put Options " + lastPriceMsg, stockData, keys);
+  makeUnbusy();
 }
 
 function fillVolasData(sender, arg) {
@@ -465,6 +519,7 @@ function fillVolasData(sender, arg) {
 
   volaSelected("", "");
   PrintConsole("Finished processing " + volaData.Size + " Volas. Dates received: [", dates, "]");
+  lastVolaLoaded = stock;
   //makeUnbusy();
 }
 
@@ -677,23 +732,8 @@ function fillDividendsData(sender, arg) {
       addDataToGraph(DivGraph1, divData, estimatedTitle, "orange:orange");
     } 
   }
+  lastAnalysisLoaded = stock;
   GetDataFromServer("stockstddev", stock, "fillStdDevData");
-  return;
-
-  if (nbFuture > 0) {
-    locDivGraph2 = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
-    AddSfColumnGraph(locDivGraph2, "DivGraph2", "", graphWidth, graphHeight);
-
-    SetValue(DivGraph2, "primary_axis",   "Ex-Dividend Date");
-    SetValue(DivGraph2, "secondary_axis", "Payout");
-    SetValue(DivGraph2, "string_axis", "x");
-    setToolTip(DivGraph2, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
-    SetText(DivGraph2,  "Estimated Dividends for " + stock);
-
-    addDataToGraph(DivGraph2, divData, estimatedTitle, "green:green");
-  }
-  
-  makeUnbusy();
 }
 
 function fillStockData(sender, arg) {
@@ -717,6 +757,8 @@ function fillStockData(sender, arg) {
     makeUnbusy();
     return;
   }
+
+  lastStockLoaded = stock;
   
   //arg = "P ABBN A 2019-04-19 24.0|4.05000019073486|4.44999980926514|4.23000001907349|4.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 23.0|3.09999990463257|3.40000009536743|3.23000001907349|3.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 22.0|2.15000009536743|2.35999989509583|2.23000001907349|2.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 21.0|1.19000005722046|1.30999994277954|1.23000001907349|1.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.5|0.709999978542328|0.819999992847443|0.740000009536743|0.740000009536743|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.0|0.270000010728836|0.379999995231628|0.330000013113022|0.330000013113022|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.5|0.0299999993294477|0.140000000596046|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.0|0.00999999977648258|0.0900000035762787|0.0500000007450581|0.0500000007450581|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.5|0|0.0799999982118607|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.0|0|0.00999999977648258|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.5|0|0|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.0|0|0.200000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 24.0|0|0.0199999995529652|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 23.0|0|0.00999999977648258|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 22.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 21.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.5|0.00999999977648258|0.0900000035762787|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.0|0.0199999995529652|0.129999995231628|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.5|0.280000001192093|0.389999985694885|0.379999995231628|0.379999995231628|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.0|0.720000028610229|0.819999992847443|0.810000002384186|0.810000002384186|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.5|1.19000005722046|1.30999994277954|1.28999996185303|1.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.0|1.69000005722046|1.80999994277954|1.78999996185303|1.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.5|2.13000011444092|2.32999992370605|2.28999996185303|2.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.0|0|0|2.78999996185303|2.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!";
   printConsole("fillStockData:", arg);
@@ -825,6 +867,8 @@ function connectionSuccess() {
   SetText(labelRefresh, timenow);
   ShowView(labelRefresh);
   ShowView(buttonRefresh);
+
+  connected = true;
 }
 
 function resetButtons() {
@@ -860,6 +904,7 @@ if (isiPhoneX) {
 SetBackgroundColor("cyan");
 
 numberTabs = 5;
+currentTab = numberTabs - 1;
 AddOrSelectTab("Options",      "learn.png",     "learn2.png");
 AddOrSelectTab("Puts, Calls",  "brain_act.png", "brain2.png");
 AddOrSelectTab("Analysys",     "dividends.png", "dividends2.png");

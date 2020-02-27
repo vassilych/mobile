@@ -1088,9 +1088,7 @@ namespace scripting.iOS
                 r = Utils.GetSafeInt(args, 0);
                 g = Utils.GetSafeInt(args, 1);
                 b = Utils.GetSafeInt(args, 2);
-
-                var c = UIColor.FromRGB(r, g, b);
-                hex = UtilsiOS.GetHexStringFromColor(c);
+                hex = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
 
                 return new Variable(hex);
             }
@@ -1175,8 +1173,10 @@ namespace scripting.iOS
 
         void OnColorSelected(UIColor color)
         {
-            string colorStr = UtilsiOS.GetHexStringFromColor(color);
-            UIVariable.GetAction(m_action, "", colorStr);
+            nfloat r, g, b, a;
+            color.GetRGBA(out r, out g, out b, out a);
+            var hex = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+            UIVariable.GetAction(m_action, "", hex);
         }
     }
     public class SetSizeFunction : ParserFunction
