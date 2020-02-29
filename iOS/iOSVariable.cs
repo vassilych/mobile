@@ -1206,7 +1206,12 @@ namespace scripting.iOS
 
                 var uita = new UITextAttributes();
                 uita.TextColor = color;
-                control.SelectedSegmentTintColor = UIColor.Green;
+                try
+                {
+                    control.SelectedSegmentTintColor = UIColor.Green;
+                }
+                catch (Exception)
+                { }
                 control.SetTitleTextAttributes(uita, UIControlState.Normal);
                 control.SetTitleTextAttributes(uitaOld, UIControlState.Selected);
             }
