@@ -21,7 +21,6 @@ quizEntry = "";
 
 fontSize = 26;
 fontSizeSm = 20;
-scale = 0.90;
 
 bgcolor = GetSetting("bgcolor", "string", "#1f9dd4");
 fgcolor = GetSetting("fgcolor", "string", "white");
@@ -45,6 +44,8 @@ explanation[2] = "Write number with next digits (349810 -> 450921)";
 
 OnTabSelected("tabSelected");
 
+width = DisplayWidth;
+scale = width <= 1080 ? 0.45 : 0.9;
 AutoScale(scale);
 printConsole(now("mm:ss.fff") + " Loading data...");
 

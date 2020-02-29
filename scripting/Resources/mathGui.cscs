@@ -298,8 +298,7 @@ SetText(durationMs, string(duration));
 SetFontSize(durationMs, fontSizeSm - 4);
 
 locMsLabel = GetLocation(durationMs, "RIGHT", durationMs, "CENTER", 0, 0);
-AddLabel(locMsLabel, "msLabel", "", 40, 80);
-SetText(msLabel, "ms");
+AddLabel(locMsLabel, "msLabel", "ms", 50, 80);
 SetFontSize(msLabel, fontSizeSm - 4);
 
 locBGColor = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 30, -120);

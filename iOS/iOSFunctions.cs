@@ -1173,9 +1173,11 @@ namespace scripting.iOS
 
         void OnColorSelected(UIColor color)
         {
-            nfloat r, g, b, a;
-            color.GetRGBA(out r, out g, out b, out a);
-            var hex = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+            color.GetRGBA(out nfloat rfl, out nfloat gfl, out nfloat bfl, out _);
+            int r = rfl <= 1 && rfl > 0 ? (int)(255 * rfl) : (int)rfl;
+            int g = gfl <= 1 && gfl > 0 ? (int)(255 * gfl) : (int)gfl;
+            int b = bfl <= 1 && bfl > 0 ? (int)(255 * bfl) : (int)bfl;
+            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
             UIVariable.GetAction(m_action, "", hex);
         }
     }
