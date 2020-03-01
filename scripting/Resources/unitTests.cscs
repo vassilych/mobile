@@ -1,6 +1,6 @@
 ﻿SetBackgroundColor("snow");
-locView = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 0);
-AddTextView(locView, "textView", "", DisplayWidth - Relative(40), DisplayHeight - Relative(200), 0);
+locView = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 28);
+AddTextView(locView, "textView", "", 600, 940);
 
 function test(x, expected) {
   if (x == expected) {
@@ -136,13 +136,13 @@ txt += 1;
 test(txt, "lulu_la1");
 
 txt = "lu";
-txt += txt + substr(txt, 0, 1) + "_" + 1;
+txt += txt + txt.substring(0, 1) + "_" + 1;
 test(txt, "lulul_1");  
 
 bb = "abc_blah";
-c = substr(bb, 4, 3);
+c = bb.substring(4, 3);
 test(c, "bla");
-ind = indexof(bb, "bla");
+ind = bb.indexof("bla");
 test(ind, 4);
 
 AddText(textView, "Testing numbers...");
@@ -616,12 +616,12 @@ else { result = "sintestNotOK";  }
 test(result, "sintestOK");
 
 objName = "Columns";
-if (indexof(objName,"Columns") > -1) { result = "indexofOK"; }
+if (objName.indexof("Columns") > -1) { result = "indexofOK"; }
 else { result = "indexofNotOK";  }
 test(result, "indexofOK");
 
 objName = "aColumns";
-if (indexof(objName,"Columns") < 1) { result = "indexofNotOK"; }
+if (objName.indexof("Columns") < 1) { result = "indexofNotOK"; }
 else { result = "indexofOK";  }
 test(result, "indexofOK");
 

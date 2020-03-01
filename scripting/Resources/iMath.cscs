@@ -507,6 +507,7 @@ function buttonAboutUs_click(sender, arg) {
   deviceVersion = _VERSION_INFO_;
   AlertDialog(appName, " \n Version " + VERSION + " \n" +
                deviceInfo + ": " + deviceVersion + " \n" +
+              "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
               "Developed by Vassili Kaplan");
 }
 

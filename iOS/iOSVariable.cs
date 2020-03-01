@@ -94,12 +94,14 @@ namespace scripting.iOS
                     type = UIVariable.UIType.TEXT_VIEW;
                     widget = new UITextView(rect);
                     ((UITextView)widget).TextColor = UIColor.Black;
+                    ((UITextView)widget).BackgroundColor = UIColor.White;
                     AddBorderFunction.AddBorder(widget);
                     break;
                 case "TextView":
                     type = UIVariable.UIType.TEXT_VIEW;
                     widget = new UITextView(rect);
                     ((UITextView)widget).TextColor = UIColor.Black;
+                    ((UITextView)widget).BackgroundColor = UIColor.White;
                     ((UITextView)widget).Editable = false;
                     AddBorderFunction.AddBorder(widget);
                     break;
