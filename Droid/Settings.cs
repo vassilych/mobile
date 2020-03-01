@@ -67,10 +67,20 @@ namespace scripting.Droid
     }
     static public float GetFloatSetting(string name, float defValue = -1)
     {
-      var res = g_prefs.GetFloat(name, defValue);
-      Console.WriteLine("GetFloatSetting {0}: {1} --> {2}",
-                Application.Context.ApplicationInfo.PackageName, name, res);
-      return res;
+            float res = 0f;
+            try
+            {
+                res = g_prefs.GetFloat(name, defValue);
+                Console.WriteLine("GetFloatSetting {0}: {1} --> {2}",
+                          Application.Context.ApplicationInfo.PackageName, name, res);
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine("Exception {0}", exc.Message);
+                var str = g_prefs.GetString(name, "");
+                float.TryParse(str, out res);
+            }
+            return res;
+        }
     }
-  }
 }

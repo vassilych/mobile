@@ -118,6 +118,7 @@ namespace scripting.Droid
                     type = UIVariable.UIType.LABEL;
                     widget = new TextView(MainActivity.TheView);
                     ((TextView)widget).SetTextColor(Color.Black);
+                    ((TextView)widget).SetBackgroundColor(Color.White);
                     ((TextView)widget).Text = initArg;
                     ((TextView)widget).Gravity = GravityFlags.CenterVertical | GravityFlags.Left;
                     break;
@@ -125,6 +126,7 @@ namespace scripting.Droid
                     type = UIVariable.UIType.TEXT_FIELD;
                     widget = new EditText(MainActivity.TheView);
                     ((EditText)widget).SetTextColor(Color.Black);
+                    ((EditText)widget).SetBackgroundColor(Color.White);
                     ((EditText)widget).Hint = initArg;
                     break;
                 case "TextEditView":

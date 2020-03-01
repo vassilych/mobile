@@ -560,6 +560,33 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
+    public class PickColorDialogFunction : ParserFunction
+    {
+        string m_action;
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+
+            string title = Utils.GetSafeString(args, 0, "Pick a color");
+            var initColor = UtilsDroid.String2Color(Utils.GetSafeString(args, 1, "white"));
+            m_action = Utils.GetSafeString(args, 2, "ColorPicked");
+
+            Action<Color> callback = new Action<Color>(OnColorSelected);
+            //ColorPickerViewController.Present(controller, title, initColor, callback);
+
+            return Variable.EmptyInstance;
+        }
+
+        void OnColorSelected(Color color)
+        {
+            int r = (int)(color.R * 255);
+            int g = (int)(color.G * 255);
+            int b = (int)(color.B * 255);
+            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
+            UIVariable.GetAction(m_action, "", hex);
+        }
+    }
+   
     public class ShowHideKeyboardFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -1397,6 +1424,42 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
+    public class ConvertColorFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            int r, g, b, a;
+
+            string hex;
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+            if (args.Count >= 3)
+            {
+                r = Utils.GetSafeInt(args, 0);
+                g = Utils.GetSafeInt(args, 1);
+                b = Utils.GetSafeInt(args, 2);
+                hex = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+
+                return new Variable(hex);
+            }
+            hex = Utils.GetSafeString(args, 0);
+            var color = UtilsDroid.String2Color(hex);
+
+            r = (int)(color.R * 255);
+            g = (int)(color.G * 255);
+            b = (int)(color.B * 255);
+            a = (int)(color.A * 255);
+
+            Variable result = new Variable(Variable.VarType.ARRAY);
+            result.AddVariable(new Variable(r));
+            result.AddVariable(new Variable(g));
+            result.AddVariable(new Variable(b));
+            result.AddVariable(new Variable(a));
+
+            return result;
+        }
+    }
+
     public class AlertDialogFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -1411,8 +1474,10 @@ namespace scripting.Droid
             string buttonCancel = Utils.GetSafeString(args, 4);
             string actionCancel = Utils.GetSafeString(args, 5);
 
-            msg = msg.Replace(@"\\n", @"\n").Replace(@"\\t", @"\t");            
+            msg = msg.Replace(@"\\\\n", @"\n").Replace(@"\\\n", @"\n").Replace(@"\\n", @"\n").Replace(@"\\t", @"\t");
 
+            var tokens = msg.Split("\\n");
+            var tokens2 = msg.Split("\\");
             AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.TheView);
             dialog.SetMessage(msg).
                    SetTitle(title);
