@@ -33,7 +33,7 @@
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <JavaMaximumHeapSize>4G</JavaMaximumHeapSize>
-<AndroidSupportedAbis>x86;arm64-v8a;x86_64;armeabi-v7a</AndroidSupportedAbis>
+    <AndroidSupportedAbis>x86;arm64-v8a;x86_64;armeabi-v7a</AndroidSupportedAbis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -258,6 +258,9 @@
     <None Include="..\scripting\Resources\unitTests.cscs">
       <Link>Resources\unitTests.cscs</Link>
     </None>
+    <None Include="..\scripting\Resources\script.cscs">
+      <Link>Resources\script.cscs</Link>
+    </None>
     <None Include="..\scripting\Resources\unitTest.cscs">
       <Link>Resources\unitTest.cscs</Link>
     </None>
@@ -275,9 +278,6 @@
     </None>
     <None Include="..\scripting\Resources\sfhello.cscs">
       <Link>Resources\sfhello.cscs</Link>
-    </None>
-    <None Include="..\scripting\Resources\script.cscs">
-      <Link>Resources\script.cscs</Link>
     </None>
     <None Include="..\scripting\Resources\quizFunctions.cscs">
       <Link>Resources\quizFunctions.cscs</Link>
@@ -5004,63 +5004,87 @@
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\go.png">
       <Link>Resources\drawable\go.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\wrong.png">
       <Link>Resources\drawable\wrong.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\correct.png">
       <Link>Resources\drawable\correct.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\eq_ac.png">
       <Link>Resources\drawable\eq_ac.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\eq_in.png">
       <Link>Resources\drawable\eq_in.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\expr_in.png">
       <Link>Resources\drawable\expr_in.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\expr_ac.png">
       <Link>Resources\drawable\expr_ac.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\colors.png">
       <Link>Resources\drawable\colors.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\textColor.png">
       <Link>Resources\drawable\textColor.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\bgColor.png">
       <Link>Resources\drawable\bgColor.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\fractions.png">
       <Link>Resources\drawable\fractions.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\fractions_light.png">
       <Link>Resources\drawable\fractions_light.png</Link>
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup />
@@ -5125,13 +5149,11 @@
     <AndroidAsset Include="..\scripting\Resources\unitTests.cscs">
       <Link>Assets\unitTests.cscs</Link>
     </AndroidAsset>
-    <AndroidAsset Include="..\..\mobileMath\scripting\Resources\script.cscs">
+    <AndroidAsset Include="..\scripting\Resources\script.cscs">
       <Link>Assets\script.cscs</Link>
     </AndroidAsset>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\drawable\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\scripting\scripting.Shared.projitems" Label="Shared" Condition="Exists('..\scripting\scripting.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Android.Arch.Core.Common.26.1.0\build\MonoAndroid80\Xamarin.Android.Arch.Core.Common.targets" Condition="Exists('..\packages\Xamarin.Android.Arch.Core.Common.26.1.0\build\MonoAndroid80\Xamarin.Android.Arch.Core.Common.targets')" />
