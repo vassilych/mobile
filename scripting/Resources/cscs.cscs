@@ -3,7 +3,7 @@ SetBackgroundColor("cyan");
 
 AddOrSelectTab("Create", "test.png", "test2.png");
 
-__locComboFiles = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -10, 40);
+__locComboFiles = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -60, 40);
 AddCombobox(__locComboFiles, "__comboFiles", "center:white:clear", 350, 60);
 __optionsComboFiles = {"Sandbox", "Hello, World!", "Ads", "Busy Indicators", "Unit Tests"};
 
@@ -13,12 +13,12 @@ SetValue(__comboFiles, "text2", "Done");
 SetValue(__comboFiles, "alignment", "center");
 AddAction(__comboFiles, "comboFilesChanged");
 
-/*__locRemoveKeyboard = GetLocation(__comboFiles, "RIGHT", __comboFiles, "CENTER", 10);
+__locRemoveKeyboard = GetLocation(__comboFiles, "RIGHT", __comboFiles, "CENTER", 10);
 AddButton(__locRemoveKeyboard, "__buttonKeyboard", "Keyboard", 150, 60);
 SetFontSize(__buttonKeyboard, 12);
 AddAction(__buttonKeyboard, "hideKeyboard");
-*/
-__locScriptView = GetLocation("ROOT", "CENTER", __comboFiles, "BOTTOM", 0, 10);
+
+__locScriptView = GetLocation("ROOT", "CENTER", __comboFiles, "BOTTOM", 0, 15);
 AddTextEditView(__locScriptView, "__textView", "", 600, 900);
 SetFontSize(__textView, 14);
 
@@ -26,7 +26,7 @@ AddOrSelectTab("Run", "learn.png", "run_icon.png");
 
 
 function hideKeyboard(sender, arg) {
-  ShowHideKeyboard(__textView, false);//!IsKeyboard(__textView));
+  ShowHideKeyboard(__textView, !IsKeyboard(__textView));
 }
 
 function comboFilesChanged(sender, arg) {
@@ -50,7 +50,7 @@ function tabSelected(sender, arg) {
   if (tabId != 1) {
     return;
   }
-
+  ShowHideKeyboard(__textView, false);
   script = GetText(__textView);
   RemoveTabViews(1);
   try {

@@ -570,21 +570,56 @@ namespace scripting.Droid
             string title = Utils.GetSafeString(args, 0, "Pick a color");
             var initColor = UtilsDroid.String2Color(Utils.GetSafeString(args, 1, "white"));
             m_action = Utils.GetSafeString(args, 2, "ColorPicked");
+            
+            int colorInt = (initColor.A & 0xff) << 24 | (initColor.R & 0xff) << 16 | (initColor.G & 0xff) << 8 | (initColor.B & 0xff);
 
-            Action<Color> callback = new Action<Color>(OnColorSelected);
+            Action<int, bool> callback1 = new Action<int, bool>(OnColorSelected);
+            Action<int> callback2 = new Action<int>(OnColor);
             //ColorPickerViewController.Present(controller, title, initColor, callback);
+
+            var observer = new Top.Defaults.ColorPickerLib.ColorPickerPopup.ColorPickerObserver(callback1, callback2);
+
+            var picker = new Top.Defaults.ColorPickerLib.ColorPickerPopup.Builder(MainActivity.TheView);
+            picker.InitialColor(colorInt);
+            picker.EnableAlpha(true);
+            picker.OkTitle(title);
+            picker.CancelTitle("Cancel");
+            picker.ShowIndicator(true);
+            picker.ShowValue(true);
+            picker.Build().Show(MainActivity.TheLayout, observer);
+
+            /*.InitialColor(Color.Red)
+            .EnableAlpha(true)
+            //.OkTitle(title)
+            .CancelTitle("Cancel")
+            .ShowIndicator(true)
+            .ShowValue(true)
+            .Build()
+            .Show(MainActivity, observer);*/
 
             return Variable.EmptyInstance;
         }
 
-        void OnColorSelected(Color color)
+        void OnColorSelected(int colorInt, bool fromUser)
         {
+            Color color = new Color(colorInt);
+            
             int r = (int)(color.R * 255);
             int g = (int)(color.G * 255);
             int b = (int)(color.B * 255);
             var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
             UIVariable.GetAction(m_action, "", hex);
         }
+         void OnColor(int colorInt)
+        {
+            Color color = new Color(colorInt);
+            int r = (int)(color.R * 255);
+            int g = (int)(color.G * 255);
+            int b = (int)(color.B * 255);
+            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
+            UIVariable.GetAction(m_action, "", hex);
+        }
+
     }
    
     public class ShowHideKeyboardFunction : ParserFunction
