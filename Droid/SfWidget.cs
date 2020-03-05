@@ -19,7 +19,8 @@ using Com.Syncfusion.Gauges.SfCircularGauge;
 using Com.Syncfusion.Gauges.SfCircularGauge.Enums;
 using Com.Syncfusion.Gauges.SfDigitalGauge;
 using Com.Syncfusion.Numericupdown;
-using Syncfusion.XForms.Buttons;
+//using Syncfusion.XForms.Buttons;
+using Syncfusion.Android.Buttons;
 
 
 using SplitAndMerge;
@@ -86,7 +87,7 @@ namespace scripting.Droid
         public enum SyncFusionType
         {
             NONE, QR_BARCODE, CODE39_BARCODE, CIRCULAR_GAUGE, DIGITAL_GAUGE, STEPPER, BUSY_INDICATOR,
-            CALENDAR, PICKER, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID
+            CALENDAR, PICKER, SEGMENTED, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID
         };
 
         public SyncFusionType SfType { get; set; }
@@ -135,6 +136,9 @@ namespace scripting.Droid
                 case SyncFusionType.STEPPER:
                     CreateStepper();
                     break;
+                case SyncFusionType.SEGMENTED:
+                    CreateSegmentedControl();
+                    break;
                 case SyncFusionType.QR_BARCODE:
                     CreateQRBarcode();
                     break;
@@ -143,6 +147,7 @@ namespace scripting.Droid
             if (ViewX != null)
             {
                 ViewX.Id = ++m_currentTag;
+                AddAction(name, name + "_click");
             }
         }
         public override Variable Clone()
@@ -168,6 +173,8 @@ namespace scripting.Droid
                     return new SfWidget(SfWidget.SyncFusionType.DIGITAL_GAUGE, widgetName, initArg, MainActivity.TheView);
                 case "SfStepper":
                     return new SfWidget(SfWidget.SyncFusionType.STEPPER, widgetName, initArg, MainActivity.TheView);
+                case "SfSegmentedControl":
+                    return new SfWidget(SfWidget.SyncFusionType.SEGMENTED, widgetName, initArg, MainActivity.TheView);
                 case "SfBusyIndicator":
                     return new SfWidget(SfWidget.SyncFusionType.BUSY_INDICATOR, widgetName, initArg, MainActivity.TheView);
                 case "SfDataGrid":
@@ -191,6 +198,10 @@ namespace scripting.Droid
             {
                 m_stepper.FontSize = fontSize;
                 return true;
+            }
+            if (m_segmented != null)
+            {
+                m_segmented.FontSize = fontSize;
             }
             return false;
         }
@@ -263,6 +274,38 @@ namespace scripting.Droid
             }
         }
 
+        void CreateSegmentedControl()
+        {
+            m_segmented = new SfSegmentedControl(m_context);
+
+            m_segmented.CornerRadius = 20;
+            m_segmented.BorderColor = Color.Black;
+            m_segmented.SelectionTextColor = Color.White;
+            m_segmented.DisplayMode = SegmentDisplayMode.Image;
+            m_segmented.FontSize =14;
+            m_segmented.FontIconFontColor = Color.Black;
+            m_segmented.VisibleSegmentsCount = 5;
+            m_segmented.SegmentHeight = 40;
+            m_segmented.BorderThickness = 1;
+            m_segmented.SegmentWidth = 20;
+            m_segmented.SetMinimumWidth(m_width);
+            m_segmented.SetMinimumHeight(m_height);
+            m_segmented.LayoutParameters = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent
+            );
+
+            m_segmented.SelectionIndicatorSettings = new SelectionIndicatorSettings()
+            { Color = Color.Red, Position = SelectionIndicatorPosition.Fill };
+
+            m_segmented.SelectionChanged += (sender, e) =>
+            {
+                ActionDelegate?.Invoke(WidgetName, e.Index.ToString());
+            };
+
+            ViewX = m_segmented;
+        }
+
         void CreatePicker()
         {
             m_picker = new SfPicker(m_context);
@@ -282,7 +325,7 @@ namespace scripting.Droid
             m_picker.ShowHeader = !string.IsNullOrEmpty(str2);
             if (m_picker.ShowHeader)
             {
-                m_picker.HeaderHeight = 60;
+                m_picker.HeaderHeight = 80;
                 m_picker.HeaderText = str2;
                 m_picker.HeaderBackgroundColor = Color.Transparent;
                 m_picker.HeaderTextColor = Color.Black;
@@ -290,17 +333,20 @@ namespace scripting.Droid
             m_picker.ShowColumnHeader = !string.IsNullOrEmpty(str3);
             if (m_picker.ShowColumnHeader)
             {
-                m_picker.ColumnHeaderHeight = 60;
+                m_picker.ColumnHeaderHeight = 80;
                 m_picker.ColumnHeaderText = str3;
                 m_picker.ColumnHeaderBackgroundColor = Color.Transparent;
                 m_picker.ColumnHeaderTextColor = Color.Black;
             }
 
+            m_rowIndex = 0;
+            Int32.TryParse(str4, out m_rowIndex);
+
             m_picker.ShowFooter = false;
-            m_picker.SelectedIndex = 0;
-            int lastSelected = 0;
+            m_picker.SelectedIndex = m_rowIndex;
 
             m_picker.PickerMode = PickerMode.Default;
+            m_picker.IsOpen = true;
 
             m_picker.BorderColor = Color.Black;
 
@@ -320,10 +366,10 @@ namespace scripting.Droid
 
             m_picker.OnSelectionChanged += (sender, e) =>
             {
-                if (m_textViews.Count == 0)
+                /*if (m_textViews.Count == 0)
                 {
                     return;
-                }
+                }*/
                 int newSelection = (int)Utils.ConvertToDouble(m_picker.SelectedIndex);
 
                 for (int row = 0; row < m_textViews.Count; row++)
@@ -332,7 +378,7 @@ namespace scripting.Droid
                     AdjustPickerView(m_imageViews[row], row);
                 }
 
-                lastSelected = newSelection;
+                m_rowIndex = newSelection;
                 ActionDelegate?.Invoke(WidgetName, newSelection.ToString());
             };
 
@@ -366,6 +412,8 @@ namespace scripting.Droid
             {
                 LoadPickerView(row);
             }
+            m_picker.SelectedIndex = m_rowIndex;
+            m_picker.ScrollY = m_rowIndex*10;
         }
 
         void LoadPickerView(int row)
@@ -382,7 +430,7 @@ namespace scripting.Droid
             rowData.Orientation = Orientation.Horizontal;
 
             ImageView rowImage = null;
-            if (m_pics == null || m_pics.Count > row)
+            if (m_pics != null && m_pics.Count > row)
             {
                 rowImage = new ImageView(m_context);
                 rowImage.SetImageResource(m_pics[row]);
@@ -496,7 +544,7 @@ namespace scripting.Droid
             SwipeView rightSwipeView = new SwipeView(m_context);
 
             ImageView deleteImage = new ImageView(m_context);
-            deleteImage.SetImageResource(Resource.Drawable.Delete);
+            //deleteImage.SetImageResource(Resource.Drawable.Delete);
             deleteImage.SetBackgroundColor(Color.ParseColor("#DC595F"));
 
             TextView deleteText = new TextView(m_context);
@@ -524,7 +572,7 @@ namespace scripting.Droid
             SwipeView leftSwipeView = new SwipeView(m_context);
 
             ImageView editImage = new ImageView(m_context);
-            editImage.SetImageResource(Resource.Drawable.Edit);
+            //editImage.SetImageResource(Resource.Drawable.Edit);
             editImage.SetBackgroundColor(Color.ParseColor("#009EDA"));
 
             TextView editText = new TextView(m_context);
@@ -1006,7 +1054,19 @@ namespace scripting.Droid
             {
                 m_strings = data;
                 m_picker.ItemsSource = data;
+                m_picker.SelectedIndex = m_rowIndex;
                 m_pickerViews.Clear();
+                LoadPickerViewsIfNeeded();
+            }
+            else if (m_segmented != null)
+            {
+                m_strings = data;
+                var coll = new ObservableCollection<SfSegmentItem>();
+                foreach (var str in data)
+                {
+                    coll.Add(new SfSegmentItem() { Text = "A", IconFont = str });
+                }
+                m_segmented.ItemsSource = coll;
             }
         }
         public override void AddImages(List<string> images, string varName, string title)
@@ -1015,7 +1075,13 @@ namespace scripting.Droid
             if (m_picker != null && m_strings == null)
             {
                 m_picker.ItemsSource = images;
+                m_picker.SelectedIndex = m_rowIndex;
                 m_pickerViews.Clear();
+                LoadPickerViewsIfNeeded();
+            }
+            else if (m_segmented != null && m_strings == null)
+            {
+                m_segmented.ItemsSource = images;
             }
         }
 
@@ -1157,6 +1223,43 @@ namespace scripting.Droid
                         break;
                 }
             }
+            else if (m_segmented != null)
+            {
+                switch (arg1)
+                {
+                    case "value":
+                        m_segmented.SelectedIndex = (int)valueNum;
+                        break;
+                    case "bgcolor":
+                        m_segmented.BackColor = UtilsDroid.String2Color(arg2);
+                        break;
+                    case "fgcolor":
+                        m_segmented.FontColor = UtilsDroid.String2Color(arg2);
+                        break;
+                    case "selcolor":
+                        m_segmented.SelectionTextColor = UtilsDroid.String2Color(arg2);
+                        break;
+                    case "selbgcolor":
+                        m_segmented.SelectionIndicatorSettings = new SelectionIndicatorSettings()
+                        { Color = UtilsDroid.String2Color(arg2), Position = SelectionIndicatorPosition.Fill };
+                        break;
+                    case "bordercolor":
+                        m_segmented.BorderColor = UtilsDroid.String2Color(arg2);
+                        break;
+                    case "borderthickness":
+                        m_segmented.BorderThickness = (int)valueNum;
+                        break;
+                    case "segwidth":
+                        m_segmented.SegmentWidth = (int)valueNum;
+                        break;
+                    case "segheight":
+                        m_segmented.SegmentHeight = (int)valueNum;
+                        break;
+                    default:
+                        m_segmented.SelectedIndex = (int)valueNum;
+                        break;
+                }
+            }
             else if (m_picker != null)
             {
                 switch (arg1)
@@ -1178,12 +1281,21 @@ namespace scripting.Droid
                         m_picker.ShowColumnHeader = true;
                         m_picker.ColumnHeaderText = arg2;
                         break;
-                    case "index":
-                        m_picker.SelectedIndex = (int)valueNum;
-                        break;
                     case "pickerMode":
                         m_picker.PickerMode = arg2.Equals("Default", StringComparison.OrdinalIgnoreCase) ?
                           PickerMode.Default : PickerMode.Dialog;
+                        break;
+                    default:
+                        var list = m_picker.ItemsSource as List<string>;
+                        if (valueNum >= 0 && valueNum < list.Count)
+                        {
+                            m_picker.SelectedIndex = valueNum;
+                            m_rowIndex = (int)valueNum;
+                            m_picker.RefreshDrawableState();
+                            m_picker.Enabled = true;
+                            m_picker.PerformClick();
+                            m_picker.RequestFocus();
+                        }
                         break;
                 }
             }
@@ -1384,9 +1496,11 @@ namespace scripting.Droid
                 if (list != null)
                 {
                     int index = list.FindIndex(item => item == text);
-                    if (index >= 0)
+                    if (index >= 0 && index < list.Count)
                     {
                         m_picker.SelectedIndex = index;
+                        m_rowIndex = index;
+
                     }
                 }
             }
@@ -1469,6 +1583,10 @@ namespace scripting.Droid
                 m_stepper.TextColor = color;
                 m_stepper.BorderColor = color;
                 m_stepper.UpDownButtonColor = color;
+            }
+            else if (m_segmented != null)
+            {
+                m_segmented.FontColor = color;
             }
             else if (m_barcode != null)
             {

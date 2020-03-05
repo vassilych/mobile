@@ -554,6 +554,33 @@ namespace scripting.iOS
             viewVar.ViewX.RemoveFromSuperview();
         }
     }
+
+    class RemoveViewIfExistsFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            varName = Constants.ConvertName(varName);
+
+            bool exists = ParserFunction.GetVariable(varName, script) != null;
+            if (!exists)
+            {
+                return new Variable(false);
+            }
+
+            var widget = Utils.GetVariable(varName, script) as iOSVariable;
+            if (widget == null)
+            {
+                return new Variable(false);
+            }
+
+            iOSApp.RemoveView(widget);
+            UIUtils.DeregisterWidget(widget.Name);
+
+            return new Variable(exists);
+        }
+    }
+
     public class RemoveAllViewsFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)

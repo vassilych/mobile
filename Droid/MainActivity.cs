@@ -20,6 +20,7 @@ namespace scripting.Droid
             Icon = "@mipmap/icon",
             Label = "",
             //MainLauncher = true,
+            ScreenOrientation = ScreenOrientation.Portrait,
             ConfigurationChanges = ConfigChanges.ScreenSize |
                                    ConfigChanges.Orientation | ConfigChanges.KeyboardHidden
             )]
@@ -74,6 +75,12 @@ namespace scripting.Droid
       // For Plugin.InAppBilling.
       Plugin.CurrentActivity.CrossCurrentActivity.Current.Activity = this;
     }
+
+        public Context GetContext()
+        {
+            return this.ApplicationContext;
+
+        }
 
     internal void HideBarIfNeeded()
     {
@@ -154,7 +161,16 @@ namespace scripting.Droid
       }
       CurrentTabId = tabId;
       ActionBar.Tab tab = m_actionBars[tabId];
-      tab.Select();
+      //tab.Select();
+
+      Handler h = new Handler();
+      Action myAction = () =>
+      {
+          tab.Select();
+      };
+
+      h.PostDelayed(myAction, 0);
+            
       //ActionBar.SelectTab(m_actionBars[tabId]);
     }
 

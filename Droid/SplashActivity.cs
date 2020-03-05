@@ -19,7 +19,7 @@ namespace scripting.Droid
             MainLauncher = true,
             Icon = "@mipmap/icon",
             ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden,
-            //ScreenOrientation = ScreenOrientation.Portrait,
+            ScreenOrientation = ScreenOrientation.Portrait,
             NoHistory = true)]
   public class SplashActivity : Activity //AppCompatActivity
   {

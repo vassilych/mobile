@@ -61,6 +61,7 @@ namespace scripting
             ParserFunction.RegisterFunction("HideView", new ShowHideFunction(false));
             ParserFunction.RegisterFunction("SetVisible", new ShowHideFunction(true));
             ParserFunction.RegisterFunction("RemoveView", new RemoveViewFunction());
+            ParserFunction.RegisterFunction("RemoveViewIfExists", new RemoveViewIfExistsFunction());
             ParserFunction.RegisterFunction("RemoveAllViews", new RemoveAllViewsFunction());
             ParserFunction.RegisterFunction("RemoveTabViews", new RemoveAllViewsFunction());
             ParserFunction.RegisterFunction("GetX", new GetCoordinateFunction(true));

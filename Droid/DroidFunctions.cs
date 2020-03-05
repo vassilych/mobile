@@ -233,6 +233,10 @@ namespace scripting.Droid
             Utils.CheckNotNull(view, m_name, script);
 
             int width = Utils.GetSafeInt(args, 1, 1);
+            if (width <= 0)
+            {
+                return Variable.EmptyInstance;
+            }
             int corner = Utils.GetSafeInt(args, 2, 5);
             string colorStr = Utils.GetSafeString(args, 3, "#000000");
             Color color = Color.ParseColor(colorStr);
@@ -437,6 +441,32 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
+    class RemoveViewIfExistsFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string varName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            varName = Constants.ConvertName(varName);
+
+            bool exists = ParserFunction.GetVariable(varName, script) != null;
+            if (!exists)
+            {
+                return new Variable(false);
+            }
+
+            var widget = Utils.GetVariable(varName, script) as DroidVariable;
+            if (widget == null)
+            {
+                return new Variable(false);
+            }
+
+            MainActivity.RemoveView(widget);
+            UIUtils.DeregisterWidget(widget.Name);
+
+            return new Variable(exists);
+        }
+    }
+
     public class RemoveAllViewsFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -560,6 +590,7 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
+
     public class PickColorDialogFunction : ParserFunction
     {
         string m_action;
@@ -575,48 +606,31 @@ namespace scripting.Droid
 
             Action<int, bool> callback1 = new Action<int, bool>(OnColorSelected);
             Action<int> callback2 = new Action<int>(OnColor);
-            //ColorPickerViewController.Present(controller, title, initColor, callback);
 
             var observer = new Top.Defaults.ColorPickerLib.ColorPickerPopup.ColorPickerObserver(callback1, callback2);
 
             var picker = new Top.Defaults.ColorPickerLib.ColorPickerPopup.Builder(MainActivity.TheView);
             picker.InitialColor(colorInt);
-            picker.EnableAlpha(true);
-            picker.OkTitle(title);
+            //picker.EnableAlpha(true);
+            picker.OkTitle("OK");
             picker.CancelTitle("Cancel");
             picker.ShowIndicator(true);
             picker.ShowValue(true);
             picker.Build().Show(MainActivity.TheLayout, observer);
-
-            /*.InitialColor(Color.Red)
-            .EnableAlpha(true)
-            //.OkTitle(title)
-            .CancelTitle("Cancel")
-            .ShowIndicator(true)
-            .ShowValue(true)
-            .Build()
-            .Show(MainActivity, observer);*/
 
             return Variable.EmptyInstance;
         }
 
         void OnColorSelected(int colorInt, bool fromUser)
         {
-            Color color = new Color(colorInt);
-            
-            int r = (int)(color.R * 255);
-            int g = (int)(color.G * 255);
-            int b = (int)(color.B * 255);
-            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
-            UIVariable.GetAction(m_action, "", hex);
+            //Color color = new Color(colorInt);
+            //var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", color.R, color.G, color.B);
+            //UIVariable.GetAction(m_action, "", hex);
         }
-         void OnColor(int colorInt)
+        void OnColor(int colorInt)
         {
             Color color = new Color(colorInt);
-            int r = (int)(color.R * 255);
-            int g = (int)(color.G * 255);
-            int b = (int)(color.B * 255);
-            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
+            var hex = "#" + string.Format("{0:X2}{1:X2}{2:X2}", color.R, color.G, color.B);
             UIVariable.GetAction(m_action, "", hex);
         }
 
@@ -1047,7 +1061,6 @@ namespace scripting.Droid
     {
         protected override Variable Evaluate(ParsingScript script)
         {
-            PrintConsoleFunction.Print("SetTextFunction rest=" + script.Rest);
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name);
 
@@ -1423,8 +1436,9 @@ namespace scripting.Droid
             string fgColorStr = Utils.GetSafeString(args, 2);
             string bgColorStr = Utils.GetSafeString(args, 3);
 
-            Toast toast = Toast.MakeText(MainActivity.TheView, msg,
-                                         duration < 3 ? ToastLength.Short : ToastLength.Long);
+            var ctx = Android.App.Application.Context;
+            Toast toast = Toast.MakeText(ctx, msg,
+                                         duration <= 3 ? ToastLength.Short : ToastLength.Long);
 
             if (args.Count > 2)
             {
@@ -1449,13 +1463,8 @@ namespace scripting.Droid
                 toastView.Background = shape;
             }
 
-            int shown = 0;
-            while (shown < 2 * duration)
-            {
-                toast.Show();
-                shown += 4;
-            }
-
+            toast.Show();
+ 
             return Variable.EmptyInstance;
         }
     }
@@ -1512,9 +1521,24 @@ namespace scripting.Droid
             msg = msg.Replace(@"\\\\n", @"\n").Replace(@"\\\n", @"\n").Replace(@"\\n", @"\n").Replace(@"\\t", @"\t");
 
             var tokens = msg.Split("\\n");
-            var tokens2 = msg.Split("\\");
+            int maxSize = tokens[0].Trim().Length;
+            for (int i = 1; i < tokens.Length; i++)
+            {
+                var currSize = tokens[i].Trim().Length;
+                maxSize = currSize < maxSize ? maxSize : currSize;
+            }
+            string realMsg = "";
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                var current = tokens[i].Trim();
+                //var missing = (maxSize - current.Length) / 2;
+                var missing = maxSize - current.Length;
+                var extra = missing > 0 ? new string(' ', missing) : "";
+                realMsg += current + extra + (i < tokens.Length - 1 ? "\n" :"");
+            }
+
             AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.TheView);
-            dialog.SetMessage(msg).
+            dialog.SetMessage(realMsg).
                    SetTitle(title);
             dialog.SetPositiveButton(buttonOK,
                 (sender, e) =>

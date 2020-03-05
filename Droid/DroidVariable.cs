@@ -185,6 +185,7 @@ namespace scripting.Droid
                 case "SegmentedControl":
                     type = UIVariable.UIType.SEGMENTED;
                     widget = new Switch(MainActivity.TheView);
+                    //widget = new Info.Hoang8f.Android.Segmented.SegmentedGroup(MainActivity.TheView);
                     break;
                 case "Slider":
                     type = UIVariable.UIType.SLIDER;
@@ -270,7 +271,9 @@ namespace scripting.Droid
             else if (widgetFunc.ViewX is SeekBar)
             {
                 SeekBar slider = widgetFunc.ViewX as SeekBar;
-                slider.Max = (int)maxValue - (int)minValue;
+                //slider.Max = (int)maxValue - (int)minValue;
+                slider.Max = (int)maxValue;
+                slider.Min = (int)minValue;
                 slider.Progress = (int)currValue;
                 widgetFunc.MinVal = minValue;
                 widgetFunc.MaxVal = maxValue;
@@ -575,7 +578,7 @@ namespace scripting.Droid
                 SeekBar slider = ViewX as SeekBar;
                 slider.ProgressChanged += (sender, e) =>
                 {
-                    UIVariable.GetAction(strAction, varName, e.ToString());
+                    UIVariable.GetAction(strAction, varName, e.Progress.ToString());
                 };
             }
             else if (ViewX is NumberPicker)

@@ -262,6 +262,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <AndroidAsset Include="Assets\iMath.cscs" />
+    <AndroidAsset Include="Assets\mathGui.cscs" />
+    <AndroidAsset Include="Assets\script.cscs" />
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml">
       <SubType>Designer</SubType>
@@ -281,9 +284,6 @@
     </None>
     <None Include="..\scripting\Resources\unitTests.cscs">
       <Link>Resources\unitTests.cscs</Link>
-    </None>
-    <None Include="..\scripting\Resources\script.cscs">
-      <Link>Resources\script.cscs</Link>
     </None>
     <None Include="..\scripting\Resources\unitTest.cscs">
       <Link>Resources\unitTest.cscs</Link>
@@ -332,9 +332,6 @@
     </None>
     <None Include="..\scripting\Resources\ads.cscs">
       <Link>Resources\ads.cscs</Link>
-    </None>
-    <None Include="..\scripting\Resources\mathGui.cscs">
-      <Link>Resources\mathGui.cscs</Link>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -5026,6 +5023,15 @@
     <AndroidResource Include="..\scripting\Resources\drawable\refresh.png">
       <Link>Resources\drawable\refresh.png</Link>
     </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\levelEasy.png">
+      <Link>Resources\drawable\levelEasy.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\levelMedium.png">
+      <Link>Resources\drawable\levelMedium.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\levelAdvanced.png">
+      <Link>Resources\drawable\levelAdvanced.png</Link>
+    </AndroidResource>
     <AndroidResource Include="..\scripting\Resources\drawable\go.png">
       <Link>Resources\drawable\go.png</Link>
       <SubType>
@@ -5111,9 +5117,7 @@
       </Generator>
     </AndroidResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <AndroidAsset Include="..\scripting\Resources\sfscript.cscs">
       <Link>Assets\sfscript.cscs</Link>
@@ -5174,9 +5178,6 @@
     </AndroidAsset>
     <AndroidAsset Include="..\scripting\Resources\unitTests.cscs">
       <Link>Assets\unitTests.cscs</Link>
-    </AndroidAsset>
-    <AndroidAsset Include="..\scripting\Resources\script.cscs">
-      <Link>Assets\script.cscs</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup />
