@@ -1,0 +1,548 @@
+﻿for (i = 2; i <= 10; i++) {
+  for (j = i; j <= 10; j++) {
+    if (j - i > 5 ) {
+      data[0].Add(i + " + " + j);
+      answers[0].Add(i + j);
+      data[0].Add(j + " - " + i);
+      answers[0].Add(j - i);
+    }
+    data[0].Add(i + " * " + j);
+    answers[0].Add(i * j);
+    if (i == 2 || i == 3 || i == 5) {
+      data[0].Add(i * j + " : " + i);
+      answers[0].Add(j);
+    }
+  }
+}
+totalCount[0] = data[0].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[0] + " level1: " + data[0][0] + " --> " + answers[0][0]);
+
+for (i = 11; i < 20; i++) {
+  for (j = 3; j <= 20; j++) {
+    data[1].Add(i + " * " + j);
+    answers[1].Add(i * j);
+
+    data[1].Add(i * j + " / " + j);
+    answers[1].Add(i);
+
+    if (j - i > 10 && i % 5 != 0 ) {
+      data[1].Add(i + " + " + j);
+      answers[1].Add(i + j);
+
+      data[1].Add(j + " - " + i);
+      answers[1].Add(j - i);
+    }
+  }
+}
+totalCount[1] = data[1].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[1] + " level2: " + data[1][0] + " --> " + answers[1][0]);
+
+for (i = 16; i < 30; i++) {
+  for (j = 6; j <= 30; j++) {
+    data[2].Add(i + " * " + j);
+    answers[2].Add(i * j);
+
+    data[2].Add(i * j + " / " + j);
+    answers[2].Add(i);
+
+    if (j - i > 10 && i % 5 != 0 ) {
+      data[2].Add(i + " + " + j);
+      answers[2].Add(i + j);
+
+      data[2].Add(j + " - " + i);
+      answers[2].Add(j - i);
+    }
+  }
+}
+totalCount[2] = data[2].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[2] + " level3: " + data[2][0] + " --> " + answers[2][0]);
+
+function getRandomEquation() {
+    xLimit = level <= 1 ? 8 : 4;
+    aLimit = level <= 1 ? 15 : 10;
+    bLimit = level <= 1 ? 15 : 10;
+    x = GetRandom(xLimit) + 2;
+    a = GetRandom(aLimit) - 7;
+    b = GetRandom(bLimit) - 7;
+
+    if (a == 0 || a == 1) {
+      a = GetRandom(5) - 6;
+    }
+    if (b == 0 || b == 1) {
+      b = GetRandom(4) + 1;
+    }
+    if (level == 0) {
+      c = a * x + b;
+      xstr = "x ";    
+    } elif (level == 1) {
+      c = a * x * x + b;
+      xstr = "x² ";    
+    } else {
+      c = a * x * x * x + b;
+      xstr = "x³ ";    
+    }
+
+    term1 = a == -1 ? "-" : a;
+    sign  = b < 0 ? "" : "+";
+    quizEntry = term1 + xstr + sign + b + " = " + c;
+    rightAnswer = x;
+
+    printConsole("===>"+ level + "  --- a=" + a + ", b=" + b + ", c=" + c + ", x=" + x + " --> [" + quizEntry + "]");
+    return quizEntry;
+}
+
+for (x = 2; x <= 5; x++) {
+  for (a = -3; a <= 6; a++) {
+    if (a == 0 || a == 1 || a == 2 || a == 4) {
+      continue;
+    }
+    for (b = -7; b <= 7; b++) {
+      if (b == 0 || b == 1 || b == 2) {
+        continue;
+      }
+      c = a * x * x * x + b;
+      if (c == 1 || c == 0) {
+        continue;
+      }
+      term1 = a == -1 ? "-" : a;
+      sign  = b < 0 ? "" : "+";
+      data[5].Add(term1 + "x³ " + sign + b + " = " + c);
+      answers[5].Add(x);
+    }
+  }
+}
+totalCount[5] = data[5].size;
+printConsole(now("mm:ss.fff") + " Loaded " + totalCount[5] + " level6: " + data[5][0] +
+   " --> " + answers[5][0] + ", answers: " +  answers[5].size);
+
+function setBest() {
+  if (currentTab > 2) {
+    return;
+  }
+  if (bestResult > 0) {
+    SetText(bestLab[currentTab], "Best: " + bestResult + "%. Time: " + bestTime + ".");
+    SetText(dateLab[currentTab], bestDate);
+  } else {
+    SetText(bestLab[currentTab], "");
+    SetText(dateLab[currentTab], "");
+  }
+}
+
+function segQuizLevel_click(sender, arg) {
+  level = levels[int(arg)];
+  printConsole("New Level=" + arg + "-->" + level + ", levels=" + levels);
+  SetSetting("level", level, "int");
+  updateTotalEntries(sender, total);
+}
+
+function updateTotalEntries(sender, arg) {
+  total      = int(arg);
+  if (currentTab > 2) {
+    return;
+  }
+  if (currentTab == 2) {
+    durKey = int(duration / 500);
+  } else {
+    durKey = "";
+  }
+  keyBest    = "best_" + total + "_" + currentTab + "_" + level + "_" + durKey;
+  keyTime    = "time_" + total + "_" + currentTab + "_" + level + "_" + durKey;
+  keyDate    = "date_" + total + "_" + currentTab + "_" + level + "_" + durKey;
+
+  bestResult = GetSetting(keyBest, "double", 0.0);
+  bestTime   = GetSetting(keyTime, "string", "00:00");
+  bestDate   = GetSetting(keyDate, "string", "");
+  SetSetting("total", total, "int");
+  setBest();
+}
+
+function prepareNext() {
+  PrintConsole("prepareNext, quizType=" + quizType + ", level=" + level + ", quizTypeLevel=" + quizTypeLevel);
+  quizEntryText = quizEntry = "";
+
+  ShowView(quizLab[quizType]);
+  HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
+  fractionMode = false;
+
+  if (quizType == 2) {
+    tmp = rand = GetRandom(totalCount[quizTypeLevel]);
+    quizEntryText = quizEntry = rand;
+    currIndex = 0;
+    rightAnswer = "";
+    while(tmp > 0) {
+      rem = tmp % 10;
+      next = rem == 9 ? 0 : (rem + 1);
+      rightAnswer = next + rightAnswer;
+      tmp = int(tmp/10); 
+    }
+    //PrintConsole("totalCount[quizType]/10=", totalCount[quizTypeLevel]/10, ", res:" +(rand < totalCount[quizTypeLevel]/10), ", rand=", rand);
+    if (rand < totalCount[quizType]/10) {
+      quizEntryText = quizEntry   = "0" + quizEntry;
+      rightAnswer = "1" + rightAnswer;
+    }
+    Schedule(duration, "memory_timer");
+  } elif (quizType == 0) {
+    currIndex   = GetRandom(totalCount[quizTypeLevel]);
+    quizEntryText = quizEntry = data[quizTypeLevel][currIndex];
+    rightAnswer = answers[quizTypeLevel][currIndex];
+  } else {
+    special = GetRandom(10);
+    if (special <= 4) {
+      numLimit = level == 0 ? 10 : level == 1 ? 5 : 3;
+      fractionMode = true;
+      ratio = (GetRandom(numLimit - 2) + 3) / 2;
+      a = GetRandom(numLimit) + 2;
+      c = 2 + GetRandom(numLimit) * 2;
+      b = c * ratio;
+      rightAnswer = a * b / c;
+      if (rightAnswer != Round(rightAnswer)) {
+        a *= 2;
+        rightAnswer *= 2;
+      }
+      if (level == 0) {
+        str1 = " X";
+      } elif (level == 1) {
+        str1 = " X²";
+        a = a * a;
+        b = b * b;
+        c = c * c;
+      } elif (level == 2) {
+        str1 = " X³";
+        a = a * a * a;
+        b = b * b * b;
+        c = c * c * c;
+      }
+      str2 = a < 10 ? " " + a : string(a); 
+      str3 = b < 10 || b.size < c.size ? " " + b : string(b); 
+      str4 = c < 10 || c.size < b.size ? " " + c : string(c);
+      if (special == 1 || special == 3) {
+        tmp = str1; str1 = str2; str2 = tmp;
+        tmp = str3; str3 = str4; str4 = tmp;
+      }
+      SetText(quizLabEqF1, str1);
+      SetText(quizLabEqF2, str2);
+      SetText(quizLabEqF3, str3);
+      SetText(quizLabEqF4, str4);
+      quizEntry = str1 + "/" + str2 + " = " + str3 + "/" + str4;
+      ShowView(quizLabEqF0); ShowView(quizLabEqF1); ShowView(quizLabEqF2); ShowView(quizLabEqF3); ShowView(quizLabEqF4);
+      //HideView(quizLab[quizType]);
+      printConsole(special + " ratio=" + ratio + ", a=" + a + ", b=" + b + ", c=" + c + ", x=" + rightAnswer);
+    }
+  }
+
+  printConsole("quizEntry afetr ifs: [" + quizEntry + "], [" + quizEntryText + "]");
+  if (quizEntry == "") {
+    quizEntryText = quizEntry = getRandomEquation();
+  }
+  printConsole("Setting quizEntryText: [" + quizEntryText + "]");
+  SetText(quizLab[quizType], quizEntryText);
+
+  SetText(quizLab2[quizType], quizType == 1 ? " x =" : "Answer: ");
+  SetText(textAnswer[quizType], "");
+
+  EnableWidget(buttonAnswer[quizType], true);
+
+  ShowHideKeyboard(textAnswer[quizType], true);
+  count++;
+}
+
+function buttonNewEx_click(sender, arg) {
+  quizType = 0;
+  buttonNew_click(sender, arg);
+}
+function buttonNewEq_click(sender, arg) {
+  quizType = 1;
+  buttonNew_click(sender, arg);
+}
+function buttonNewMe_click(sender, arg) {
+  quizType = 2;
+  buttonNew_click(sender, arg);
+}
+function buttonNew_click(sender, arg) {
+  thisTabRunning = (currentTab == runningTab);
+  if (running) {
+    stopQuiz();
+    if (thisTabRunning) {
+      return;
+    }
+  }
+
+  quizTypeLevel = 3 * quizType + level;
+  PrintConsole("StartNewQuiz, level: " + level + ", quizType=" + quizType + ", quizTypeLevel=" + quizTypeLevel);
+  count = 0;
+  correct = 0;
+
+  SetText(answerLab[quizType], "");
+  SetText(correctLab[quizType], "");
+  SetText(wrongLab[quizType], "");
+  SetText(explLab[quizType], explanation[quizType]);
+  SetText(timeLab[quizType], "00:00");
+
+  ShowView(quizLab[quizType]);
+  ShowView(quizLab2[quizType]);
+  ShowView(correctLab[quizType]);
+  ShowView(wrongLab[quizType]);
+  ShowView(answerLab[quizType]);
+  ShowView(explLab[quizType]);
+  SetImage(buttonNew[quizType], "stop");
+
+  ShowView(textAnswer[quizType]);
+  ShowView(buttonNew[quizType]);
+  ShowView(buttonAnswer[quizType]);
+
+  running = true;
+  runningTab = currentTab;
+  prepareNext();
+  stopwatch = StartStopWatch();
+  Schedule(1000, "quiz_timer", "", "quiz_timeoutId", 1);
+
+  printConsole("Started new quiz with number of entries: " + total);
+}
+function buttonAnswerEx_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswerEq_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswerMe_click(sender, arg) {
+  buttonAnswer_click(sender, arg);
+}
+function buttonAnswer_click(sender, arg) {
+  ShowHideKeyboard(textAnswer[quizType], false);
+  answer = GetText(textAnswer[quizType]);
+  wasCorrect = (answer == rightAnswer);
+  correct += wasCorrect;
+  wrong = count - correct;
+
+  textColor = wasCorrect ? "green" : "red";
+  msg = wasCorrect ? "Correct! " : "Wrong! ";
+  SetFontColor(answerLab[quizType], textColor);
+
+  sep = quizType == 0 ? " = " : (quizType == 1 ? "   x = " : " --> ");
+  msg += quizEntry + sep + rightAnswer;
+  // TODO: DEBUG:
+  //msg += (fractionMode ? "" : quizEntry) + sep + rightAnswer;
+  ShowToast(msg, wasCorrect ? 2 : 5, "white", textColor);
+
+  SetText(answerLab[quizType], msg);
+  SetText(correctLab[quizType], "Correct: " + correct);
+  SetText(wrongLab[quizType], "Wrong: " + wrong);
+
+  delay = wasCorrect ? 1500 : 3000;
+
+  SetImage(resultView[quizType], wasCorrect ? "correct.png" : "wrong.png");
+  ShowView(resultView[quizType]);
+  HideView(buttonNew[quizType]);
+  EnableWidget(buttonAnswer[quizType], false);
+
+  Schedule(delay, "delayedNext");
+}
+
+function ShowHideViews() {
+  if (currentTab > 2 || (running && currentTab == runningTab)) {
+    return;
+  }
+
+  SetText(explLab[currentTab], explanation[currentTab]);
+  ShowView(buttonNew[currentTab]);//, !running);
+  ShowView(explLab[currentTab]);
+
+  HideView(buttonAnswer[currentTab]);
+  SetText(quizLab[currentTab], "");
+  SetText(quizLab2[currentTab], "");
+  SetText(textAnswer[currentTab], "");
+  SetText(answerLab[currentTab], "");
+  //HideView(quizLab[currentTab]);
+  //HideView(quizLab2[currentTab]);
+  //HideView(textAnswer[currentTab]);
+  //HideView(answerLab[currentTab]);
+}
+
+function quiz_timer(sender, arg) {
+  elapsed = StopWatchElapsed("mm:ss");
+  SetText(timeLab[quizType], elapsed);
+}
+
+function memory_timer(sender, arg) {
+  //HideView(quizLab[quizType]);
+  SetText(quizLab[quizType], "");
+}
+
+function tab_timer(sender, arg) {
+  printConsole("tab_timer selecting tab " + runningTab);
+  ShowToast("Please finish or click Stop Quiz button first", 10, bgcolor, fgcolor);
+}
+
+function delayedNext(sender, arg) {
+  if (!checkQuizCompleted()) {
+    prepareNext();
+  }
+  HideView(resultView[quizType]);
+  ShowView(buttonNew[quizType]);
+}
+
+function stopQuiz() {
+  CancelSchedule("quiz_timeoutId");
+  stopwatch = StopStopWatch();
+
+  SetImage(buttonNew[runningTab], "start");
+  ShowHideKeyboard(textAnswer[runningTab], false);
+  ShowHideViews();
+
+  running = false;
+  runningTab = -1;
+}
+
+function checkQuizCompleted() {
+  printConsole("checkQuizCompleted total=[" + total + "], count=[" + count + "]");
+  if (count < total) {
+    return false;
+  }
+
+  stopQuiz();
+  printConsole("checkQuizCompleted done. count < total = " + (count < total));
+
+  percent = Round(double(correct)/double(total) * 100, 2);
+  if (percent == 100) {
+    extra = ". Excellent!";
+  } elif (percent >= 90)  {
+    extra = ". Very Good!";
+  } elif (percent >= 80)  {
+    extra = ". Good!";
+  } elif (percent >= 70)  {
+    extra = ". Not bad!";
+  } elif (percent >= 60)  {
+    extra = ". Barely passed!";
+  } else  {
+    extra = ". Please exercise more!";
+  }
+
+  currentTime = GetText(timeLab[quizType]);
+  if (percent > bestResult || (percent == bestResult && currentTime < bestTime)) {
+    bestResult = percent;
+    bestTime = currentTime;
+    bestDate = Now("yyyy/MM/dd HH:mm:ss");
+    SetSetting(keyBest, bestResult);
+    SetSetting(keyTime, bestTime);
+    SetSetting(keyDate, bestDate);
+    setBest();
+  }
+ 
+  msg = "Quiz completed! Correct: " + percent + "%" + extra;
+  AlertDialog(appName, msg);
+
+  return true;
+}
+
+function buttonBGColor_click(sender, arg) {
+  ColorPicker("Pick Background Color", bgcolor, "bgcolorChanged");
+}
+function buttonFGColor_click(sender, arg) {
+  ColorPicker("Pick Text Color", fgcolor, "fgcolorChanged");
+}
+
+function bgcolorChanged(sender, arg) {
+  PrintConsole("BGColor chosen:" + arg);
+  bgcolor = arg;
+  SetBackgroundColor(bgcolor);
+  if (currentTab < 3) {
+    SetBackgroundColor(textAnswer[currentTab], bgcolor);
+  }
+
+  SetSetting("bgcolor", bgcolor);
+}
+
+function fgcolorChanged(sender, arg) {
+  PrintConsole("FGColor chosen:" + arg);
+  fgcolor = arg;
+  try {
+  SetFontColor(segQuizLevel, fgcolor);
+  SetFontColor(wordsLab, fgcolor);
+  SetFontColor(wordsStepper, fgcolor);
+  SetFontColor(quizLevelLab, fgcolor);
+  SetFontColor(durationLab, fgcolor);
+  SetFontColor(durationMs, fgcolor);
+  SetFontColor(msLabel, fgcolor);
+
+  rgb = ConvertColor(fgcolor);
+  sum  = rgb[0] + rgb[1] + rgb[2];
+  diff = rgb[0] + rgb[1] - rgb[2];
+  light = sum >= 1.5 || diff > 1;
+  img = light ? "fractions_light" : "fractions";
+  SetImage(quizLabEqF0, img);
+  printConsole(fgcolor + " " + rgb[0] + " " + rgb[1] + " " + rgb[2] + " " + sum + "-->" + img);
+
+  if (currentTab < 3) {
+    SetFontColor(quizLab[currentTab], fgcolor);
+    SetFontColor(quizLab2[currentTab], fgcolor);
+    SetFontColor(dateLab[currentTab], fgcolor);
+    SetFontColor(bestLab[currentTab], fgcolor);
+    SetFontColor(explLab[currentTab], fgcolor);
+    SetFontColor(correctLab[currentTab], fgcolor);
+    SetFontColor(wrongLab[currentTab], fgcolor);
+    SetFontColor(timeLab[currentTab], fgcolor);
+    col = light ? "white" : "black";
+    SetFontColor(quizLabEqF1, col); SetFontColor(quizLabEqF2, col);
+    SetFontColor(quizLabEqF3, col); SetFontColor(quizLabEqF4, col);
+    SetFontColor(textAnswer[currentTab], fgcolor);
+    SetBackgroundColor(textAnswer[currentTab], bgcolor);
+  }
+
+  SetSetting("fgcolor", fgcolor);
+  } catch(exc) {
+    printConsole("Exception setting fgcolor: " + exc);
+  }
+}
+
+function tabSelected(sender, arg) {
+  newTab = int(arg);
+  printConsole("Requesting tab " + newTab + ", currentTab=" + currentTab);
+  if (newTab == currentTab) {
+    return;
+  }
+  if (running && runningTab >= 0 && newTab != runningTab) {
+    currentTab = runningTab;
+    printConsole("Selecting tab " + currentTab + ", newTab=" + newTab);
+    SelectTab(currentTab);
+    Schedule(500, "tab_timer");
+    return;
+  }
+  currentTab = newTab;
+  printConsole("tabSelected: " + currentTab);
+  fgcolorChanged(sender, fgcolor);
+  if (currentTab < 3) {
+    updateTotalEntries(sender, total);
+    ShowHideViews();
+  } else {
+    ShowView(quizLevelLab);
+    ShowView(segQuizLevel);
+    ShowView(durationLab);
+    ShowView(durationSlider);
+    resetSettingsGui();
+  }
+}
+
+function durationSlider_click(sender, arg) {
+  duration = Round(double(arg));
+  if (duration % 100 == 0) { printConsole("durationSlider_click, duration=" + duration); }
+  try {
+    SetText(durationMs, string(duration));
+  } catch(exc) {
+    printConsole("Exception setting duration: " + exc);
+    print("Exception setting duration: " + exc);
+    try { SetText(durationMs, string(duration)); } catch(exc) {}
+  }
+
+  SetSetting("duration", duration, "int");
+}
+
+function buttonAboutUs_click(sender, arg) {
+  deviceInfo    = _DEVICE_INFO_;
+  deviceVersion = _VERSION_INFO_;
+  AlertDialog(appName, " \n Version " + VERSION + " \n" +
+               deviceInfo + " \n " + deviceVersion + " \n" +
+              "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
+              "Developed by Vassili Kaplan");
+}
+
+fgcolorChanged("", fgcolor);

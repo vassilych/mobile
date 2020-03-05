@@ -1,0 +1,60 @@
+﻿appName = "LarissaMath App";
+VERSION = "1.0";
+InitSyncfusion();
+
+running = false;
+count = 0;
+correct = 0;
+maxNumber = 25;
+squaresOnly = 16;
+stopwatch = 0;
+data = { {}, {}, {}, {}, {}, {}, {}, {}, {} };
+answers = { {}, {}, {}, {}, {}, {}, {}, {}  };
+
+fractionMode = false;
+
+currIndex = 0;
+rightAnswer = 0;
+currentTab = 3;
+runningTab = -1;
+quizEntry = "";
+
+fontSize = 26;
+fontSizeSm = 20;
+
+bgcolor = GetSetting("bgcolor", "string", "#1f9dd4");
+fgcolor = GetSetting("fgcolor", "string", "white");
+
+total      = GetSetting("total", "int", 20);
+level      = GetSetting("level", "int", 0);
+duration   = GetSetting("duration", "int", 2000);
+keyBest    = "";
+keyTime    = "";
+keyDate    = "";
+quizType   = 1;
+quizTypeLevel = 0; 
+
+bestResult = 0.0;
+bestTime   = "";
+bestDate   = "";
+
+explanation[0] = "Find the result of the expression";
+explanation[1] = "Find x (if multiple values, then only positive)";
+explanation[2] = "Write number with next digits (349810 -> 450921)";
+
+OnTabSelected("tabSelected");
+
+width = DisplayWidth;
+scale = width <= 1080 ? 0.45 : 0.9;
+AutoScale(scale);
+printConsole(now("mm:ss.fff") + " Loading data...");
+
+totalCount[6]  = 10000;
+totalCount[7]  = 1000000;
+totalCount[8]  = 10000000;
+
+SetBackgroundColor(bgcolor);
+
+ImportFile("mathGui.cscs");
+ImportFile("iMath.cscs");
+SelectTab(3);
