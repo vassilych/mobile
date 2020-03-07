@@ -14,8 +14,8 @@ using Syncfusion.SfChart.iOS;
 using Syncfusion.SfDataGrid;
 using Syncfusion.SfGauge.iOS;
 using Syncfusion.SfNumericUpDown.iOS;
-//using Syncfusion.SfPicker.iOS;
-using Syncfusion.SfPicker.XForms;
+using Syncfusion.SfPicker.iOS;
+//using Syncfusion.SfPicker.XForms;
 //using Syncfusion.SfPicker.XForms.iOS;
 using Syncfusion.GridCommon.ScrollAxis;
 using Syncfusion.iOS.Buttons;
@@ -67,6 +67,7 @@ namespace scripting.iOS
         UITextAlignment m_alignment = UITextAlignment.Left;
         UIColor m_bgColor = UIColor.Clear;
         UIColor m_fontColor = UIColor.Black;
+        nfloat m_fontSize = 15f;
 
         static bool m_init;
 
@@ -126,6 +127,7 @@ namespace scripting.iOS
                     break;
             }
             ViewX.Tag = ++m_currentTag;
+            AddAction(name, name + "_click");
         }
         public override Variable Clone()
         {
@@ -169,13 +171,19 @@ namespace scripting.iOS
 
         public override bool SetFontSize(double val)
         {
+            m_fontSize = (nfloat)val;
             if (m_stepper != null)
             {
-                m_stepper.FontSize = (nfloat)val;
+                m_stepper.FontSize = m_fontSize;
             }
-            if (m_segmented != null)
+            else if (m_segmented != null)
             {
-                m_segmented.Font = UIFont.SystemFontOfSize((nfloat)val);
+                m_segmented.Font = UIFont.SystemFontOfSize(m_fontSize);
+            }
+            else if (m_picker != null)
+            {
+                m_picker.UnSelectedItemFont = UIFont.SystemFontOfSize(m_fontSize);
+                m_picker.SelectedItemFont = UIFont.BoldSystemFontOfSize(m_fontSize + 2);
             }
             else
             {
@@ -252,15 +260,8 @@ namespace scripting.iOS
 
         void CreatePicker()
         {
-            if (!m_init)
-            {
-                Forms.Init();
-                //SfPickerRenderer.Init();
-                m_init = true;
-            }
-
             m_picker = new SfPicker();
-            ViewX = UtilsiOS.ConvertFormsToNative(m_picker, m_rect);
+            m_picker.Frame = m_rect;
 
             string str1 = "", str2 = "", str3 = "", str4 = "", str5 = "";
             Utils.Extract(m_data, ref str1, ref str2, ref str3, ref str4, ref str5);
@@ -295,50 +296,60 @@ namespace scripting.iOS
             m_picker.PickerWidth = m_rect.Width;
             m_picker.PickerHeight = m_rect.Height;
 
-            m_picker.BackgroundColor = Color.Transparent;
-            m_picker.HeaderBackgroundColor = Color.Transparent;
-            m_picker.ColumnHeaderBackgroundColor = Color.Transparent;
-            m_picker.HeaderTextColor = Color.Black;
-            m_picker.UnSelectedItemTextColor = Color.LightGray;
-            m_picker.SelectedItemTextColor = Color.Black;
+            m_picker.BackgroundColor = UIColor.Clear;
+            m_picker.HeaderBackgroundColor = UIColor.Clear;
+            m_picker.ColumnHeaderBackgroundColor = UIColor.Clear;
+            m_picker.HeaderTextColor = UIColor.Black;
+            m_picker.UnSelectedItemTextColor = UIColor.LightGray;
+            m_picker.SelectedItemTextColor = UIColor.Black;
+            m_picker.UnSelectedItemFont = UIFont.SystemFontOfSize(m_fontSize);
+            m_picker.SelectedItemFont = UIFont.BoldSystemFontOfSize(m_fontSize);
+            m_picker.IsOpen = true;
 
             m_picker.SelectionChanged += (sender, e) =>
             {
                 ActionDelegate?.Invoke(WidgetName, e.NewValue.ToString());
             };
 
-            m_picker.OnPickerItemLoaded += (sender, e) =>
-            {
-                if (m_pics == null)
-                {
-                    return;
-                }
-                int row = e.Row;
+            SfPicker.PickerViewEventhandler pickerViewEventhandler = (sender, e) =>
+               {
+                   //if (m_pics == null)
+                   //{
+                   //    return;
+                   //}
+                   int row = e.Row;
 
-                CustomRowView view = new CustomRowView(m_rect.Width);
+                   CustomRowView view = new CustomRowView(m_rect.Width);
+                   view.BackgroundColor = UIColor.Clear;
 
-                if (m_pics.Count > row)
-                {
-                    UIImageView rowPic = new UIImageView(m_pics[row]);
-                    view.AddSubview(rowPic);
-                }
+                   if (m_pics != null && m_pics.Count > row)
+                   {
+                       UIImageView rowPic = new UIImageView(m_pics[row]);
+                       rowPic.BackgroundColor = UIColor.Clear;
+                       rowPic.ContentMode = UIViewContentMode.Bottom;
+                       //rowPic.Frame = new CGRect(0, 10, rowPic.Frame.Width, rowPic.Frame.Height);
+                       view.AddSubview(rowPic);
+                   }
 
-                if (m_strings != null && m_strings.Count > row)
-                {
-                    UILabel rowText = new UILabel();
-                    rowText.Text = m_strings[row];
-                    rowText.TextAlignment = m_alignment;
-                    rowText.BackgroundColor = m_bgColor;
-                    //rowText.BackgroundColor = UIColor.Clear;
-                    rowText.TextColor = m_fontColor;
-                    view.AddSubview(rowText);
-                }
+                   if (m_strings != null && m_strings.Count > row)
+                   {
+                       UILabel rowText = new UILabel();
+                       rowText.Text = m_strings[row];
+                       rowText.TextAlignment = m_alignment;
+                       rowText.BackgroundColor = m_bgColor;
+                       rowText.TextColor = m_fontColor;
+                       rowText.Font = UIFont.BoldSystemFontOfSize(m_fontSize);
+                       //rowText.BackgroundColor = UIColor.White;
+                       //rowText.TextColor = UIColor.Black;
+                       view.AddSubview(rowText);
+                   }
 
-                e.View = view.ToView();
-            };
+                   //e.View = view.ToView();
+                   return view;
+               };
+            m_picker.OnPickerItemLoaded += pickerViewEventhandler;
 
-            m_picker.HeaderFontSize = m_picker.ColumnHeaderFontSize =
-              m_picker.SelectedItemFontSize = m_picker.UnSelectedItemFontSize = 15;
+            ViewX = m_picker;
         }
         void CreateDataGrid()
         {
@@ -1328,7 +1339,7 @@ namespace scripting.iOS
 
             if (m_picker != null)
             {
-                m_picker.BackgroundColor = color.ToColor();
+                m_picker.BackgroundColor = color;
             }
             else if (m_chart != null)
             {
@@ -1376,10 +1387,10 @@ namespace scripting.iOS
 
             if (m_picker != null)
             {
-                m_picker.HeaderTextColor = color.ToColor();
-                m_picker.ColumnHeaderTextColor = color.ToColor();
-                m_picker.UnSelectedItemTextColor = color.ToColor();
-                m_picker.SelectedItemTextColor = color.ToColor();
+                m_picker.HeaderTextColor = color;
+                m_picker.ColumnHeaderTextColor = color;
+                m_picker.UnSelectedItemTextColor = color;
+                m_picker.SelectedItemTextColor = color;
             }
             else if (m_chart != null && m_chart.Title != null)
             {

@@ -3,7 +3,7 @@
 //SetBackgroundColor("cyan");
 SetBackground("us_bg");
 
-locComboWidgets = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 10, 0);
+locComboWidgets = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 10, 30);
 AddCombobox(locComboWidgets, "comboWidgets", "center:white:clear", 360, 60);
 
 locComboOption1 = GetLocation("ROOT", "LEFT", comboWidgets, "BOTTOM", 10, 16);
@@ -35,7 +35,7 @@ AddSfSplineGraph(locSFWidget,   "SplineGraph", "", 600, 500);
 AddSfDoughnutGraph(locSFWidget, "DoughnutGraph", "", 600, 500);
 AddSfDoughnutGraph(locSFWidget, "SemiDoughnutGraph", "", 600, 500);
 AddSfDataGrid(locSFWidget,      "DataGrid", "", 600, 625);
-AddSfPicker(locSFWidget,        "Picker", "80:Select Currency", 250, 350);
+AddSfPicker(locSFWidget,        "Picker", "80:Select Currency", 350, 350);
 
 sfWidgets     = {"CircularGauge", "DigitalGauge", "QRBarcode", "Code39Barcode", "BusyIndicator",
                  "SplineGraph", "DoughnutGraph", "SemiDoughnutGraph", "DataGrid", "Picker",

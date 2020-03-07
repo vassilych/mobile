@@ -20,7 +20,7 @@ runningTab = -1;
 quizEntry = "";
 
 fontSize = 26;
-fontSizeSm = 20;
+fontSizeSm = 18;
 
 bgcolor = GetSetting("bgcolor", "string", "#1f9dd4");
 fgcolor = GetSetting("fgcolor", "string", "white");
@@ -50,8 +50,8 @@ AutoScale(scale);
 printConsole(now("mm:ss.fff") + " Loading data...");
 
 totalCount[6]  = 10000;
-totalCount[7]  = 100000;
-totalCount[8]  = 1000000;
+totalCount[7]  = 1000000;
+totalCount[8]  = 10000000;
 
 SetBackgroundColor(bgcolor);
 

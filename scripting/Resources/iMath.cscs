@@ -57,77 +57,39 @@ for (i = 16; i < 30; i++) {
 totalCount[2] = data[2].size;
 printConsole(now("mm:ss.fff") + " Loaded " + totalCount[2] + " level3: " + data[2][0] + " --> " + answers[2][0]);
 
-for (a = -7; a <= 6; a++) {
-  if (a == 0 || a == 1 || a == 2 || a == 4) {
-    continue;
-  }
-  for (b = -7; b <= 7; b++) {
-    if (b == 0 || b == 1 || b == 2) {
-      continue;
+function getRandomEquation() {
+    xLimit = level <= 1 ? 8 : 4;
+    aLimit = level <= 1 ? 15 : 10;
+    bLimit = level <= 1 ? 15 : 10;
+    x = GetRandom(xLimit) + 2;
+    a = GetRandom(aLimit) - 7;
+    b = GetRandom(bLimit) - 7;
+
+    if (a == 0 || a == 1) {
+      a = GetRandom(5) - 6;
     }
-    for (x = 2; x <= 9; x++) {
+    if (b == 0 || b == 1) {
+      b = GetRandom(4) + 1;
+    }
+    if (level == 0) {
       c = a * x + b;
-      if (c == 1) {
-        continue;
-      }
-      term1 = a == -1 ? "-" : a;
-      sign  = b < 0 ? "" : "+";
-      data[3].Add(term1 + "x " + sign + b + " = " + c);
-      answers[3].Add((c - b)/a);
-    }
-  }
-}
-totalCount[3] = data[3].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[3] + " level4: " + data[3][0] +
-   " --> " + answers[3][0] + ", answers: " +  answers[3].size);
-
-for (x = 3; x <= 9; x++) {
-  for (a = -3; a <= 6; a++) {
-    if (a == 0 || a == 1 || a == 2 || a == 4) {
-      continue;
-    }
-    for (b = -7; b <= 7; b++) {
-      if (b == 0 || b == 1 || b == 2) {
-        continue;
-      }
+      xstr = "x ";    
+    } elif (level == 1) {
       c = a * x * x + b;
-      if (c == 1 || c == 0) {
-        continue;
-      }
-      term1 = a == -1 ? "-" : a;
-      sign  = b < 0 ? "" : "+";
-      data[4].Add(term1 + "x² " + sign + b + " = " + c);
-      answers[4].Add(x);
-    }
-  }
-}
-totalCount[4] = data[4].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[4] + " level5: " + data[4][0] +
-   " --> " + answers[4][0] + ", answers: " +  answers[4].size);
-
-for (x = 2; x <= 5; x++) {
-  for (a = -3; a <= 6; a++) {
-    if (a == 0 || a == 1 || a == 2 || a == 4) {
-      continue;
-    }
-    for (b = -7; b <= 7; b++) {
-      if (b == 0 || b == 1 || b == 2) {
-        continue;
-      }
+      xstr = "x² ";    
+    } else {
       c = a * x * x * x + b;
-      if (c == 1 || c == 0) {
-        continue;
-      }
-      term1 = a == -1 ? "-" : a;
-      sign  = b < 0 ? "" : "+";
-      data[5].Add(term1 + "x³ " + sign + b + " = " + c);
-      answers[5].Add(x);
+      xstr = "x³ ";    
     }
-  }
+
+    term1 = a == -1 ? "-" : a;
+    sign  = b < 0 ? "" : "+";
+    quizEntry = term1 + xstr + sign + b + " = " + c;
+    rightAnswer = x;
+
+    printConsole("===>"+ level + "  --- a=" + a + ", b=" + b + ", c=" + c + ", x=" + x + " --> [" + quizEntry + "]");
+    return quizEntry;
 }
-totalCount[5] = data[5].size;
-printConsole(now("mm:ss.fff") + " Loaded " + totalCount[5] + " level6: " + data[5][0] +
-   " --> " + answers[5][0] + ", answers: " +  answers[5].size);
 
 function setBest() {
   if (currentTab > 2) {
@@ -142,9 +104,15 @@ function setBest() {
   }
 }
 
-function updateLevel(sender, arg) {
-  printConsole("New Level=" + arg);
-  level = int(arg);
+function segQuizLevel_click(sender, arg) {
+  level = 0;
+  for (i = 0; i < levelStrings.size; i++) {
+    if (arg == levelStrings[i]) {
+      level = i;
+      break;
+    }
+  }
+  printConsole("New Level=" + arg + ": " + level);
   SetSetting("level", level, "int");
   updateTotalEntries(sender, total);
 }
@@ -171,6 +139,96 @@ function updateTotalEntries(sender, arg) {
 }
 
 function prepareNext() {
+  PrintConsole("prepareNext, quizType=" + quizType + ", level=" + level + ", quizTypeLevel=" + quizTypeLevel);
+  quizEntryText = quizEntry = "";
+
+  ShowView(quizLab[quizType]);
+  HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
+  fractionMode = false;
+
+  if (quizType == 2) {
+    tmp = rand = GetRandom(totalCount[quizTypeLevel]);
+    quizEntryText = quizEntry = rand;
+    currIndex = 0;
+    rightAnswer = "";
+    while(tmp > 0) {
+      rem = tmp % 10;
+      next = rem == 9 ? 0 : (rem + 1);
+      rightAnswer = next + rightAnswer;
+      tmp = int(tmp/10); 
+    }
+    //PrintConsole("totalCount[quizType]/10=", totalCount[quizTypeLevel]/10, ", res:" +(rand < totalCount[quizTypeLevel]/10), ", rand=", rand);
+    if (rand < totalCount[quizType]/10) {
+      quizEntryText = quizEntry   = "0" + quizEntry;
+      rightAnswer = "1" + rightAnswer;
+    }
+    Schedule(duration, "memory_timer");
+  } elif (quizType == 0) {
+    currIndex   = GetRandom(totalCount[quizTypeLevel]);
+    quizEntryText = quizEntry = data[quizTypeLevel][currIndex];
+    rightAnswer = answers[quizTypeLevel][currIndex];
+  } else {
+    special = GetRandom(10);
+    if (special <= 4) {
+      numLimit = level == 0 ? 10 : level == 1 ? 5 : 3;
+      fractionMode = true;
+      ratio = (GetRandom(numLimit - 2) + 3) / 2;
+      a = GetRandom(numLimit) + 2;
+      c = 2 + GetRandom(numLimit) * 2;
+      b = c * ratio;
+      rightAnswer = a * b / c;
+      if (rightAnswer != Round(rightAnswer)) {
+        a *= 2;
+        rightAnswer *= 2;
+      }
+      if (level == 0) {
+        str1 = " X";
+      } elif (level == 1) {
+        str1 = " X²";
+        a = a * a;
+        b = b * b;
+        c = c * c;
+      } elif (level == 2) {
+        str1 = " X³";
+        a = a * a * a;
+        b = b * b * b;
+        c = c * c * c;
+      }
+      str2 = a < 10 ? " " + a : string(a); 
+      str3 = b < 10 || b.size < c.size ? " " + b : string(b); 
+      str4 = c < 10 || c.size < b.size ? " " + c : string(c);
+      if (special == 1 || special == 3) {
+        tmp = str1; str1 = str2; str2 = tmp;
+        tmp = str3; str3 = str4; str4 = tmp;
+      }
+      SetText(quizLabEqF1, str1);
+      SetText(quizLabEqF2, str2);
+      SetText(quizLabEqF3, str3);
+      SetText(quizLabEqF4, str4);
+      quizEntry = str1 + "/" + str2 + " = " + str3 + "/" + str4;
+      ShowView(quizLabEqF0); ShowView(quizLabEqF1); ShowView(quizLabEqF2); ShowView(quizLabEqF3); ShowView(quizLabEqF4);
+      //HideView(quizLab[quizType]);
+      printConsole(special + " ratio=" + ratio + ", a=" + a + ", b=" + b + ", c=" + c + ", x=" + rightAnswer);
+    }
+  }
+
+  printConsole("quizEntry afetr ifs: [" + quizEntry + "], [" + quizEntryText + "]");
+  if (quizEntry == "") {
+    quizEntryText = quizEntry = getRandomEquation();
+  }
+  printConsole("Setting quizEntryText: [" + quizEntryText + "]");
+  SetText(quizLab[quizType], quizEntryText);
+
+  SetText(quizLab2[quizType], quizType == 1 ? " x =" : "Answer:");
+  SetText(textAnswer[quizType], "");
+
+  EnableWidget(buttonAnswer[quizType], true);
+
+  ShowHideKeyboard(textAnswer[quizType], true);
+  count++;
+}
+
+function prepareNext2() {
   rand = GetRandom(totalCount[quizTypeLevel]);
   PrintConsole("prepareNext, quizType=", quizType, ", level=", level, ", nb answers:" + answers.size, ", rand=", rand);
   if (quizType == 2) {
@@ -239,7 +297,8 @@ function prepareNext() {
       SetText(quizLabEqF4, str4);
       quizEntry = str1 + "/" + str2 + " = " + str3 + "/" + str4;
       ShowView(quizLabEqF0); ShowView(quizLabEqF1); ShowView(quizLabEqF2); ShowView(quizLabEqF3); ShowView(quizLabEqF4);
-      HideView(quizLab[quizType]);
+      //HideView(quizLab[quizType]);
+      SetText(quizLab[quizType], "");
       printConsole(special + " ratio=" + ratio + ", a=" + a + ", b=" + b + ", c=" + c + ", x=" + rightAnswer);
     }
   }
