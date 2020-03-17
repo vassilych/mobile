@@ -38,7 +38,7 @@ namespace scripting.iOS
 
         public int StringToRow(string text, int defaultRow = 0)
         {
-            if (m_names == null)
+            if (m_names == null || string.IsNullOrWhiteSpace(text))
             {
                 return defaultRow;
             }

@@ -515,10 +515,13 @@ namespace scripting.iOS
             return pngImageStream;
         }
 
-        public static UIImage CreateComboboxImage(CGRect rect)
+        public static UIImage CreateComboboxImage(CGRect rect, bool addMarge = true)
         {
             UIImage comboImage = UtilsiOS.ImageOfSize("combobox", new CGSize(rect.Height, rect.Height));
-
+            if (!addMarge)
+            {
+                return comboImage;
+            }
             UIImage img = UtilsiOS.AddMarge(comboImage, new CGSize(rect.Width, rect.Height));
             return img;
         }

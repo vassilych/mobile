@@ -1,4 +1,4 @@
-﻿Version      = "0.1.3";
+﻿Version      = "0.1.4";
 AppName      = "TrueDividends.com";
 
 data         = {};
@@ -8,6 +8,7 @@ expDividends = {};
 stddevs      = {};
 stockData    = {};
 keys         = {};
+stocks       = {};
 
 volaData     = {};
 volas        = {};
@@ -39,14 +40,31 @@ stocksHeader = "Select Stock";
 volaHeader   = "Select Volatilities";
 
 prevStockSelection  = "";
-prevMarketSelection = "";
 prevVolaSelection   = "";
 
+productId    = "ch.mydividends.vk.iap1";
+purchased    = GetSetting("purchased", "bool", false);
+
+allowedStocks = {"ABBN", "TUI", "AAPL" };
 stock = GetSetting("stock", "string", "");
+stockMenu = GetSetting("stockMenu", "string", stocksHeader);
 printConsole("Starting with fav. stock: " + stock);
+
+username = "test";//GetText(textLogin);
+password = "test";//GetText(textPassword);
 
 InitSyncfusion();
 AutoScale(1.0);
+
+function onInit(sender, arg) {
+  printConsole("onInit: " + arg);
+  GetDataFromServer("allstocks", "", "loadAllStocks");
+}
+
+function startUp() {
+  printConsole("Logging in user " + username);
+  loggedIn = Login(username, password, "onInit");
+}
 
 function makeBusy() {
   makeUnbusy();
@@ -73,7 +91,7 @@ function makeUnbusy() {
 
 function tabSelected(sender, arg) {
   newtab = int(arg);
-  ShowHideKeyboard(textStock, false);
+  //ShowHideKeyboard(textStock, false);
   if (newtab == currentTab) {
     return;
   }
@@ -96,7 +114,9 @@ function tabSelected(sender, arg) {
 
   makeBusy();
   if (newtab == 0) {
+    printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
     if (stock == lastStockLoaded) {
+      printConsole("No reload needed for stock " + stock);
       makeUnbusy();
       return;
     }
@@ -126,26 +146,82 @@ function tabSelected(sender, arg) {
   }
 }
 
-function aboutUs(sender, arg) {
+function buttonAboutUs_click(sender, arg) {
   deviceInfo    = _DEVICE_INFO_;
   deviceVersion = _VERSION_INFO_;
-  AlertDialog(AppName, "Version " + Version + "  " +
-               deviceInfo + ": " + deviceVersion);
+  AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
+               deviceInfo + ": " + deviceVersion + " \n" +
+              "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
+              "Developed by: " + AppName);
+}
+
+function allStocksCombo_click(sender, arg) {
+  setStock(arg);
+}
+
+function setStock(arg) {
+  stockMenu = arg.Trim;
+  items = stockMenu.Split(' - ');
+  stock = items.First.Trim.Upper;
+
+  for (stocki : stocks) {
+    if (stocki.Upper.StartsWith(stock)) {
+      stockMenu = stocki;
+      break;
+    }
+  }
+  hack = false;
+  if (stock.StartsWith("___")) {
+    stock = stock.Substring(3);
+    stockMenu = stockMenu.Substring(3);
+    hack = true;
+  }
+  SetSetting("stock", stock);
+  SetSetting("stockMenu", stockMenu);
+  printConsole("Stock selected " + arg + " --> " + stock + ", " + stockMenu);
+  return hack;
 }
 
 function connect(sender, arg) {
+  hack = setStock(GetText(allStocksCombo));
+  SetText(allStocksCombo, stockMenu);
+  if (!hack && !purchased && stock != "" && !allowedStocks.Contains(stock)) {
+      AlertDialog(AppName, "Only these stocks can be used for free:\n" + allowedStocks +
+                           "\nDo you want to purchase unlimited usage?",
+                           "OK", "buttonPurchase_click", "Cancel");
+      return;
+  } 
+
+  //SetText(allStocksCombo, stock);
   makeBusy();
-  username = GetText(textLogin);
-  password = GetText(textPassword);
-  stock = GetText(textStock).Upper;
-  SetText(textStock, stock);
 
   SetSetting("stock", stock);
-  ShowHideKeyboard(textStock, false);
+  //ShowHideKeyboard(textStock, false);
 
   printConsole("Logging in user " + username + " with stock [" + stock + "]");
- 
   loggedIn = Login(username, password, "onConnect");
+}
+
+function loadAllStocks(sender, arg) {
+  stocks              = {};
+  stocks.Add(stocksHeader);
+  stockData = arg.Split("!");
+  printConsole("Loaded " + stockData.Size + " stocks: " + arg);
+  for (item : stockData) {
+    parts = item.Split('|');
+    if (parts.Size < 2) {
+      continue;
+    }
+    stocki         = parts[0];
+    stockName      = parts[1];
+    displayName   = stockName == "" ? stocki : stocki + " - " + stockName;
+    //displayName   += avail ? "" : " *";
+    stocks.Add(displayName);
+  }
+  
+  AddWidgetData(allStocksCombo, stocks);
+  //SetValue(allStocksCombo, "value", 0);
+  SetText(allStocksCombo, stockMenu);
 }
 
 function onConnect(sender, arg) {
@@ -204,48 +280,6 @@ function onStockData(sender, arg) {
   makeUnbusy();
 }
 
-function fillStocks(sender, arg) {
-  tabId = 0;
-  SelectTab(tabId);
-  
-  stocks              = {};
-  prevStockSelection  = "";
-  prevVolaSelection   = "";
-
-  stocks.Add(stocksHeader);
-  stockData = arg.Split("!");
-  for (item : stockData) {
-    parts = item.Split('|');
-    if (parts.Size < 9) {
-      continue;
-    }
-    stocki         = parts[0];
-    stockName      = parts[1];
-    price          = Round(Double(parts[2]), 4);
-    prices[stocki] = parts[4] + " " + price;
-    avail          = parts[8] == "True";
-    //printConsole(stocki + ": set ATM: " + prices[stocki]);
-    displayName   = stockName == "" ? stocki : stocki + " - " + stockName;
-    displayName   += avail ? "" : " *";
-    stocks.Add(displayName);
-  }
-  
-  AddWidgetData(allStocksWidget, stocks);
-  //SetValue(allStocksWidget, "value", 0);
-  SetText(allStocksWidget, stocksHeader);
-
-  printConsole(item + " Added " + stocks.size + " stocks.");
-  //stockSelected(sender, stock);
-
-  SetText(allMarketsWidget, market);
-  HideView(allMarketsWidget2);
-  ShowView(allMarketsWidget);
-  ShowView(allStocksWidget);
-
-  makeUnbusy();
-  ShowToast(stocks.size + " stocks loaded for " + market, 10, "white", "blue");
-}
-
 function stockSelected(sender, arg) {
   if (arg == "" || arg == stocksHeader || prevStockSelection == arg) {
     makeUnbusy();
@@ -272,32 +306,6 @@ function stockSelected(sender, arg) {
   stock = parts.First;
   GetDataFromServer("optionprices", stock, "fillStockData");
   printConsole("Requested data for " + stock + ". Market: " + market);
-}
-
-function marketSelected(sender, arg) {
-  if (arg == stocksHeader || prevMarketSelection == arg) {
-    return;
-  }
-  prevMarketSelection = arg;
-
-  makeBusy();
-  if (NameExists(DataGrid)) {
-    RemoveView(DataGrid);
-    RemoveView(labelCcy);
-    RemoveView(imageCcy);
-  }
-
-  parts  = arg.Split(' ');
-  market = parts.First;
-  PrintConsole("marketSelected:", market, ". arg:", arg);
-  if (market != markets[0]) {
-    GetDataFromServer("regional", market, "fillStocks");
-  } else {
-    ShowView(allMarketsWidget2);
-    HideView(allMarketsWidget);
-    HideView(allStocksWidget);
-    makeUnbusy();
-  }
 }
 
 function getBestData(stockData, pattern) {
@@ -428,7 +436,7 @@ function createGraphs() {
   
   lastPriceMsg = stock + (prices.Contains(stock) ? " (ATM " + prices[stock] + ")" : "");
   
-  locSFGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 8);
+  locSFGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 6 + extraTop);
   createGraph(locSFGraph1, "SplineGraph1", "Call Options " + lastPriceMsg, stockData, keys);
   
   keys = getBestData(stockData, "_P_");
@@ -505,8 +513,8 @@ function fillVolasData(sender, arg) {
       unselVolas.Add(date);
     }
   }
-  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 30);
-  AddCombobox(locComboVolas, "volasWidget", "", 480, 60);
+  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10 + extraTop);
+  AddCombobox(locComboVolas, "volasWidget", "", 480, 50);
   comboData = dates;
   comboData.Add(volaHeader, 0);
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
@@ -716,7 +724,7 @@ function fillDividendsData(sender, arg) {
     RemoveView(DivGraph2);
   }
   
-  locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 8);
+  locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
   AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
   SetText(DivGraph1,  "Dividends for " + stock  + "  " + isin);
 
@@ -737,6 +745,7 @@ function fillDividendsData(sender, arg) {
 }
 
 function fillStockData(sender, arg) {
+  printConsole("fillStockData arg=" + arg);
   tabId = 0;
   SelectTab(tabId);
   
@@ -764,7 +773,7 @@ function fillStockData(sender, arg) {
   printConsole("fillStockData:", arg);
   options = arg.Split("!");
   
-  locSFWidget = GetLocation("ROOT", "CENTER", allStocksWidget, "BOTTOM", 0, 20);
+  locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
   AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
 
   //listCols = {"Instrument", "string", "Bid", "number", "Ask", "number", "Last", "number", "Settle", "number"};
@@ -847,7 +856,6 @@ function showError(msg) {
   SetText(labelStatus2,  "Disconnected");
   SetFontColor(labelStatus2, "red");
   HideView(labelRefresh);
-  HideView(buttonRefresh);
   resetButtons();
   
   ShowToast(msg, 10, "white", "red");
@@ -858,16 +866,11 @@ function hideImage(sender, arg) {
 }
 
 function connectionSuccess() {
-  SetText(labelStatus2,  "Connected");
+  timenow = Now("HH:mm:ss");
+  SetText(labelStatus2,  "Connected at " + timenow);
   SetFontColor(labelStatus2, "dark_green");
 
   SelectTab(numberTabs - 1);
-
-  timenow = Now("HH:mm:ss");
-  SetText(labelRefresh, timenow);
-  ShowView(labelRefresh);
-  ShowView(buttonRefresh);
-
   connected = true;
 }
 
@@ -880,25 +883,83 @@ function resetButtons() {
   }
 }
 
+function buttonPurchase_click(sender, arg) {
+  ShowToast(Localize("Please wait..."), 10, "blue");
+  Purchase("on_purchase", productId);
+}
+
+function on_purchase(error, productId) {
+  if (error != "") {
+    ShowToast(Localize("Error Purchasing:") + " " + error, 6, "red");
+    return;
+  }
+
+  description = ProductIdDescription(productId);
+  ShowToast(Localize("Purchased:") + " " + description, 6, "blue");
+  complete_purchase_restore(productId);
+
+  PrintConsole("Purchased: ", productId, ": ", description);
+}
+
+function complete_purchase_restore(productId) {
+  SetSetting("purchased", true, "bool");
+  purchased = true;
+  //reset_purchaseButtons();
+}
+
+function buttonRestore_click(sender, arg) {
+  ShowToast(Localize("Please wait..."), 10, "blue");
+  Restore("on_restore", productId);
+}
+
+function on_restore(error, productIds) {
+  if (error != "") {
+    ShowToast(Localize("Error Restoring:") + " " + error, 8, "red");
+    return;
+  }
+  if (productIds == "") {
+    ShowToast(Localize("Nothing to restore"), 8, "red");
+    return;
+  }
+
+  restoredIds = tokenize(productIds, ",");
+  restoredStr = " ";
+  for (productId : restoredIds) {
+    description = ProductIdDescription(productId);
+    if (restoredStr != " ") {
+      restoredStr += ", ";
+    }
+    restoredStr += description;
+    complete_purchase_restore(productId);
+    PrintConsole("Restored: ", productId, ": ", description);
+  }
+    
+  ShowToast(Localize("Restored:") + restoredStr, 6, "blue");
+}
+
 //--------- GUI Code Starts Here ----------------
 
-fontSizeSm   = 12;
-loginLabelH  = 60;
-loginLabelW  = 200;
+fontSizeSm   = 13;
+fontSize     = 26;
+textHeight   = 60;
+textWidth    = 220;
 tokenCount   = 0;
 busySize     = 400;
 
 graphWidth   = 620;
-graphHeight  = 460;
+graphHeight  = 510;
 tableWidth   = 620;
-tableHeight  = 680;
+tableHeight  = 860;
+extraTop     = 0;
 volaHeightDelta = 40;
 
 isiPhoneX    = isiPhoneX();
 //isAndroid    = isAndroid();
 if (isiPhoneX) {
-  graphHeight  = graphWidth = 610;
-  tableHeight  = 750;
+  graphWidth   = 600;
+  graphHeight  = 600;
+  tableHeight  = 1040;
+  extraTop     = 24;
 }
 
 SetBackgroundColor("cyan");
@@ -911,90 +972,68 @@ AddOrSelectTab("Analysys",     "dividends.png", "dividends2.png");
 AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
 AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 
-SelectTab(0);
-
-locComboMarkets = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-AddCombobox(locComboMarkets, "allMarketsWidget", "", 180, 60);
-AddWidgetData(allMarketsWidget, markets);
-SetFontSize(allMarketsWidget, 12);
-SetValue(allMarketsWidget, "alignment", "center");
-AddAction(allMarketsWidget, "marketSelected");
-HideView(allMarketsWidget);
-
-locComboMarkets2 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 40);
-AddCombobox(locComboMarkets2, "allMarketsWidget2", "", 260, 60);
-AddWidgetData(allMarketsWidget2, markets);
-AddAction(allMarketsWidget2, "marketSelected");
-
-locComboStocks = GetLocation(allMarketsWidget, "RIGHT", "ROOT", "TOP", 10, 40);
-AddCombobox(locComboStocks, "allStocksWidget", "", 420, 60);
-SetFontSize(allStocksWidget, 12);
-SetValue(allStocksWidget, "alignment", "center");
-AddAction(allStocksWidget, "stockSelected");
-HideView(allStocksWidget);
-
-
 SelectTab(numberTabs - 1);
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
 AddLabel(locLoading, "labelLoading", "", 580, 160);
 AlignText(labelLoading, "center");
 
-locStockLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 40);
-AddLabel(locStockLab, "labelStock", "Favorite Stock:", 180, 60);
+locStockLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 10 + extraTop);
+AddLabel(locStockLab, "labelStock", "Favorite Stock:", textWidth, textHeight);
 SetFontSize(labelStock, fontSizeSm);
 
-locStock = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
-AddTextEdit(locStock, "textStock", "AAPL", loginLabelW, loginLabelH);
-SetText(textStock, stock);
-SetFontSize(textStock, fontSizeSm);
+locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
+AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
+SetFontSize(allStocksCombo, fontSizeSm);
+SetValue(allStocksCombo, "alignment", "center");
+SetText(allStocksCombo, stockMenu);
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
-AddLabel(locIsinLab, "labelIsin", "ISIN:", 180, 60);
+AddLabel(locIsinLab, "labelIsin", "ISIN:", textWidth, textHeight);
 SetFontSize(labelIsin, fontSizeSm);
 
 locIsin = GetLocation(labelIsin, "RIGHT", labelIsin, "CENTER", 10);
-AddLabel(locIsin, "textIsin", "", loginLabelW, loginLabelH);
+AddLabel(locIsin, "textIsin", "", textWidth, textHeight);
 SetFontSize(textIsin, fontSizeSm);
 
 locCloseLab = GetLocation("ROOT", "LEFT", labelIsin, "BOTTOM", 10, 10);
-AddLabel(locCloseLab, "labelClose", "Close:", 180, 60);
+AddLabel(locCloseLab, "labelClose", "Close:", textWidth, textHeight);
 SetFontSize(labelClose, fontSizeSm);
 
 locClose = GetLocation(labelClose, "RIGHT", labelClose, "CENTER", 10);
-AddLabel(locClose, "textClose", "", loginLabelW, loginLabelH);
+AddLabel(locClose, "textClose", "", textWidth, textHeight);
 SetFontSize(textClose, fontSizeSm);
 
 locLastDivLab = GetLocation("ROOT", "LEFT", labelClose, "BOTTOM", 10, 10);
-AddLabel(locLastDivLab, "labelLastDiv", "Last Dividend:", 180, 60);
+AddLabel(locLastDivLab, "labelLastDiv", "Last Dividend:", textWidth, textHeight);
 SetFontSize(labelLastDiv, fontSizeSm);
 
 locLastDiv = GetLocation(labelLastDiv, "RIGHT", labelLastDiv, "CENTER", 10);
-AddLabel(locLastDiv, "textLastDiv", "", 300, loginLabelH);
+AddLabel(locLastDiv, "textLastDiv", "", 380, textHeight);
 SetFontSize(textLastDiv, fontSizeSm);
 
 locNextDivLab = GetLocation("ROOT", "LEFT", labelLastDiv, "BOTTOM", 10, 10);
-AddLabel(locNextDivLab, "labelNextDiv", "Next Dividend:", 180, 60);
+AddLabel(locNextDivLab, "labelNextDiv", "Next Dividend:", textWidth, textHeight);
 SetFontSize(labelNextDiv, fontSizeSm);
 
 locDiv = GetLocation(labelNextDiv, "RIGHT", labelNextDiv, "CENTER", 10);
-AddLabel(locDiv, "textNextDiv", "", 300, loginLabelH);
+AddLabel(locDiv, "textNextDiv", "", 380, textHeight);
 SetFontSize(textNextDiv, fontSizeSm);
 
 locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
-AddLabel(locStdLab, "labelStd", "Standard Deviation:", 180, 60);
+AddLabel(locStdLab, "labelStd", "Standard Deviation:", textWidth, textHeight);
 SetFontSize(labelStd, fontSizeSm);
 
 locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
-AddLabel(locStd, "textStd", "", loginLabelW, loginLabelH);
+AddLabel(locStd, "textStd", "", textWidth, textHeight);
 SetFontSize(textStd, fontSizeSm);
 
 locUpdateLab = GetLocation("ROOT", "LEFT", labelStd, "BOTTOM", 10, 10);
-AddLabel(locUpdateLab, "labelUpdate", "Last Update:", 180, 60);
+AddLabel(locUpdateLab, "labelUpdate", "Last Update:", textWidth, textHeight);
 SetFontSize(labelUpdate, fontSizeSm);
 
 locUpdate = GetLocation(labelUpdate, "RIGHT", labelUpdate, "CENTER", 10);
-AddLabel(locUpdate, "textUpdate", "", loginLabelW, loginLabelH);
+AddLabel(locUpdate, "textUpdate", "", textWidth, textHeight);
 SetFontSize(textUpdate, fontSizeSm);
 
 HideView(labelIsin);
@@ -1017,55 +1056,38 @@ AddBorder(buttonCancel, 0);
 SetImage(buttonCancel, "cancel");
 HideView(buttonCancel);
 
-locUserLab = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 0);
-AddLabel(locUserLab, "labelLogin", "Login:", 140, 60);
-SetFontSize(labelLogin, fontSizeSm);
-
-locTextUsername = GetLocation(labelLogin, "RIGHT", labelLogin, "CENTER", 10, -10);
-AddTextEdit(locTextUsername, "textLogin", "", loginLabelW, loginLabelH);
-SetText(textLogin, "test");
-SetFontSize(textLogin, fontSizeSm);
-
-locConnect = GetLocation(textLogin, "RIGHT", textLogin, "CENTER", 30, 40);
-AddButton(locConnect, "buttonConnect", "", 200, 100);
+locConnect = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 40);
+AddButton(locConnect, "buttonConnect", "", 280, 140);
 AddAction(buttonConnect, "connect");
 SetImage(buttonConnect, "connect");
 
-locKeyLab = GetLocation("ROOT", "LEFT", textLogin, "BOTTOM", 10, 0);
-AddLabel(locKeyLab, "labelKey", "Password:", 140, 60);
-SetFontSize(labelKey, fontSizeSm);
-
-locKey = GetLocation(labelKey, "RIGHT", labelKey, "CENTER", 10, -10);
-AddTextEdit(locKey, "textPassword", "", loginLabelW, loginLabelH);
-SetText(textPassword, "test");
-SetFontSize(textPassword, fontSizeSm);
-SetSecure(textPassword);
-
-locStatus = GetLocation("ROOT", "LEFT", labelKey, "BOTTOM", 10, 40);
-AddLabel(locStatus, "labelStatus", "Status:", 120, 180);
-SetFontSize(labelStatus, fontSizeSm);
+locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 200);
+AddLabel(locStatus, "labelStatus", "Status:", 180, 60);
+SetFontSize(labelStatus, fontSizeSm + 2);
 AlignText(labelStatus, "left");
 
-locStatus2 = GetLocation(labelStatus, "RIGHT", labelKey, "BOTTOM", 30, 40);
-AddLabel(locStatus2, "labelStatus2", "Disconnected", 160, 180);
-SetFontSize(labelStatus2, fontSizeSm);
+locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", 10, 0);
+AddLabel(locStatus2, "labelStatus2", "Disconnected", 340, 60);
+SetFontSize(labelStatus2, fontSizeSm + 2);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
 
-locLabelRefresh = GetLocation(labelStatus2, "RIGHT", labelKey, "BOTTOM", 0, 40);
-AddLabel(locLabelRefresh, "labelRefresh", "", 140, 60);
-SetFontColor(labelRefresh, "dark_green");
-
-locButRefresh = GetLocation(labelRefresh, "RIGHT", labelKey, "BOTTOM", 4, 40);
-AddButton(locButRefresh, "buttonRefresh", "", 120, 100);
-AddAction(buttonRefresh, "connect");
-SetImage(buttonRefresh, "refresh");
-HideView(buttonRefresh);
-
-locAboutUs = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 4, -12);
-AddButton(locAboutUs, "buttonAboutUs", "", 120, 120);
-AddAction(buttonAboutUs, "aboutUs");
+locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -20, -10);
+AddButton(locAboutUs, "buttonAboutUs", "", 130, 130);
 AddBorder(buttonAboutUs, 0);
 SetImage(buttonAboutUs, "about");
 
+locRestore = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 10, -20);
+AddButton(locRestore, "buttonRestore", "Restore", 220, 110);
+SetImage(buttonRestore, "restore");
+SetFontSize(buttonRestore, fontSize);
+SetFontColor(buttonRestore, "white");
+
+locPurchase = GetLocation(buttonRestore, "RIGHT", buttonRestore, "CENTER", 6, 0);
+AddButton(locPurchase, "buttonPurchase", "Purchase", 220, 110);
+SetImage(buttonPurchase, "purchase");
+SetFontSize(buttonPurchase, fontSize);
+SetFontColor(buttonPurchase, "white");
+
 OnTabSelected("tabSelected");
+startUp();

@@ -351,6 +351,10 @@ namespace SplitAndMerge
         public static void AddGlobalOrLocalVariable(string name, GetVarFunction function, ParsingScript script = null)
         {
             name          = Constants.ConvertName(name);
+            if (Constants.CheckReserved(name))
+            {
+                Utils.ThrowErrorMsg(name + " is a reserved name.", script, name);
+            }
 
             Dictionary<string, ParserFunction> lastLevel = GetLastLevel();
             if (lastLevel != null && s_lastExecutionLevel.IsNamespace && !string.IsNullOrWhiteSpace(s_namespace))
@@ -522,6 +526,14 @@ namespace SplitAndMerge
             function.isNative = isNative;
         }
 
+        public static bool UnregisterFunction(string name)
+        {
+            name = Constants.ConvertName(name);
+
+            bool removed = s_functions.Remove(name);
+            return removed;
+        }
+
         public static bool RemoveGlobal(string name)
         {
             name = Constants.ConvertName(name);
@@ -671,7 +683,7 @@ namespace SplitAndMerge
             }
         }
 
-        public static void AddLocalVariable(ParserFunction local)
+        public static void AddLocalVariable(ParserFunction local, string varName = "")
         {
             NormalizeValue(local);
             local.m_isGlobal = false;
@@ -686,7 +698,7 @@ namespace SplitAndMerge
                 }
             }
 
-            var name = Constants.ConvertName(local.Name);
+            var name = Constants.ConvertName(string.IsNullOrWhiteSpace(varName) ? local.Name : varName);
             local.Name = Constants.GetRealName(name);
             if (local is GetVarFunction)
             {

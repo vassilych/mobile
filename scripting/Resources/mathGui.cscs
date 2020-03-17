@@ -105,22 +105,22 @@ SetBold(quizLabEq, fontSize + 12);
 AlignText(quizLabEq, "center");
 
 locQuizLabEqF1 = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", -60, -75);
-AddLabel(locQuizLabEqF1, "quizLabEqF1", " X", 130, 64);
+AddLabel(locQuizLabEqF1, "quizLabEqF1", " X", 130, 70);
 SetBold(quizLabEqF1, fontSize + 6);
 
 locQuizLabEqF0 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", 10, 10);
 AddImageView(locQuizLabEqF0, "quizLabEqF0", "fractions", 290, 26);
 
 locQuizLabEqF2 = GetLocation("ROOT", "CENTER", quizLabEqF1, "BOTTOM", -60, 30);
-AddLabel(locQuizLabEqF2, "quizLabEqF2", "44", 130, 64);
+AddLabel(locQuizLabEqF2, "quizLabEqF2", "44", 130, 70);
 SetBold(quizLabEqF2, fontSize + 6);
 
 locQuizLabEqF3 = GetLocation(quizLabEqF1, "RIGHT", quizLabEqF1, "CENTER", 52, 0);
-AddLabel(locQuizLabEqF3, "quizLabEqF3", "99", 130, 64);
+AddLabel(locQuizLabEqF3, "quizLabEqF3", "99", 130, 70);
 SetBold(quizLabEqF3, fontSize + 6);
 
 locQuizLabEqF4 = GetLocation(quizLabEqF2, "RIGHT", quizLabEqF2, "CENTER", 52, 0);
-AddLabel(locQuizLabEqF4, "quizLabEqF4", "66", 130, 64);
+AddLabel(locQuizLabEqF4, "quizLabEqF4", "66", 130, 70);
 //AlignText(quizLabEqF4, "center");
 SetBold(quizLabEqF4, fontSize + 6);
 HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
@@ -180,7 +180,7 @@ bestLab[1] = bestLabEq;
 dateLab[1] = dateLabEq;
 
 // ------------- Memory Tab -----------
-AddOrSelectTab("Memory",       "learn.png",     "learn2.png");
+AddOrSelectTab("Memory",       "brain_act.png",     "brain2.png");
 
 locCorrectLabMe = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -160, 40);
 AddLabel(locCorrectLabMe, "correctLabMe", "", 180, 60);
@@ -266,7 +266,7 @@ AddLabel(locWordsLab, "wordsLab", "Entries: ", 120, 30);
 SetFontSize(wordsLab, fontSizeSm);
 
 locWordsStepper = GetLocation(wordsLab, "RIGHT", wordsLab, "CENTER", 100, 0);
-AddSfStepper(locWordsStepper, "wordsStepper", "30:5:100:5", 280, 60);
+AddSfStepper(locWordsStepper, "wordsStepper", "30:5:100:5", 320, 60);
 SetValue(wordsStepper, total);
 SetFontSize(wordsStepper, fontSizeSm);
 AddAction(wordsStepper, "updateTotalEntries");

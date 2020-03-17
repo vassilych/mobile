@@ -411,30 +411,31 @@ namespace scripting
 
         public static float ConvertFontSize(float original, int widgetWidth)
         {
-            float newSize = original;
+            float extra = widgetWidth > 640 || original <= 14 ? 0 : original * 0.2f;
+            float newSize = original - extra;
             if (widgetWidth <= 480)
             {
-                newSize -= 2.5f;
+                newSize -= 4.5f;
             }
             else if (widgetWidth <= 540)
             {
-                newSize -= 2.0f;
+                newSize -= 4.0f;
             }
             else if (widgetWidth <= 600)
             {
-                newSize -= 1.0f;
+                newSize -= 3.0f;
             }
             else if (widgetWidth <= 640)
             {
-                newSize -= 0f;
+                newSize -= 2.0f;
             }
             else if (widgetWidth <= 720)
             {
-                newSize += 0.5f;
+                newSize -= 0.5f;
             }
             else if (widgetWidth <= 800)
             {
-                newSize += 1.0f;
+                newSize += 0.0f;
             }
             else if (widgetWidth <= 900)
             {

@@ -46,8 +46,12 @@ OnTabSelected("tabSelected");
 
 width = DisplayWidth;
 scale = width <= 1080 ? 0.45 : 0.9;
+if (width <= 750) {
+  fontSize -= 6;
+  fontSizeSm -= 6;
+}
 AutoScale(scale);
-printConsole(now("mm:ss.fff") + " Loading data...");
+printConsole(now("mm:ss.fff") + " Loading data for " + DisplayWidth + "x" + DisplayHeight + ", scale: " + scale);
 
 totalCount[6]  = 10000;
 totalCount[7]  = 1000000;
@@ -62,8 +66,8 @@ SetValue(BusyIndicator, "color", "blue");
 SetValue(BusyIndicator, "secondary_color", "yellow");
 
 locLoadingLab = GetLocation("ROOT", "CENTER", BusyIndicator, "BOTTOM", 0, 60);
-AddLabel(locLoadingLab, "loadingLab", "Loading...", 300, 100);
-SetFontSize(loadingLab, 32);
+AddLabel(locLoadingLab, "loadingLab", "Loading...", 320, 100);
+SetFontSize(loadingLab, fontSize + 4);
 SetFontColor(loadingLab, fgcolor);
 
 ImportFile("mathGui.cscs");

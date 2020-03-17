@@ -163,6 +163,7 @@ namespace SplitAndMerge
         public const string JOIN          = "Join";
         public const string KEYS          = "Keys";
         public const string LAST          = "Last";
+        public const string LENGTH        = "Length";
         public const string LOWER         = "Lower";
         public const string REMOVE_ITEM   = "Remove";
         public const string REPLACE       = "Replace";
@@ -176,6 +177,44 @@ namespace SplitAndMerge
         public const string TOKENIZE      = "Tokenize";
         public const string TRIM          = "Trim";
         public const string UPPER         = "Upper";
+
+        // Math Functions
+        public const string MATH_ABS      = "Math.Abs";
+        public const string MATH_ACOS     = "Math.Acos";
+        public const string MATH_ACOSH    = "Math.Acosh";
+        public const string MATH_ASIN     = "Math.Asin";
+        public const string MATH_ASINH    = "Math.Asinh";
+        public const string MATH_ATAN     = "Math.Atan";
+        public const string MATH_ATAN2    = "Math.Atan2";
+        public const string MATH_ATANH    = "Math.Atanh";
+        public const string MATH_CBRT     = "Math.Cbrt";
+        public const string MATH_CEIL     = "Math.Ceil";
+        public const string MATH_COS      = "Math.Cos";
+        public const string MATH_COSH     = "Math.Cosh";
+        public const string MATH_E        = "Math.E";
+        public const string MATH_EXP      = "Math.Exp";
+        public const string MATH_FLOOR    = "Math.Floor";
+        public const string MATH_LN2      = "Math.LN2";
+        public const string MATH_LN10     = "Math.LN10";
+        public const string MATH_LOG      = "Math.LOG";
+        public const string MATH_LOG2E    = "Math.LOG2E";
+        public const string MATH_LOG10E   = "Math.LOG10E";
+        public const string MATH_MAX      = "Math.Max";
+        public const string MATH_MIN      = "Math.Min";
+        public const string MATH_PI       = "Math.PI";
+        public const string MATH_POW      = "Math.Pow";
+        public const string MATH_RANDOM   = "Math.Random";
+        public const string MATH_ROUND    = "Math.Round";
+        public const string MATH_SIGN     = "Math.Sign";
+        public const string MATH_SIN      = "Math.Sin";
+        public const string MATH_SINH     = "Math.Sinh";
+        public const string MATH_SQRT     = "Math.Sqrt";
+        public const string MATH_SQRT1_2  = "Math.Sqrt1_2";
+        public const string MATH_SQRT2    = "Math.Sqrt2";
+        public const string MATH_TAN      = "Math.Tan";
+        public const string MATH_TANH     = "Math.Tanh";
+        public const string MATH_TRUNC    = "Math.Trunc";
+
 
         // Special property for converting an object to a string:
         public const string PROP_TO_STRING    = "ToString";
@@ -218,7 +257,7 @@ namespace SplitAndMerge
         };
 #else
         public static List<string> FUNCT_WITH_SPACE = new List<string> {
-            CLASS, FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP, NEW, NAMESPACE, SHOW, THREAD
+            CLASS, FUNCTION, COMPILED_FUNCTION, HELP, NEW, NAMESPACE, SHOW, THREAD
         };
 #endif
         // Functions that allow a space separator after them, on top of parentheses but
@@ -233,17 +272,17 @@ namespace SplitAndMerge
         // use in calculation of a result.
         public static List<string> CONTROL_FLOW = new List<string>
         {
-            BREAK, CATCH, CLASS, COMPILED_FUNCTION, CSHARP_FUNCTION, CONTINUE, ELSE, ELSE_IF, ELSE, FOR, FUNCTION, IF, INCLUDE, NEW,
+            BREAK, CATCH, CLASS, COMPILED_FUNCTION, CONTINUE, ELSE, ELSE_IF, ELSE, FOR, FUNCTION, IF, INCLUDE, NEW,
             RETURN, THROW, TRY, WHILE
         };
 
         public static List<string> RESERVED = new List<string>
         {
-            BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
+            BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
             RETURN, THROW, TRY, CATCH, COMMENT, TRUE, FALSE, TYPE,
             ASSIGNMENT, AND, OR, EQUAL, NOT_EQUAL, LESS, LESS_EQ, GREATER, GREATER_EQ,
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
-            NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
+            NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString(), "math"
         };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
@@ -279,6 +318,11 @@ namespace SplitAndMerge
 
             s_realNames[lower] = name;
             return lower;
+        }
+
+        public static bool CheckReserved(string name)
+        {
+            return Constants.RESERVED.Contains(name);
         }
 
         public static string GetRealName(string name)

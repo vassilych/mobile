@@ -171,10 +171,8 @@ namespace scripting.iOS
             if (widgetFunc == null)
             {
                 widgetFunc = new iOSVariable(type, widgetName, widget);
-                widgetFunc.AddAction(widgetName, widgetName + "_click");
-
             }
-            //iOSVariable widgetFunc = new iOSVariable(type, widgetName, widget);
+            widgetFunc.AddAction(widgetName, widgetName + "_click");
             SetValues(widgetFunc, initArg);
 
             return widgetFunc;
@@ -402,6 +400,10 @@ namespace scripting.iOS
             {
                 SetComboboxText(text);
             }
+            else if (m_textField is UITextField)
+            {
+                m_textField.Text = " " +  text;
+            }
             else if (ViewX is UIButton)
             {
                 ((UIButton)ViewX).SetTitle(text, UIControlState.Normal);
@@ -436,15 +438,15 @@ namespace scripting.iOS
 
         public virtual string GetText()
         {
-            if (m_viewX is UIButton)
-            {
-                return m_originalText != null ? m_originalText :
-                  ((UIButton)m_viewX).Title(UIControlState.Normal);
-            }
             string result = "";
-            if (m_viewX is UIButton)
+            if(m_textField != null)
             {
-                result = ((UIButton)m_viewX).Title(UIControlState.Normal);
+                result = m_textField.Text;
+            }
+            else if (m_viewX is UIButton)
+            {
+                result = m_originalText != null ? m_originalText :
+                  ((UIButton)m_viewX).Title(UIControlState.Normal);
             }
             else if (m_viewX is UILabel)
             {
@@ -565,6 +567,10 @@ namespace scripting.iOS
             if (m_button != null)
             {
                 m_button.Hidden = !show;
+            }
+            if (m_textField != null)
+            {
+                m_textField.Hidden = !show;
             }
             if (m_picker != null)
             {
@@ -731,6 +737,7 @@ namespace scripting.iOS
             }
 
             m_button = new UIButton();
+            m_viewX = m_button;
             m_button.Frame = rect;
             //m_button.SetTitle(extraLabel, UIControlState.Normal);
             m_button.BackgroundColor = UIColor.Clear;
@@ -739,7 +746,7 @@ namespace scripting.iOS
             m_button.Layer.BorderWidth = 1;
             m_button.Layer.CornerRadius = 4;
             m_button.Layer.BorderColor = UIColor.LightGray.CGColor;
-            UIImage img = UtilsiOS.CreateComboboxImage(rect);
+            UIImage img = UtilsiOS.CreateComboboxImage(rect, mode == "view");
             m_button.SetBackgroundImage(img, UIControlState.Normal);
             m_button.ImageView.ClipsToBounds = true;
             m_button.ContentMode = UIViewContentMode.Right;
@@ -747,15 +754,15 @@ namespace scripting.iOS
             m_button.TouchUpInside += (sender, e) =>
             {
                 ResetCombos();
-                m_extraView1.Hidden   = false;
-                m_extraView2.Hidden   = false;
-                m_button2.Hidden      = false;
+                m_extraView1.Hidden = false;
+                m_extraView2.Hidden = false;
+                m_button2.Hidden = false;
                 m_buttonCancel.Hidden = false;
-                m_picker.Hidden       = false;
+                m_picker.Hidden = false;
 
                 model = m_picker.Model as TypePickerViewModel;
 
-                string text = GetText();
+                string text = m_textField != null ? GetComboMatch() : GetText();
                 int row = model.StringToRow(text);
                 model.Selected(m_picker, row, 0);
                 m_picker.Model = model;
@@ -763,6 +770,27 @@ namespace scripting.iOS
                 mainView.BecomeFirstResponder();
                 mainView.AddSubview(m_viewY);
             };
+
+            if (mode == "edit")
+            {
+                m_textField = new UITextField();
+                var width = rect.Height;
+                m_textField.Frame = new CGRect(rect.X, rect.Y, rect.Width - width, rect.Height);
+                m_button.Frame = new CGRect(rect.X + rect.Width - width, rect.Y, width, rect.Height);
+                m_textField.BackgroundColor = UIColor.Clear;
+                m_textField.TextColor = UIColor.Black;
+                m_textField.Hidden = false;
+                m_textField.Layer.BorderWidth = 0.5f;
+                m_textField.Layer.CornerRadius = 4;
+                m_textField.Layer.BorderColor = UIColor.LightGray.CGColor;
+                mainView.AddSubview(m_textField);
+
+                m_textField.EditingChanged += (sender, e) =>
+                {
+                    var text = m_textField.Text;
+                    m_textField.Placeholder = GetComboMatch();
+                };
+            }
 
             if (string.IsNullOrEmpty(closeLabel))
             {
@@ -800,7 +828,6 @@ namespace scripting.iOS
                 mainView.BecomeFirstResponder();
             };
 
-            m_viewX = m_button;
             mainView.AddSubview(m_viewX);
 
             m_viewY.AddSubview(m_extraView2);
@@ -814,6 +841,25 @@ namespace scripting.iOS
             //m_viewY.AddSubview(m_button2);
 
             m_viewX.Tag = ++m_currentTag;
+        }
+
+        string GetComboMatch()
+        {
+            var text = m_textField != null ? m_textField.Text.Trim() : "";
+            if (text.Length < 1)
+            {
+                return "";
+            }
+            var model = m_picker.Model as TypePickerViewModel;
+            var entries = model.Data;
+            foreach (var entry in entries)
+            {
+                if (entry.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    return entry;
+                }
+            }
+            return "";
         }
 
         public void SetComboboxText(string text, int row = -1)
@@ -835,7 +881,13 @@ namespace scripting.iOS
             }
             ActionDelegate?.Invoke(WidgetName, text);
 
-            m_button?.SetTitle(text, UIControlState.Normal);
+            if (m_textField != null)
+            {
+                m_textField.Text = " " + text;
+            } else
+            {
+                m_button?.SetTitle(text, UIControlState.Normal);
+            }
         }
 
         public void SetComboboxAlignment(Tuple<UIControlContentHorizontalAlignment, UITextAlignment> al)
@@ -1082,6 +1134,11 @@ namespace scripting.iOS
                 uita.Font = newFont;
                 control.SetTitleTextAttributes(uita, UIControlState.Normal);
                 control.SetTitleTextAttributes(uita, UIControlState.Selected);
+            }
+
+            if (m_textField != null)
+            {
+                m_textField.Font = newFont;
             }
         }
 
@@ -1332,6 +1389,7 @@ namespace scripting.iOS
         UIButton m_button;
         UIButton m_buttonCancel;
         UIButton m_button2;
+        UITextField m_textField;
         UILabel m_label;
 
         bool m_bold;

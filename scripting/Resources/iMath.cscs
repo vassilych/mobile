@@ -228,88 +228,6 @@ function prepareNext() {
   count++;
 }
 
-function prepareNext2() {
-  rand = GetRandom(totalCount[quizTypeLevel]);
-  PrintConsole("prepareNext, quizType=", quizType, ", level=", level, ", nb answers:" + answers.size, ", rand=", rand);
-  if (quizType == 2) {
-    tmp = rand;
-    quizEntry = rand;
-    currIndex = 0;
-    rightAnswer = "";
-    while(tmp > 0) {
-      rem = tmp % 10;
-      next = rem == 9 ? 0 : (rem + 1);
-      rightAnswer = next + rightAnswer;
-      tmp = int(tmp/10); 
-    }
-    //PrintConsole("totalCount[quizType]/10=", totalCount[quizTypeLevel]/10, ", res:" +(rand < totalCount[quizTypeLevel]/10), ", rand=", rand);
-    if (rand < totalCount[quizType]/10) {
-      quizEntry   = "0" + quizEntry;
-      rightAnswer = "1" + rightAnswer;
-    }
-    Schedule(duration, "memory_timer");
-  } else {
-    currIndex   = rand;
-    quizEntry   = data[quizTypeLevel][currIndex];
-    rightAnswer = answers[quizTypeLevel][currIndex];
-  }
-
-  ShowView(quizLab[quizType]);
-  HideView(quizLabEqF0); HideView(quizLabEqF1); HideView(quizLabEqF2); HideView(quizLabEqF3); HideView(quizLabEqF4);
-  fractionMode = false;
-  if (quizType == 1) {
-    special = GetRandom(10);
-    if (special <= 5) {
-      numLimit = level == 0 ? 10 : level == 1 ? 5 : 3;
-      fractionMode = true;
-      ratio = (GetRandom(numLimit - 2) + 3) / 2;
-      a = GetRandom(numLimit) + 2;
-      c = 2 + GetRandom(numLimit) * 2;
-      b = c * ratio;
-      rightAnswer = a * b / c;
-      if (rightAnswer != Round(rightAnswer)) {
-        a *= 2;
-        rightAnswer *= 2;
-      }
-      if (level == 0) {
-        str1 = " X";
-      } elif (level == 1) {
-        str1 = " X²";
-        a = a * a;
-        b = b * b;
-        c = c * c;
-      } elif (level == 2) {
-        str1 = " X³";
-        a = a * a * a;
-        b = b * b * b;
-        c = c * c * c;
-      }
-      str2 = a < 10 ? " " + a : string(a); 
-      str3 = b < 10 || b.size < c.size ? " " + b : string(b); 
-      str4 = c < 10 || c.size < b.size ? " " + c : string(c);
-      if (special == 1 || special == 3) {
-        tmp = str1; str1 = str2; str2 = tmp;
-        tmp = str3; str3 = str4; str4 = tmp;
-      }
-      SetText(quizLabEqF1, str1);
-      SetText(quizLabEqF2, str2);
-      SetText(quizLabEqF3, str3);
-      SetText(quizLabEqF4, str4);
-      quizEntry = str1 + "/" + str2 + " = " + str3 + "/" + str4;
-      ShowView(quizLabEqF0); ShowView(quizLabEqF1); ShowView(quizLabEqF2); ShowView(quizLabEqF3); ShowView(quizLabEqF4);
-      //HideView(quizLab[quizType]);
-      SetText(quizLab[quizType], "");
-      printConsole(special + " ratio=" + ratio + ", a=" + a + ", b=" + b + ", c=" + c + ", x=" + rightAnswer);
-    }
-  }
-  SetText(quizLab[quizType], quizEntry);
-  SetText(textAnswer[quizType], "");
-  EnableWidget(buttonAnswer[quizType], true);
-
-  ShowHideKeyboard(textAnswer[quizType], true);
-  count++;
-}
-
 function buttonNewEx_click(sender, arg) {
   quizType = 0;
   buttonNew_click(sender, arg);
@@ -378,7 +296,7 @@ function buttonAnswer_click(sender, arg) {
   correct += wasCorrect;
   wrong = count - correct;
 
-  textColor = wasCorrect ? "dark_green" : "red";
+  textColor = wasCorrect ? "green" : "red";
   msg = wasCorrect ? "Correct! " : "Wrong! ";
   SetFontColor(answerLab[quizType], textColor);
 
@@ -386,6 +304,7 @@ function buttonAnswer_click(sender, arg) {
   msg += quizEntry + sep + rightAnswer;
   // TODO: DEBUG:
   //msg += (fractionMode ? "" : quizEntry) + sep + rightAnswer;
+  ShowToast(msg, wasCorrect ? 2 : 5, "white", textColor);
 
   SetText(answerLab[quizType], msg);
   SetText(correctLab[quizType], "Correct: " + correct);
