@@ -20,8 +20,8 @@ using Syncfusion.SfPicker.iOS;
 using Syncfusion.GridCommon.ScrollAxis;
 using Syncfusion.iOS.Buttons;
 
-using Xamarin.Forms.Platform.iOS;
-using Xamarin.Forms;
+//using Xamarin.Forms.Platform.iOS;
+//using Xamarin.Forms;
 
 using SplitAndMerge;
 
@@ -305,6 +305,7 @@ namespace scripting.iOS
             m_picker.UnSelectedItemFont = UIFont.SystemFontOfSize(m_fontSize);
             m_picker.SelectedItemFont = UIFont.BoldSystemFontOfSize(m_fontSize);
             m_picker.IsOpen = true;
+            m_picker.BorderColor = UIColor.Clear;
 
             m_picker.SelectionChanged += (sender, e) =>
             {
@@ -339,6 +340,7 @@ namespace scripting.iOS
                        rowText.BackgroundColor = m_bgColor;
                        rowText.TextColor = m_fontColor;
                        rowText.Font = UIFont.BoldSystemFontOfSize(m_fontSize);
+                       rowText.Layer.BorderWidth = 0;
                        //rowText.BackgroundColor = UIColor.White;
                        //rowText.TextColor = UIColor.Black;
                        view.AddSubview(rowText);
@@ -651,7 +653,7 @@ namespace scripting.iOS
             m_stepper.StepValue = (nfloat)step;
             m_stepper.Minimum = (nfloat)minValue;
             m_stepper.Maximum = (nfloat)maxValue;
-            m_stepper.Culture = NSLocale.CurrentLocale; //new NSLocale("en_US");
+            m_stepper.Culture = new NSLocale("en_US");
             m_stepper.MaximumDecimalDigits = Utils.GetNumberOfDigits(m_data, 3);
             m_stepper.IsEditable = false;
 

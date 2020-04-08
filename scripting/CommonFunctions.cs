@@ -139,6 +139,7 @@ namespace scripting
             ParserFunction.RegisterFunction("_DEVICE_INFO_", new GetDeviceInfoFunction());
             ParserFunction.RegisterFunction("_VERSION_INFO_", new GetVersionInfoFunction());
             ParserFunction.RegisterFunction("_VERSION_NUMBER_", new GetVersionNumberFunction());
+            ParserFunction.RegisterFunction("_DEBUG_", new IsDebugFunction());
             ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
@@ -272,9 +273,9 @@ namespace scripting
 
             List<Variable> args = script.GetFunctionArgs();
 
-            string arg1     = Utils.GetSafeString(args, 0, null);
-            string arg2     = Utils.GetSafeString(args, 1, null);
-            string arg3     = Utils.GetSafeString(args, 2, null);
+            string arg1 = Utils.GetSafeString(args, 0, null);
+            string arg2 = Utils.GetSafeString(args, 1, null);
+            string arg3 = Utils.GetSafeString(args, 2, null);
 
             ParserFunction func = ParserFunction.GetFunction(funcName, script);
             Utils.CheckNotNull(funcName, func, script);
@@ -311,7 +312,7 @@ namespace scripting
 
     public class AutoScaleFunction : ParserFunction
     {
-        public static int BASE_WIDTH  = 640;
+        public static int BASE_WIDTH = 640;
         public static int BASE_HEIGHT = 960;
 
         public static double ScaleX { get; private set; }
@@ -811,6 +812,19 @@ namespace scripting
             return new Variable(isiPhoneX);
         }
     }
+
+    class IsDebugFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+#if DEBUG
+            return new Variable(true);
+#else
+            return new Variable(false);
+#endif
+        }
+    }
+
     class IsAndroidFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)

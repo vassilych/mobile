@@ -1,5 +1,12 @@
-﻿Version      = "0.1.4";
+﻿Version      = "1.1.0";
 AppName      = "TrueDividends.com";
+
+// 16.2.0.41
+InitSyncfusion("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5QjBuRFBMYUZhdEV1QlU9");
+// 17.4.0.39
+//InitSyncfusion("MjEzMjM4QDMxMzcyZTM0MmUzMFpUdERwTWxzdGJwbm43Mit3dk1qZXpqcTZCcUdMaDM4YTlidktSY2Q1M2s9");
+// 18.1.0.42
+//InitSyncfusion("MjM0MTk0QDMxMzgyZTMxMmUzMElTRkt2dmpPUFdoN0NhaFlGT2NNT25UMnA4TGRzanJVckw0dXE5WnZ3Nzg9");
 
 data         = {};
 prices       = {};
@@ -21,6 +28,7 @@ isin         = "";
 connected    = false;
 loggedIn     = false;
 busy         = false;
+init         = true;
 busyIndex    = 0;
 busyOptions  = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe", "pulsing",
                 "movie", "print", "rectangle", "rollingball", "singlecircle", "slicedcircle", "zooming"};
@@ -28,9 +36,9 @@ busyOptions  = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe"
 graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
                 "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue"};
-
-markets = { "Market", "CH", "DE", "US" };
-market  = "";
+hack     = false;
+markets  = { "Market", "CH", "DE", "US" };
+market   = "";
 starting = true;
 lastStockLoaded = "";
 lastVolaLoaded = "";
@@ -45,7 +53,7 @@ prevVolaSelection   = "";
 productId    = "ch.mydividends.vk.iap1";
 purchased    = GetSetting("purchased", "bool", false);
 
-allowedStocks = {"ABBN", "TUI", "AAPL" };
+allowedStocks = { "ABBN", "BAY" };
 stock = GetSetting("stock", "string", "");
 stockMenu = GetSetting("stockMenu", "string", stocksHeader);
 printConsole("Starting with fav. stock: " + stock);
@@ -53,20 +61,40 @@ printConsole("Starting with fav. stock: " + stock);
 username = "test";//GetText(textLogin);
 password = "test";//GetText(textPassword);
 
-InitSyncfusion();
 AutoScale(1.0);
 
 function onInit(sender, arg) {
   printConsole("onInit: " + arg);
+  if (arg != "OK") {
+    AlertDialog(AppName, arg);
+    makeUnbusy();
+    return;
+  }
   GetDataFromServer("allstocks", "", "loadAllStocks");
 }
 
+function onException(sender, errorMsg, arg) {
+  makeUnbusy();
+  if (_DEBUG_) {
+    if (arg.Size > 20) {
+      ShowToast(sender + " " + arg, 10, "yellow", "dark_red");
+      Sleep(2000);
+      ShowToast(errorMsg, 10, "yellow", "dark_red");
+    } else {    
+      ShowToast(sender + " " + arg + ": " + errorMsg, 10, "yellow", "dark_red");
+    }
+  }
+}
+
 function startUp() {
+  reset_purchase_restore();
+  makeBusy();
   printConsole("Logging in user " + username);
   loggedIn = Login(username, password, "onInit");
 }
 
 function makeBusy() {
+  //PrintConsole("-- makeBusy1()");
   makeUnbusy();
   locBusy = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -300);
   AddSfBusyIndicator(locBusy, "BusyIndicator", "", busySize, busySize);
@@ -80,28 +108,20 @@ function makeBusy() {
   SetValue(BusyIndicator, "secondary_color", "red");
   //SetValue(BusyIndicator, "duration", stepperValue);
   busy = true;
+  //PrintConsole("-- makeBusy2()");
 }
 
 function makeUnbusy() {
-  if (NameExists(BusyIndicator)) {
-    RemoveView(BusyIndicator);
-  }
+  RemoveViewIfExists(BusyIndicator);
   busy = false;
+  //PrintConsole("-- makeUnBusy()");
 }
 
 function tabSelected(sender, arg) {
   newtab = int(arg);
+
   //ShowHideKeyboard(textStock, false);
   if (newtab == currentTab) {
-    return;
-  }
-  if (!connected) {
-    if (newtab == numberTabs - 1) {
-      currentTab = numberTabs - 1;
-      return;
-    }
-    ShowToast("Please connect first", 5, "yellow", "dark_green");
-    SelectTab(numberTabs - 1);
     return;
   }
   if (busy) {
@@ -109,38 +129,59 @@ function tabSelected(sender, arg) {
     SelectTab(currentTab);
     return;
   }
+  if (!connected) {
+    if (newtab == 0) {
+      currentTab = 0;
+      return;
+    }
+    ShowToast("Please connect first", 5, "yellow", "dark_green");
+    SelectTab(0);
+    return;
+  }
+  if (!checkStockOK()) {
+    ShowToast("Please purchase unlimited stocks or select a free stock", 5, "yellow", "dark_green");
+    SelectTab(currentTab);
+    return;
+  }
   currentTab = newtab;
   printConsole("tabSelected :" + newtab);
 
   makeBusy();
-  if (newtab == 0) {
+  if (newtab == 1) {
+    if (stock == lastAnalysisLoaded && NameExists(DivGraph1)) {
+      makeUnbusy();
+      return;
+    }
+    RemoveViewIfExists(DivGraph1);
+    RemoveViewIfExists(DivGraph2);
+    GetDataFromServer("dividends", stock, "fillDividendsData");
+  } elif (newtab == 2) {
+    if (stock == lastVolaLoaded && NameExists(VolaGraph1)) {
+      makeUnbusy();
+      return;
+    }
+    RemoveViewIfExists(VolaGraph1);
+    RemoveViewIfExists(VolaGraph2);
+    GetDataFromServer("volas", stock, "fillVolasData");
+  } elif (newtab == 3) {
+    if (!data.Contains(stock)) {
+      SelectTab(4);
+      currentTab = 4;
+      ShowToast("Loading options first...", 7, "yellow", "dark_green");
+      makeBusy();
+      GetDataFromServer("optionprices", stock, "fillStockData");
+      return;
+    }
+    createGraphs();
+  } elif (newtab == 4) {
     printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
     if (stock == lastStockLoaded) {
       printConsole("No reload needed for stock " + stock);
       makeUnbusy();
       return;
     }
+    cleanUpViews();
     GetDataFromServer("optionprices", stock, "fillStockData");
-  } elif (newtab == 1) {
-    if (stock == "" || !data.Contains(stock)) {
-      makeUnbusy();
-      ShowToast("Please first load options in first tab", 7, "yellow", "dark_green");
-      SelectTab(0);
-      return;
-    }
-    createGraphs();
-  } elif (newtab == 2) {
-    if (stock == lastAnalysisLoaded) {
-      makeUnbusy();
-      return;
-    }
-    GetDataFromServer("dividends", stock, "fillDividendsData");
-  } elif (newtab == 3) {
-    if (stock == lastVolaLoaded) {
-      makeUnbusy();
-      return;
-    }
-    GetDataFromServer("volas", stock, "fillVolasData");
   } else {
     makeUnbusy();
   }
@@ -155,8 +196,28 @@ function buttonAboutUs_click(sender, arg) {
               "Developed by: " + AppName);
 }
 
+function buttonSendMail_click(sender, arg) {
+  stockToSuggest = GetText(textSuggest).Trim;
+  if (stockToSuggest == "") {
+    AlertDialog(AppName, "Please provide stock name");
+    return;
+  } 
+  SendEmail("Suggest Stock", "Please include stock " + stockToSuggest);
+}
+
 function allStocksCombo_click(sender, arg) {
+  if (busy) {
+    return;
+  }
+  PrintConsole("allStocksCombo_click " + sender + " -- " + arg + " init " + init);
   setStock(arg);
+  if (stocks.size <= 1) {
+    if (!init) {
+      ShowToast("Please reconnect first...", 7, "yellow", "dark_green");
+    }
+    return;
+  }
+  Schedule(100, "buttonConnect_click");
 }
 
 function setStock(arg) {
@@ -170,7 +231,6 @@ function setStock(arg) {
       break;
     }
   }
-  hack = false;
   if (stock.StartsWith("___")) {
     stock = stock.Substring(3);
     stockMenu = stockMenu.Substring(3);
@@ -178,35 +238,67 @@ function setStock(arg) {
   }
   SetSetting("stock", stock);
   SetSetting("stockMenu", stockMenu);
-  printConsole("Stock selected " + arg + " --> " + stock + ", " + stockMenu);
-  return hack;
+  printConsole("Stock selected " + arg + " --> " + stock + ", " + stockMenu + ", hack=" + hack);
 }
 
-function connect(sender, arg) {
-  hack = setStock(GetText(allStocksCombo));
-  SetText(allStocksCombo, stockMenu);
+function checkStockOK() {
+  printConsole("checkStockOK stock =" + stock);
   if (!hack && !purchased && stock != "" && !allowedStocks.Contains(stock)) {
-      AlertDialog(AppName, "Only these stocks can be used for free:\n" + allowedStocks +
-                           "\nDo you want to purchase unlimited usage?",
-                           "OK", "buttonPurchase_click", "Cancel");
-      return;
-  } 
+    allowed = "";
+    for (i = 0; i < allowedStocks.Length; i++) {
+      allowed += allowedStocks[i];
+      if (i < allowedStocks.Length - 1) {
+        allowed += ", ";
+      }
+    }
+    AlertDialog(AppName, "Only these stocks can be used for free:\n" + allowed + "." +
+                         "\nDo you want to purchase unlimited usage?",
+                         "OK", "buttonPurchase_click", "Cancel");
+    return false;
+  }
+  return true;
+}
 
-  //SetText(allStocksCombo, stock);
+function checkStockPaid() {
+  printConsole("checkStockPaid stock =" + stock);
+  setStock(stock);
+  if (!checkStockOK()) {
+    return false;
+  }
+  return true;
+}
+
+function buttonConnect_click(sender, arg) {
+  stock = GetText(allStocksCombo).Trim;
+  printConsole("buttonConnect_click stock =" + stock);
+  if (stock == "" || stock.Upper == stocksHeader.Upper) {
+    AlertDialog(AppName, "Please provide a valid stock name");
+    return;
+  }
+
+  if (!checkStockPaid()) {
+    return;
+  }
+
   makeBusy();
 
   SetSetting("stock", stock);
   //ShowHideKeyboard(textStock, false);
 
-  printConsole("Logging in user " + username + " with stock [" + stock + "]");
-  loggedIn = Login(username, password, "onConnect");
+  printConsole("buttonConnect_click stocks.size =" + stocks.size);
+  if (stocks.size == 0) {
+    GetDataFromServer("allstocks", "", "loadAllStocks");
+  } else {
+    onConnect(sender, "OK");
+  }
 }
 
 function loadAllStocks(sender, arg) {
+  init = false;
   stocks              = {};
   stocks.Add(stocksHeader);
   stockData = arg.Split("!");
-  printConsole("Loaded " + stockData.Size + " stocks: " + arg);
+  printConsole("LoadAllStocks " + stockData.Size + " stocks: " + arg);
   for (item : stockData) {
     parts = item.Split('|');
     if (parts.Size < 2) {
@@ -222,14 +314,16 @@ function loadAllStocks(sender, arg) {
   AddWidgetData(allStocksCombo, stocks);
   //SetValue(allStocksCombo, "value", 0);
   SetText(allStocksCombo, stockMenu);
+
+  onConnect(sender, "OK");
 }
 
 function onConnect(sender, arg) {
+  printConsole("onConnect " + arg);
+  cleanUpViews();
   if (arg == "OK") {
     connectionSuccess();
-    if (stock != "") {
-      //stockSelected(sender, stock);
-      //GetDataFromServer("stockstddev", stock, "onStockData");
+    if (stock != "" && stock.Upper != stocksHeader.Upper && checkStockPaid()) {
       GetDataFromServer("stockinfo", stock, "onStockData");
       return;
     }
@@ -256,9 +350,13 @@ function onStockData(sender, arg) {
     makeUnbusy();
     return;
   }
+
+  std = stockData[2] != "" ? (double(stockData[2]) * 100) + "%" : "";
+    
+  curr = stockData[5].substring(0, 3);
   SetText(textIsin,    stockData[0]);
   SetText(textClose,   stockData[1]);
-  SetText(textStd,     stockData[2]);
+  SetText(textStd,     std);
   SetText(textUpdate,  stockData[3]);
   SetText(textLastDiv, stockData[5]);
   SetText(textNextDiv, stockData[6]);
@@ -280,6 +378,19 @@ function onStockData(sender, arg) {
   makeUnbusy();
 }
 
+function cleanUpViews() {
+  RemoveViewIfExists(DataGrid);
+  RemoveViewIfExists(labelCcy);
+  RemoveViewIfExists(imageCcy);
+  RemoveViewIfExists(DivGraph1);
+  RemoveViewIfExists(DivGraph2);
+  RemoveViewIfExists(StdGraph);
+  RemoveViewIfExists(VolaGraph1);
+  RemoveViewIfExists(VolaGraph2);
+  RemoveViewIfExists(SplineGraph1);
+  RemoveViewIfExists(SplineGraph2);
+}
+
 function stockSelected(sender, arg) {
   if (arg == "" || arg == stocksHeader || prevStockSelection == arg) {
     makeUnbusy();
@@ -290,17 +401,7 @@ function stockSelected(sender, arg) {
   stock = arg;
   printConsole("stockSelected: [" + stock + "]");
 
-  if (NameExists(DataGrid)) {
-    RemoveView(DataGrid);
-    RemoveView(labelCcy);
-    RemoveView(imageCcy);
-  }
-  if (NameExists(VolaGraph1)) {
-    RemoveView(VolaGraph1);
-  }  if (NameExists(VolaGraph2)) {
-    RemoveView(VolaGraph2);
-  }
-
+  cleanUpViews();
   makeBusy();
   parts = arg.Split(' ');
   stock = parts.First;
@@ -360,6 +461,7 @@ function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
       colorIndex = 0;
     }
     addDataToGraph(graphName, stockData, key, graphColors[colorIndex]);
+    printConsole("-- GraphData " + graphName + " " + key + ":" + graphColors[colorIndex]);
   }
 
   if (graphTitle != "") {
@@ -409,17 +511,14 @@ function addDataToGraph(graphName, graphData, key, colors) {
 function loadStockWarning() {
   makeUnbusy();
   ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
-  SelectTab(0);
+  SelectTab(4);
   GetDataFromServer("optionprices", stock, "fillStockData");
 }
 
 function createGraphs() {
-  if (NameExists(SplineGraph1)) {
-    RemoveView(SplineGraph1);
-  }
-  if (NameExists(SplineGraph2)) {
-    RemoveView(SplineGraph2);
-  }
+  RemoveViewIfExists(SplineGraph1);
+  RemoveViewIfExists(SplineGraph2);
+
   if (stock == "" || !data.Contains(stock)) {
     ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
     return;
@@ -452,10 +551,8 @@ function createGraphs() {
 
 function fillVolasData(sender, arg) {
   PrintConsole("fillVolasData ", stock, ":", arg);
+  RemoveViewIfExists(volasWidget);
 
-  if (NameExists(volasWidget)) {
-    RemoveView(volasWidget);
-  }
   volasToShow  = 1;
   volaData     = {};
   selVolas     = {};
@@ -517,7 +614,9 @@ function fillVolasData(sender, arg) {
   AddCombobox(locComboVolas, "volasWidget", "", 480, 50);
   comboData = dates;
   comboData.Add(volaHeader, 0);
+
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
+
   SetFontSize(volasWidget, 14);
   SetValue(volasWidget, "alignment", "center");
   SetValue(volasWidget, "fontcolor", "red");
@@ -528,12 +627,10 @@ function fillVolasData(sender, arg) {
   volaSelected("", "");
   PrintConsole("Finished processing " + volaData.Size + " Volas. Dates received: [", dates, "]");
   lastVolaLoaded = stock;
-  //makeUnbusy();
 }
 
 function fillVolaParams(sender, arg) {
-  PrintConsole("Processing fillVolaParams [", arg, "]");
-  PrintConsole("selVolas: [", selVolas, "]");
+  PrintConsole("Processing fillVolaParams [" + arg + "], selVolas: [" + selVolas + "]");
 
   volaParamsData = {};
   points         = arg.Split("\t");
@@ -541,7 +638,7 @@ function fillVolaParams(sender, arg) {
 
   for (point : points) {
     parts      = point.Split("|");
-    PrintConsole("Processing fillVolaParams [", point, "] size=", parts.size);
+    //PrintConsole("Processing fillVolaParams [", point, "] size=", parts.size);
     if (parts.size < 6) {
       continue;
     }
@@ -552,29 +649,22 @@ function fillVolaParams(sender, arg) {
     p4           = Round(double(parts[4]), 4);
     key = expiry = parts[5];
     if (!selVolas.Contains(expiry)) {
-      PrintConsole(" SKIPPING EXPIRY: " + expiry);
+      //PrintConsole(" SKIPPING EXPIRY: " + expiry);
       continue;
     }
 
-    PrintConsole("  SETTING Ps: " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + ", expiry: " + expiry);
+    //PrintConsole("  SETTING Ps: " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + ", expiry: " + expiry);
     if (p4 == 0) {
       continue;
     }
 
-    //atm = prices[stock];
-    //atm = double(atm.Substring(4));
-    //lower = Round(atm * 0.5);
-    //upper = Round(atm * 1.5);
     lower = minVolaPrice[expiry];
     upper = maxVolaPrice[expiry];
-    PrintConsole("    " + lower + " --> " + upper + " (stock=" + stock + ")");
+    //PrintConsole("    " + lower + " --> " + upper + " (stock=" + stock + ")");
 
     for (x = lower; x < upper; x++) {
       lp4 = log(x/p4);
       y = p1 + p2 * lp4 + p3 * lp4 * lp4;
-      if (x < 15) {
-        PrintConsole("      " + x + " --> " + y + " (lp4=" + lp4 +"). key: " + key);
-      }
       AddOrderedData(volaParamsData, key, x, y);
       if (!keys.Contains(key)) {
         keys.Add(key);
@@ -613,22 +703,17 @@ function volaSelected(sender, arg) {
     SetValue(volasWidget, arg, "dark_green");
   }
 
-  if (NameExists(VolaGraph1)) {
-    RemoveView(VolaGraph1);
-  }
-  if (NameExists(VolaGraph2)) {
-    RemoveView(VolaGraph2);
-  }
-
-  locVolaGraph1 = GetLocation("ROOT", "CENTER", volasWidget, "BOTTOM", 0, 0);
-
   printConsole("Redrawing " + selVolas.Size + " Volas for " + stock);
   if (selVolas.Size == 0) {
     makeUnbusy();
     return;
   }
 
+  RemoveViewIfExists(VolaGraph1);
+  RemoveViewIfExists(VolaGraph2);
+  locVolaGraph1 = GetLocation("ROOT", "CENTER", volasWidget, "BOTTOM", 0, 0);
   createGraph(locVolaGraph1, "VolaGraph1", "Volatilities for "+stock+"  "+isin, volaData, selVolas, "Strike", "Vola");
+
   GetDataFromServer("volaparams", stock, "fillVolaParams");
 }
 
@@ -642,6 +727,8 @@ function printData(d, key, str = "") {
 }
 
 function fillStdDevData(sender, arg) {
+  RemoveViewIfExists(StdGraph);
+
   stddevs[stock] = arg;
   PrintConsole(arg);
   title = "Standard Deviation for " + stock;
@@ -662,10 +749,6 @@ function fillStdDevData(sender, arg) {
   }
   
   PrintConsole("Loaded ", stdData.size, " stddevs points.");
-
-  if (NameExists(StdGraph)) {
-    RemoveView(StdGraph);
-  }
 
   if (stdData.size == 0) {
     makeUnbusy();
@@ -690,8 +773,8 @@ function fillDividendsData(sender, arg) {
   PrintConsole(arg);
   //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
   
-  estimatedTitle = "Estimated Dividends";
-  pastTitle      = "Past Dividends";
+  estimatedTitle = "Estimated Div";
+  pastTitle      = "Paid/Declared Div";
   isin           = "";
   points         = arg.Split("\t");
   divData        = {};
@@ -717,13 +800,6 @@ function fillDividendsData(sender, arg) {
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
 
-  if (NameExists(DivGraph1)) {
-    RemoveView(DivGraph1);
-  }
-  if (NameExists(DivGraph2)) {
-    RemoveView(DivGraph2);
-  }
-  
   locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
   AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
   SetText(DivGraph1,  "Dividends for " + stock  + "  " + isin);
@@ -732,7 +808,7 @@ function fillDividendsData(sender, arg) {
     SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
     SetValue(DivGraph1, "secondary_axis", "Payout");
     SetValue(DivGraph1, "string_axis", "x");
-    setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "Payout: ");
+    setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
     if (nbPast > 0) {
       addDataToGraph(DivGraph1, divData, pastTitle, "blue:blue");
     } 
@@ -746,21 +822,7 @@ function fillDividendsData(sender, arg) {
 
 function fillStockData(sender, arg) {
   printConsole("fillStockData arg=" + arg);
-  tabId = 0;
-  SelectTab(tabId);
-  
-  if (NameExists(DataGrid)) {
-    RemoveView(DataGrid);
-    RemoveView(labelCcy);
-    RemoveView(imageCcy);
-    //RemoveView(labelMkt);
-  }
-  if (NameExists(SplineGraph1)) {
-    RemoveView(SplineGraph1);
-  }
-  if (NameExists(SplineGraph2)) {
-    RemoveView(SplineGraph2);
-  }
+  SelectTab(4);
   
   if (arg == "") {
     makeUnbusy();
@@ -870,7 +932,7 @@ function connectionSuccess() {
   SetText(labelStatus2,  "Connected at " + timenow);
   SetFontColor(labelStatus2, "dark_green");
 
-  SelectTab(numberTabs - 1);
+  SelectTab(0);
   connected = true;
 }
 
@@ -884,41 +946,32 @@ function resetButtons() {
 }
 
 function buttonPurchase_click(sender, arg) {
-  ShowToast(Localize("Please wait..."), 10, "blue");
+  ShowToast(Localize("Please wait while purchasing..."), 10, "blue");
   Purchase("on_purchase", productId);
 }
 
 function on_purchase(error, productId) {
   if (error != "") {
-    ShowToast(Localize("Error Purchasing:") + " " + error, 6, "red");
+    //ShowToast(Localize("Purchase not completed") + " " + error, 6, "red");
+    AlertDialog(AppName, Localize("Error Purchasing") + "\n" + error);
     return;
   }
 
-  description = ProductIdDescription(productId);
-  ShowToast(Localize("Purchased:") + " " + description, 6, "blue");
+  //description = ProductIdDescription(productId);
+  ShowToast(Localize("Purchased Unlimited Usage"), 7, "blue");
   complete_purchase_restore(productId);
-
-  PrintConsole("Purchased: ", productId, ": ", description);
-}
-
-function complete_purchase_restore(productId) {
-  SetSetting("purchased", true, "bool");
-  purchased = true;
-  //reset_purchaseButtons();
-}
-
-function buttonRestore_click(sender, arg) {
-  ShowToast(Localize("Please wait..."), 10, "blue");
-  Restore("on_restore", productId);
+  //PrintConsole("Purchased: ", productId, ": ", description);
 }
 
 function on_restore(error, productIds) {
   if (error != "") {
-    ShowToast(Localize("Error Restoring:") + " " + error, 8, "red");
+    //ShowToast(Localize("Error Restoring:") + " " + error, 8, "red");
+    AlertDialog(AppName, Localize("Error Restoring") + "\n" + error);
     return;
   }
   if (productIds == "") {
-    ShowToast(Localize("Nothing to restore"), 8, "red");
+    //ShowToast(Localize("No purchases to restore"), 8, "red");
+    AlertDialog(AppName, Localize("No purchases to restore"));
     return;
   }
 
@@ -934,7 +987,26 @@ function on_restore(error, productIds) {
     PrintConsole("Restored: ", productId, ": ", description);
   }
     
-  ShowToast(Localize("Restored:") + restoredStr, 6, "blue");
+  //ShowToast(Localize("Restored Unlimited Usage"), 6, "blue");
+  AlertDialog(AppName, Localize("Restored Unlimited Usage"));
+}
+
+function complete_purchase_restore(productId) {
+  SetSetting("purchased", true, "bool");
+  purchased = true;
+  reset_purchase_restore();
+}
+
+function reset_purchase_restore() {
+  if (purchased) {
+    //HideView(buttonPurchase);
+    HideView(buttonRestore);
+  }
+}
+
+function buttonRestore_click(sender, arg) {
+  ShowToast(Localize("Please wait while restoring..."), 10, "blue");
+  Restore("on_restore", productId);
 }
 
 //--------- GUI Code Starts Here ----------------
@@ -950,7 +1022,7 @@ graphWidth   = 620;
 graphHeight  = 510;
 tableWidth   = 620;
 tableHeight  = 860;
-extraTop     = 0;
+extraTop     = 16;
 volaHeightDelta = 40;
 
 isiPhoneX    = isiPhoneX();
@@ -965,21 +1037,28 @@ if (isiPhoneX) {
 SetBackgroundColor("cyan");
 
 numberTabs = 5;
-currentTab = numberTabs - 1;
-AddOrSelectTab("Options",      "learn.png",     "learn2.png");
-AddOrSelectTab("Puts, Calls",  "brain_act.png", "brain2.png");
+currentTab = 0;
+
+//AddOrSelectTab("Options",      "learn.png",     "learn2.png");
+//AddOrSelectTab("Puts, Calls",  "brain_act.png", "brain2.png");
+//AddOrSelectTab("Analysys",     "dividends.png", "dividends2.png");
+//AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
+//AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+
+AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
 AddOrSelectTab("Analysys",     "dividends.png", "dividends2.png");
 AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
-AddOrSelectTab("Settings",     "settings.png",  "settings2.png");
+AddOrSelectTab("Puts, Calls",  "brain_act.png", "brain2.png");
+AddOrSelectTab("Options",      "learn.png",     "learn2.png");
 
-SelectTab(numberTabs - 1);
+SelectTab(0);
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
 AddLabel(locLoading, "labelLoading", "", 580, 160);
 AlignText(labelLoading, "center");
 
 locStockLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, 10 + extraTop);
-AddLabel(locStockLab, "labelStock", "Favorite Stock:", textWidth, textHeight);
+AddLabel(locStockLab, "labelStock", "Stock:", textWidth, textHeight);
 SetFontSize(labelStock, fontSizeSm);
 
 locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
@@ -1005,7 +1084,7 @@ AddLabel(locClose, "textClose", "", textWidth, textHeight);
 SetFontSize(textClose, fontSizeSm);
 
 locLastDivLab = GetLocation("ROOT", "LEFT", labelClose, "BOTTOM", 10, 10);
-AddLabel(locLastDivLab, "labelLastDiv", "Last Dividend:", textWidth, textHeight);
+AddLabel(locLastDivLab, "labelLastDiv", "Paid/Declared Dividend:", textWidth, textHeight);
 SetFontSize(labelLastDiv, fontSizeSm);
 
 locLastDiv = GetLocation(labelLastDiv, "RIGHT", labelLastDiv, "CENTER", 10);
@@ -1021,7 +1100,7 @@ AddLabel(locDiv, "textNextDiv", "", 380, textHeight);
 SetFontSize(textNextDiv, fontSizeSm);
 
 locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
-AddLabel(locStdLab, "labelStd", "Standard Deviation:", textWidth, textHeight);
+AddLabel(locStdLab, "labelStd", "Standard Deviation (1 year):", textWidth, textHeight);
 SetFontSize(labelStd, fontSizeSm);
 
 locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
@@ -1049,17 +1128,10 @@ HideView(textStd);
 HideView(labelUpdate);
 HideView(textUpdate);
 
-locCancel = GetLocation("ROOT", "CENTER", labelLoading, "BOTTOM", 0, -30);
-AddButton(locCancel, "buttonCancel", "", 140, 140);
-AddAction(buttonCancel, "cancel_search");
-AddBorder(buttonCancel, 0);
-SetImage(buttonCancel, "cancel");
-HideView(buttonCancel);
-
 locConnect = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 40);
 AddButton(locConnect, "buttonConnect", "", 280, 140);
-AddAction(buttonConnect, "connect");
 SetImage(buttonConnect, "connect");
+AddBorder(buttonConnect, 0);
 
 locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 200);
 AddLabel(locStatus, "labelStatus", "Status:", 180, 60);
@@ -1072,6 +1144,14 @@ SetFontSize(labelStatus2, fontSizeSm + 2);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
 
+/*locTextSuggest = GetLocation("ROOT", "LEFT", labelStatus, "BOTTOM", 10, 10);
+AddTextEdit(locTextSuggest, "textSuggest", "MSFT", 200, 60);
+SetFontSize(textSuggest, fontSizeSm + 2);
+
+locSendMail = GetLocation(textSuggest, "RIGHT", textSuggest, "CENTER", 10, 0);
+AddButton(locSendMail, "buttonSendMail", "Suggest Stock", 280, 60);
+SetFontSize(buttonSendMail, fontSizeSm + 2);*/
+
 locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -20, -10);
 AddButton(locAboutUs, "buttonAboutUs", "", 130, 130);
 AddBorder(buttonAboutUs, 0);
@@ -1082,12 +1162,12 @@ AddButton(locRestore, "buttonRestore", "Restore", 220, 110);
 SetImage(buttonRestore, "restore");
 SetFontSize(buttonRestore, fontSize);
 SetFontColor(buttonRestore, "white");
-
+/*
 locPurchase = GetLocation(buttonRestore, "RIGHT", buttonRestore, "CENTER", 6, 0);
 AddButton(locPurchase, "buttonPurchase", "Purchase", 220, 110);
 SetImage(buttonPurchase, "purchase");
 SetFontSize(buttonPurchase, fontSize);
-SetFontColor(buttonPurchase, "white");
+SetFontColor(buttonPurchase, "white");*/
 
 OnTabSelected("tabSelected");
 startUp();

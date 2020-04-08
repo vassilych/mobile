@@ -129,7 +129,22 @@ namespace SplitAndMerge
             var arg1 = senderName == null ? null : new Variable(senderName);
             var arg2 = eventArg1  == null ? null : new Variable(eventArg1);
             var arg3 = eventArg2  == null ? null : new Variable(eventArg2);
-            var task = CustomFunction.Run(funcName, arg1, arg2, arg3);
+            System.Threading.Tasks.Task<Variable> task = null;
+            try
+            {
+                task = CustomFunction.Run(funcName, arg1, arg2, arg3);
+            }
+            catch (Exception exc)
+            {
+                try
+                {
+                    task = CustomFunction.Run("OnException", new Variable(funcName),
+                                              new Variable(exc.Message), arg2);
+                }
+                catch
+                {
+                }
+            }
             return task == null ? Variable.EmptyInstance : task.Result;
         }
     }

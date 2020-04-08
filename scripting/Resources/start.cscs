@@ -9,7 +9,7 @@
 //ImportFile("test.cscs");
 //ImportFile("unitTests.cscs");
 //ImportFile("busyIndicators.cscs");
-ImportFile("cscs.cscs");
-//ImportFile("remote.cscs");
+//ImportFile("cscs.cscs");
+ImportFile("remote.cscs");
 
 //StartDebugger(13337, true, "*");

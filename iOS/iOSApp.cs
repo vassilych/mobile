@@ -319,6 +319,10 @@ namespace scripting.iOS
 
             this.ViewControllerSelected += OnTabSelected;
 
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(
+                CurrentDomain_UnhandledException
+                );
+
             CustomInit.InitAndRunScript();
 
             if (m_selectedTab >= 0)
@@ -329,6 +333,14 @@ namespace scripting.iOS
             {
                 TabBar.Hidden = true;
             }
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception exc = (Exception)args.ExceptionObject;
+            CustomFunction.Run("OnException", new Variable("Unhandled"),
+                                              new Variable(exc.Message), new Variable(exc.StackTrace));
+            System.Threading.Thread.Sleep(2000);
         }
 
         private void RunScript()

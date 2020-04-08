@@ -2,6 +2,13 @@
 using Foundation;
 using UIKit;
 
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
+
 using SplitAndMerge;
 
 namespace scripting.iOS
@@ -35,54 +42,15 @@ namespace scripting.iOS
             m_view = Window.RootViewController.View;
             m_view.BackgroundColor = UIColor.White;
 
-            // 16.2.0.41
-            //Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5QjBuRFBMYUZhdEV1QlU9");
-            // 17.4.0.39
-            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MjEzMjM4QDMxMzcyZTM0MmUzMFpUdERwTWxzdGJwbm43Mit3dk1qZXpqcTZCcUdMaDM4YTlidktSY2Q1M2s9");
+            AppCenter.Start("0d1f57c7-e260-4abf-8e71-c72ec6f2fffc",
+                   typeof(Analytics), typeof(Crashes));
+            AppCenter.LogLevel = LogLevel.Verbose;
 
             // Will execute the CSCS script:
             m_viewController.Run();
 
-            /*var segmented = CreateSegmentedControl();
-            segmented.Frame = new CoreGraphics.CGRect(10, 10, 600, 50);
-            var view1 = new UIView(new CoreGraphics.CGRect(0, 340, 620, 50));
-            m_view.AddSubview(view1);
-            view1.AddSubview(segmented);*/
-
             m_view.AutoresizingMask = UIViewAutoresizing.All;
             return true;
-        }
-
-        Syncfusion.iOS.Buttons.SfSegmentedControl CreateSegmentedControl()
-        {
-            Syncfusion.iOS.Buttons.SfSegmentedControl m_segmented = new Syncfusion.iOS.Buttons.SfSegmentedControl();
-
-            var SizeCollection = new System.Collections.ObjectModel.ObservableCollection<Syncfusion.iOS.Buttons.SfSegmentItem>
-            {
-                new Syncfusion.iOS.Buttons.SfSegmentItem(){Text = "A", IconFont="XS"},
-                 new Syncfusion.iOS.Buttons.SfSegmentItem(){Text = "A", IconFont="S"},
-                  new Syncfusion.iOS.Buttons.SfSegmentItem(){Text = "A", IconFont="M"},
-                   new Syncfusion.iOS.Buttons.SfSegmentItem(){Text = "A", IconFont="L"},
-                    new Syncfusion.iOS.Buttons.SfSegmentItem(){Text = "A", IconFont="XL"},
-            };
-
-            m_segmented.ItemsSource = SizeCollection;
-            m_segmented.CornerRadius = 25;
-            m_segmented.BorderColor = UIColor.Black;
-            m_segmented.SelectionTextColor = UIColor.White;
-            m_segmented.DisplayMode = Syncfusion.iOS.Buttons.SegmentDisplayMode.Image;
-            m_segmented.Font = UIFont.SystemFontOfSize(16);
-            m_segmented.FontIconFontColor = UIColor.Black;
-            m_segmented.VisibleSegmentsCount = 5;
-            m_segmented.SegmentHeight = 50;
-            m_segmented.BorderThickness = 1;
-            m_segmented.SegmentWidth = 20;
-
-            m_segmented.SelectionIndicatorSettings = new Syncfusion.iOS.Buttons.SelectionIndicatorSettings()
-            { Color = UIColor.FromRGB(44, 123, 188), Position = Syncfusion.iOS.Buttons.SelectionIndicatorPosition.Fill };
-
-            //m_segmented.Frame = m_rect;
-            return m_segmented;
         }
 
         public static void SetController(Style style, string type, string orient)

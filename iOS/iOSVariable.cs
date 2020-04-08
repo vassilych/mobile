@@ -762,6 +762,11 @@ namespace scripting.iOS
 
                 model = m_picker.Model as TypePickerViewModel;
 
+                if (model == null || model.Data == null || model.Data.Count < 2)
+                {
+                    return;
+                }
+
                 string text = m_textField != null ? GetComboMatch() : GetText();
                 int row = model.StringToRow(text);
                 model.Selected(m_picker, row, 0);
@@ -846,15 +851,22 @@ namespace scripting.iOS
         string GetComboMatch()
         {
             var text = m_textField != null ? m_textField.Text.Trim() : "";
-            if (text.Length < 1)
+            var model = m_picker.Model as TypePickerViewModel;
+            if (text.Length < 1 || model == null || model.Data == null)
             {
                 return "";
             }
-            var model = m_picker.Model as TypePickerViewModel;
             var entries = model.Data;
             foreach (var entry in entries)
             {
                 if (entry.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    return entry;
+                }
+            }
+            foreach (var entry in entries)
+            {
+                if (entry.Contains(text, StringComparison.OrdinalIgnoreCase))
                 {
                     return entry;
                 }

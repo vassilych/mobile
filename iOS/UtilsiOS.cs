@@ -168,7 +168,8 @@ namespace scripting.iOS
         public static bool IsiPhoneX()
         {
             CGSize screen = UtilsiOS.GetNativeScreenSize();
-            return screen.Height == 2436 || screen.Height == 2688 || screen.Height == 1792;
+            return screen.Height == 2688 || screen.Height == 2436 ||
+                   screen.Height == 1792;
             // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828
             // 8: 1334x750, 8 Plus: 1920x1080, SE,5: 1136x640, 4s: 960x640
         }
@@ -193,11 +194,11 @@ namespace scripting.iOS
         public static CGSize GetNativeScreenSize()
         {
             var bounds = UIScreen.MainScreen.NativeBounds;
-            var width  = bounds.Width;
+            var width = bounds.Width;
             var height = bounds.Height;
             if (IsiPhonePlus())
             { // Special hack for wrong size on 6+, 7+, 8+
-                width  = 1080;
+                width = 1080;
                 height = 1920;
             }
             return new CGSize(width, height);
@@ -362,7 +363,7 @@ namespace scripting.iOS
             }
             return new Tuple<UIControlContentHorizontalAlignment, UITextAlignment>(al1, al2);
         }
-        
+
         public static CGColor CGColorFromHex(string hexString, double alpha = 1.0)
         {
             UIColor uicolor = String2Color(hexString, alpha);
@@ -581,6 +582,9 @@ namespace scripting.iOS
                 case "iPhone11,4":
                 case "iPhone11,6": return "iPhone XS Max";
                 case "iPhone11,8": return "iPhone XR";
+                case "iPhone12,1": return "iPhone 11";
+                case "iPhone12,3": return "iPhone 11 Pro";
+                case "iPhone12,5": return "iPhone 11 Pro Max";
 
                 case "iPad2,1": return "iPad 2 Wi-Fi";
                 case "iPad2,2": return "iPad 2 GSM";
@@ -628,7 +632,11 @@ namespace scripting.iOS
                 case "iPad8,6": return "iPad Pro 12.9 3rd Gen 1TB WiFi";
                 case "iPad8,7": return "iPad Pro 12.9 3rd Gen WiFi LTE";
                 case "iPad8,8": return "iPad Pro 12.9 3rd Gen 1TB WiFi LTE";
-                
+                case "iPad11,1": return "iPad mini 5th Gen WiFi";
+                case "iPad11,2": return "iPad mini 5th Gen";
+                case "iPad11,3": return "iPad Air 3rd Gen WiFi";
+                case "iPad11,4": return "iPad Air 3rd Gen";
+
                 case "iPod1,1": return "iPod Touch";
                 case "iPod2,1": return "iPod Touch 1 Gen";
                 case "iPod3,1": return "iPod Touch 2 Gen";
@@ -636,6 +644,7 @@ namespace scripting.iOS
                 case "iPod5,1": return "iPod Touch 4 Gen";
                 case "iPod6,1": return "iPod Touch 5 Gen";
                 case "iPod7,1": return "iPod Touch 6 Gen";
+                case "iPod9,1": return "iPod Touch 7 Gen";
             }
             return deviceName;
         }

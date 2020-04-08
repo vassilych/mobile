@@ -4,9 +4,61 @@ using System.Linq;
 using System.Threading.Tasks;
 using Plugin.InAppBilling;
 using Plugin.InAppBilling.Abstractions;
+using SplitAndMerge;
 
 namespace scripting
 {
+    public class PurchaseFunction2 : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name, true);
+
+            string strAction = args[0].AsString();
+            string productId = args[1].AsString();
+
+            InAppBilling.RegisterCallbacks(strAction);
+            InAppBilling.PurchaseItem(productId);
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class RestoreFunction2 : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+            string strAction = args[0].AsString();
+
+            for (int i = 1; i < args.Count; i++)
+            {
+                string productId = Utils.GetSafeString(args, i);
+                InAppBilling.AddProductId(productId);
+            }
+
+            InAppBilling.RegisterCallbacks(strAction);
+            InAppBilling.Restore();
+
+            return Variable.EmptyInstance;
+        }
+    }
+    public class ProductIdDescriptionFunction2 : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name, true);
+
+            string productId = args[0].AsString();
+
+            string description = InAppBilling.GetDescription(productId);
+
+            return new Variable(description);
+        }
+    }
+
     public class InAppBilling
     {
         public static Action<string> OnIAPOK;
@@ -23,12 +75,32 @@ namespace scripting
         static HashSet<string> m_purchasedProducts = new HashSet<string>();
         static Dictionary<string, string> m_id2Description = new Dictionary<string, string>();
 
+        static bool s_errorConnecting;
+        static string s_prevAction;
+
+        public static void  RegisterCallbacks(string strAction)
+        {
+            OnIAPOK = null;
+            OnIAPError = null;
+
+            InAppBilling.OnIAPOK += (productIds) =>
+            {
+                UIVariable.GetAction(strAction, "", productIds);
+            };
+            InAppBilling.OnIAPError += (errorStr) =>
+            {
+                UIVariable.GetAction(strAction, errorStr, "");
+            };
+            s_prevAction = strAction;
+        }
+
         public static void AddProductId(string productId)
         {
             m_availableProducts.Add(productId); // Hasn't been purchased
         }
         static bool ConnectionFailed()
         {
+            s_errorConnecting = true;
             OnIAPError?.Invoke("Couldn't connect to the App Store");
             return false;
         }
@@ -74,8 +146,6 @@ namespace scripting
                     Console.WriteLine("Got {0}: [{1}] {2} {3}",
                             item.ProductId, item.Description, item.LocalizedPrice, item.Name);
                     m_id2Description[item.ProductId] = item.Name;
-                    //if (item.)
-                    //await billing.ConsumePurchaseAsync(item.ProductId, ItemType.InAppPurchase, "");
                 }
             }
             catch (Exception ex)
@@ -88,8 +158,9 @@ namespace scripting
                 await billing.DisconnectAsync();
             }
         }
-        public static async Task<bool> PurchaseItem(string productId, string payload)
+        public static async Task<bool> PurchaseItem(string productId, string payload = "notused")
         {
+            s_errorConnecting = false;
             await GetInventory(productId);
 
             bool alreadyPurchased = await WasItemPurchased(productId);
@@ -97,6 +168,10 @@ namespace scripting
             {
                 OnIAPOK?.Invoke(productId);
                 return true;
+            }
+            if (s_errorConnecting)
+            {
+                return false;
             }
 
             var billing = CrossInAppBilling.Current;
@@ -137,12 +212,17 @@ namespace scripting
 
         public static async Task Restore()
         {
+            s_errorConnecting = false;
             await GetInventory();
 
             string restored = "";
             foreach (string productId in m_availableProducts)
             {
                 bool purchased = await WasItemPurchased(productId);
+                if (s_errorConnecting)
+                {
+                    return;
+                }
                 if (purchased)
                 {
                     if (!string.IsNullOrEmpty(restored))
@@ -189,6 +269,8 @@ namespace scripting
             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex);
+                s_errorConnecting = true;
+                OnIAPError?.Invoke(ex.Message);
             }
             finally
             {
