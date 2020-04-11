@@ -823,7 +823,7 @@ namespace scripting.iOS
                     double value = Utils.ConvertToDouble(data[i + 1]);
                     double x;
                     DataPoint dp = Utils.CanConvertToDouble(coord, out x) ?
-                                   new DataPoint(x, value) : new DataPoint(coord, value);
+                                   new DataPoint(x, value, title) : new DataPoint(coord, value, title);
                     collection.Add(dp);
                 }
                 if (SfType == SyncFusionType.DOUGHNUT_GRAPH)
@@ -1195,6 +1195,10 @@ namespace scripting.iOS
                         Utils.CheckNotNull(m_chart.Delegate, "ChartTooltipDelegate", null);
                         ((ChartTooltipDelegate)m_chart.Delegate).SetYPrefix(arg2);
                         break;
+                    case "tooltip_title":
+                        Utils.CheckNotNull(m_chart.Delegate, "ChartTooltipDelegate", null);
+                        ((ChartTooltipDelegate)m_chart.Delegate).SetTitle(arg2);
+                        break;
                 }
             }
             else if (m_stepper != null)
@@ -1482,6 +1486,7 @@ namespace scripting.iOS
         UIColor m_textColor;
         string  m_xPrefix = "";
         string  m_yPrefix = "";
+        string  m_title = "";
         SFChartTooltipBehavior m_behavior;
 
         public ChartTooltipDelegate(SFChart chart, string sizesStr = "90:40")
@@ -1559,6 +1564,10 @@ namespace scripting.iOS
         {
             m_yPrefix = prefix;
         }
+        public void SetTitle(string title)
+        {
+            m_title = title;
+        }
 
         public override void WillShowTooltip(SFChart chart, SFChartTooltip tooltipView)
         {
@@ -1573,22 +1582,36 @@ namespace scripting.iOS
                 customView.AddSubview(imageView);
             }
 
+            float yAxis = 0;
+            if (!string.IsNullOrWhiteSpace(m_title))
+            {
+                UILabel titleLabel = new UILabel();
+                titleLabel.Frame = new CGRect(m_imageWidth + 1, 0, m_width - m_imageWidth - 1, 18);
+                titleLabel.TextColor = m_textColor;
+                titleLabel.Font = m_font;
+                titleLabel.Text = (tooltipView.DataPoint as DataPoint).Title.ToString();
+                titleLabel.TextAlignment = UITextAlignment.Center;
+                yAxis += 20;
+                customView.AddSubview(titleLabel);
+            }
+
             UILabel xLabel       = new UILabel();
-            xLabel.Frame         = new CGRect(m_imageWidth + 1, 0, m_width - m_imageWidth - 1, 18);
+            xLabel.Frame         = new CGRect(m_imageWidth + 1, yAxis, m_width - m_imageWidth - 1, 18);
             xLabel.TextColor     = m_textColor;
             xLabel.Font          = m_font;
             xLabel.Text          = m_xPrefix + (tooltipView.DataPoint as DataPoint).XValue.ToString();
             xLabel.TextAlignment = UITextAlignment.Center;
+            yAxis += 20;
+            customView.AddSubview(xLabel);
 
             UILabel yLabel       = new UILabel();
-            yLabel.Frame         = new CGRect(m_imageWidth + 1, 20, m_width - m_imageWidth - 1, 18);
+            yLabel.Frame         = new CGRect(m_imageWidth + 1, yAxis, m_width - m_imageWidth - 1, 18);
             yLabel.TextColor     = m_textColor;
             yLabel.Font          = m_font;
             yLabel.Text          = m_yPrefix + tooltipView.Text;
             yLabel.TextAlignment = UITextAlignment.Center;
-
-            customView.AddSubview(xLabel);
             customView.AddSubview(yLabel);
+
             tooltipView.CustomView = customView;
         }
 

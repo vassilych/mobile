@@ -117,6 +117,7 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\fractions_light.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\restore.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\purchase.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\suggest_us.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

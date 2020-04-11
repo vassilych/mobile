@@ -49,7 +49,7 @@ namespace Proxy
         }
 
         static void StartClient(CustomFunction callbackFunction, bool forced = false,
-                                string host = "TrueDividends.com", int port = 33333)
+                                string host = "167.86.100.196", int port = 33333)
         {
             if (!forced && s_client != null && s_client.Connected)
             {

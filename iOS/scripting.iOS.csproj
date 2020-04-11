@@ -5102,6 +5102,9 @@
     <BundleResource Include="..\scripting\Resources\drawable\restore.png">
       <Link>Resources\drawable\restore.png</Link>
     </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\suggest_us.png">
+      <Link>Resources\drawable\suggest_us.png</Link>
+    </BundleResource>
   </ItemGroup>
   <ItemGroup>
     <ITunesArtwork Include="iTunesArtwork%402x" />

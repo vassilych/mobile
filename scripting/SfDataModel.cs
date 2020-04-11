@@ -224,6 +224,8 @@ namespace SplitAndMerge
         List<int> m_int = new List<int>(new int[MAX_COLS]);
         List<double> m_num = new List<double>(new double[MAX_COLS]);
 
+        public string Title { get; set; }
+
         public IComparable XValue
         {
             get { return xValue; }
@@ -260,14 +262,16 @@ namespace SplitAndMerge
         {
         }
 
-        public DataPoint(IComparable xValue, double yValue)
+        public DataPoint(IComparable xValue, double yValue, string title = "")
         {
             XValue = xValue;
             YValue = yValue;
+            Title = title;
         }
 
-        public DataPoint(List<string> values)
+        public DataPoint(List<string> values, string title = "")
         {
+            Title = title;
             for (int i = 0; i < values.Count; i++)
             {
                 Set(i, values[i]);
@@ -279,6 +283,7 @@ namespace SplitAndMerge
         }
         public void SetDataPoint(DataPoint other)
         {
+            Title = other.Title;
             for (int i = 0; i < DataModel.ColNames.Count; i++)
             {
                 Set(i, other.GetStringValue(i));

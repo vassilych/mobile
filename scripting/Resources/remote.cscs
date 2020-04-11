@@ -1,5 +1,6 @@
-﻿Version      = "1.1.0";
-AppName      = "TrueDividends.com";
+﻿Version      = "1.2.0";
+AppName      = "TrueDividends";
+WebSite      = "TrueDividends.com";
 
 // 16.2.0.41
 InitSyncfusion("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5QjBuRFBMYUZhdEV1QlU9");
@@ -8,34 +9,37 @@ InitSyncfusion("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5
 // 18.1.0.42
 //InitSyncfusion("MjM0MTk0QDMxMzgyZTMxMmUzMElTRkt2dmpPUFdoN0NhaFlGT2NNT25UMnA4TGRzanJVckw0dXE5WnZ3Nzg9");
 
-data         = {};
-prices       = {};
-dividends    = {};
-expDividends = {};
-stddevs      = {};
-stockData    = {};
-keys         = {};
-stocks       = {};
+data          = {};
+prices        = {};
+dividends     = {};
+expDividends  = {};
+stddevs       = {};
+stockData     = {};
+keys          = {};
+stocks        = {};
 
-volaData     = {};
-volas        = {};
-selVolas     = {};
-unselVolas   = {};
-minVolaPrice = {};
-maxVolaPrice = {};
-dates        = {};
-isin         = "";
-connected    = false;
-loggedIn     = false;
-busy         = false;
-init         = true;
-busyIndex    = 0;
-busyOptions  = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe", "pulsing",
-                "movie", "print", "rectangle", "rollingball", "singlecircle", "slicedcircle", "zooming"};
+volaData      = {};
+volas         = {};
+selVolas      = {};
+unselVolas    = {};
+selCallPuts   = {};
+unselCallPuts = {};
+minVolaPrice  = {};
+maxVolaPrice  = {};
+dates         = {};
+expiries      = {};
+isin          = "";
+connected     = false;
+loggedIn      = false;
+busy          = false;
+init          = true;
+busyIndex     = 0;
+busyOptions   = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe", "pulsing",
+                 "movie", "print", "rectangle", "rollingball", "singlecircle", "slicedcircle", "zooming"};
 
-graphColors  = {"green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
+graphColors  = {"dark_green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
-                "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue"};
+                "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue", "green"};
 hack     = false;
 markets  = { "Market", "CH", "DE", "US" };
 market   = "";
@@ -44,11 +48,18 @@ lastStockLoaded = "";
 lastVolaLoaded = "";
 lastAnalysisLoaded = "";
 
-stocksHeader = "Select Stock";
-volaHeader   = "Select Volatilities";
+stocksHeader  = "Select Stock";
+volaHeader    = "Select Volatilities";
+callputHeader = "Select Expiries";
 
-prevStockSelection  = "";
-prevVolaSelection   = "";
+prevStockSelection   = "";
+prevVolaSelection    = "";
+prevCallPutSelection = "";
+
+volaParamsData       = {};
+
+toolTipWidth  = 120;
+toolTipHeight = 60;
 
 productId    = "ch.mydividends.vk.iap1";
 purchased    = GetSetting("purchased", "bool", false);
@@ -193,7 +204,17 @@ function buttonAboutUs_click(sender, arg) {
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
                deviceInfo + ": " + deviceVersion + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
-              "Developed by: " + AppName);
+              "Developed by: " + WebSite + " \n\n" +
+              "Please write us what new stocks to include.");
+}
+
+function buttonWriteUs_click(sender, arg) {
+  if (_IOS_) {
+    appStoreURL = "itms-apps://itunes.apple.com/app/id1496880473?action=write-review";
+  } elif (_ANDROID_) {
+    appStoreURL = "https://play.google.com/store/apps/details?id=ch.ilanguage.android";
+  }
+  OpenUrl(appStoreURL);
 }
 
 function buttonSendMail_click(sender, arg) {
@@ -410,50 +431,24 @@ function stockSelected(sender, arg) {
 }
 
 function getBestData(stockData, pattern) {
-  keys = stockData.keys;
-  maxSize1 = maxSize2 = maxSize3 = maxSize4 = 0;
-  maxKey1  = maxKey2  = maxKey3  = maxKey4  = "";
-  for (key : keys) {
-    if (!key.Contains(pattern)) {
-      continue;
-    }
-    currentSize = stockData[key].size;
-    if (currentSize > maxSize1) {
-      if (maxSize1 > 0) {
-        maxSize2 = maxSize1;
-        maxKey2  = maxKey1;
-      }
-      maxSize1 = currentSize;
-      maxKey1  = key;
-    } elif (currentSize > maxSize2) {
-      if (maxSize2 > 0) {
-        maxSize3 = maxSize2;
-        maxKey3  = maxKey2;
-      }
-      maxSize2 = currentSize;
-      maxKey2  = key;
-    } elif (currentSize > maxSize3) {
-      if (maxSize3 > 0) {
-        maxSize4 = maxSize3;
-        maxKey4  = maxKey3;
-      }
-      maxSize3 = currentSize;
-      maxKey3  = key;
-    } elif (currentSize > maxSize4) {
-      maxSize4 = currentSize;
-      maxKey4  = key;
-    }
+  //ABBN_C_2020-04-17
+
+  if (selCallPuts.Size == 0 && expiries.Size > 2) {
+    selCallPuts.Add(expiries[1]);
+    unselCallPuts.Remove(expiries[1]);
   }
-  PrintConsole(pattern, "maxKeys:", maxKey1, maxKey2, maxKey3, maxKey4, "Size:", maxSize1, maxSize2, maxSize3, maxSize4);
-  result = {maxKey1, maxKey2, maxKey3, maxKey4};
-  //result = {maxKey1};
+  result = {};
+  for (expiry : selCallPuts) {
+    result.Add(stock + pattern + expiry);
+  }
   return result.Sort();
 } 
 
 function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
-                     primary_axis = "Strike", secondary_axis = "Price") {
+                     primary_axis = "Strike", secondary_axis = "Price", toolTipTitle = "") {
   height = graphName.Contains("Vola") ? graphHeight - volaHeightDelta : graphHeight;
   AddSfSplineGraph(locSFGraph, graphName, "", graphWidth, height);
+  PrintConsole("... createGraph " + graphName + ": " + keys);
 
   colorIndex = -1;
   for (key : keys) {
@@ -474,14 +469,14 @@ function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
     SetValue(graphName, "secondary_axis", secondary_axis);
   }
   
-  setToolTip(graphName, 100, 50, "yellow", "purple", 12, "coins", 30, 50,
-     primary_axis + ": ", secondary_axis + ": ");
+  setToolTip(graphName, toolTipWidth, toolTipHeight, "yellow", "purple", 12, "coins", 30, 50,
+     primary_axis + ": ", secondary_axis + ": ", toolTipTitle);
 }
 
 function setToolTip(graphName, width=100, height=50,
                     bgcolor="orange", fgcolor="dark_blue", fontSize=11,
                     image="", imageWidth=30, imageHeight=50,
-                    xPrefix = "", yPrefix = "") {
+                    xPrefix = "", yPrefix = "", toolTipTitle = "") {
   SetValue(graphName, "tooltip", width + ":" + height);
   SetValue(graphName, "tooltip_bgcolor", bgcolor);
   SetValue(graphName, "tooltip_font", fgcolor + ":" + fontSize);
@@ -495,6 +490,9 @@ function setToolTip(graphName, width=100, height=50,
   }
   if (yPrefix != "") {
     SetValue(graphName, "tooltip_yprefix", yPrefix);
+  }
+  if (toolTipTitle != "") {
+    SetValue(graphName, "tooltip_title", toolTipTitle);
   }
 }
 
@@ -518,25 +516,37 @@ function loadStockWarning() {
 function createGraphs() {
   RemoveViewIfExists(SplineGraph1);
   RemoveViewIfExists(SplineGraph2);
+  RemoveViewIfExists(callputWidget);
 
   if (stock == "" || !data.Contains(stock)) {
-    ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
+    ShowToast("Load stock data first...", 7, "yellow", "dark_green");
     return;
   }
   
   stockData = data[stock];
-  //PrintConsole(stockData);
-  
+  //PrintConsole("StockData: " + stockData);
+  PrintConsole("expiries: " + expiries);
+ 
   keys = getBestData(stockData, "_C_");
+  PrintConsole("keys: " + keys);
   if (keys[0] == "") {
     loadStockWarning();
     return;
   }
   
   lastPriceMsg = stock + (prices.Contains(stock) ? " (ATM " + prices[stock] + ")" : "");
+
+  locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 10 + extraTop);
+  AddCombobox(locComboCallPuts, "callputWidget", "", 480, 50);
+  AddWidgetData(callputWidget, expiries, "callPutSelected", "left");
+  SetFontSize(callputWidget, 14);
+  SetValue(callputWidget, "alignment", "center");
+  SetValue(callputWidget, "fontcolor", "red");
+  SetValue(callputWidget, 0, "black");
+  AddAction(callputWidget, "callPutSelected");
   
-  locSFGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 6 + extraTop);
-  createGraph(locSFGraph1, "SplineGraph1", "Call Options " + lastPriceMsg, stockData, keys);
+  locSFGraph1 = GetLocation("ROOT", "CENTER", callputWidget, "BOTTOM");
+  createGraph(locSFGraph1, "SplineGraph1", "Call Options " + lastPriceMsg, stockData, keys, "Strike", "Price", "Title");
   
   keys = getBestData(stockData, "_P_");
   if (keys[0] == "") {
@@ -545,7 +555,7 @@ function createGraphs() {
   }
   
   locSFGraph2 = GetLocation("ROOT", "CENTER", SplineGraph1, "BOTTOM", 0, 0);
-  createGraph(locSFGraph2, "SplineGraph2", "Put Options " + lastPriceMsg, stockData, keys);
+  createGraph(locSFGraph2, "SplineGraph2", "Put Options " + lastPriceMsg, stockData, keys, "Strike", "Price", "Title");
   makeUnbusy();
 }
 
@@ -616,12 +626,10 @@ function fillVolasData(sender, arg) {
   comboData.Add(volaHeader, 0);
 
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
-
   SetFontSize(volasWidget, 14);
   SetValue(volasWidget, "alignment", "center");
   SetValue(volasWidget, "fontcolor", "red");
   SetValue(volasWidget, 0, "black");
-
   AddAction(volasWidget, "volaSelected");
 
   volaSelected("", "");
@@ -631,14 +639,14 @@ function fillVolasData(sender, arg) {
 
 function fillVolaParams(sender, arg) {
   PrintConsole("Processing fillVolaParams [" + arg + "], selVolas: [" + selVolas + "]");
+  volaParamsData[stock] = arg;
 
-  volaParamsData = {};
   points         = arg.Split("\t");
+  paramsData     = {};
   keys           = {};
 
   for (point : points) {
     parts      = point.Split("|");
-    //PrintConsole("Processing fillVolaParams [", point, "] size=", parts.size);
     if (parts.size < 6) {
       continue;
     }
@@ -653,35 +661,59 @@ function fillVolaParams(sender, arg) {
       continue;
     }
 
-    //PrintConsole("  SETTING Ps: " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + ", expiry: " + expiry);
-    if (p4 == 0) {
+    PrintConsole("  " + isin + " SETTING Ps: " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + ", expiry: " + expiry);
+    if (p4 == 0 || (p2 == 0 && p3 == 0)) {
       continue;
     }
+    keys.AddUnique(key);
 
     lower = minVolaPrice[expiry];
     upper = maxVolaPrice[expiry];
-    //PrintConsole("    " + lower + " --> " + upper + " (stock=" + stock + ")");
+    PrintConsole("    " + lower + " --> " + upper + " (stock=" + stock + ")");
 
     for (x = lower; x < upper; x++) {
       lp4 = log(x/p4);
       y = p1 + p2 * lp4 + p3 * lp4 * lp4;
-      AddOrderedData(volaParamsData, key, x, y);
-      if (!keys.Contains(key)) {
-        keys.Add(key);
-      }
+      AddOrderedData(paramsData, key, x, y);
+      //PrintConsole("    adding " + key + " --> " + x + " " + y);
     }
   }
 
-  if (volaParamsData.Size == 0) {
+  if (paramsData.Size == 0 || keys.Size == 0) {
     PrintConsole("NO VOLA PARAMS TO SHOW");
     makeUnbusy();
-    return;
+    return false;
   }
   
   locVolaGraph2 = GetLocation("ROOT", "CENTER", VolaGraph1, "BOTTOM", 0, 0);
-  createGraph(locVolaGraph2, "VolaGraph2", "", volaParamsData, keys, "Strike", "Vola");
+  createGraph(locVolaGraph2, "VolaGraph2", "", paramsData, keys, "Strike", "Vola", "Title");
 
   makeUnbusy();
+  PrintConsole("Finished VolaGraph2. keys: " + keys + " --> " + paramsData.Size + " points");
+  return true;
+}
+
+function callPutSelected(sender, arg) {
+  PrintConsole(sender, " callPutSelected: [", arg, "], prevCallPutSelection=", prevCallPutSelection);
+  if (arg == callputHeader) {// || arg == prevCallPutSelection) {
+    PrintConsole("No need to reload CallPuts, prevCallPutSelection=", prevCallPutSelection);
+    makeUnbusy();
+    return;
+  }
+  prevCallPutSelection = arg;
+
+  PrintConsole("selCallPuts1=" + selCallPuts + ": " + selCallPuts.Contains(arg));
+  if (selCallPuts.Contains(arg)) {
+    selCallPuts.Remove(arg);
+    unselCallPuts.Add(arg);
+    SetValue(callputWidget, arg, "dark_red");
+  } else {
+    unselCallPuts.Remove(arg);
+    selCallPuts.Add(arg);
+    SetValue(callputWidget, arg, "dark_green");
+  }
+  PrintConsole("selCallPuts2=" + selCallPuts);
+  createGraphs();
 }
 
 function volaSelected(sender, arg) {
@@ -712,9 +744,13 @@ function volaSelected(sender, arg) {
   RemoveViewIfExists(VolaGraph1);
   RemoveViewIfExists(VolaGraph2);
   locVolaGraph1 = GetLocation("ROOT", "CENTER", volasWidget, "BOTTOM", 0, 0);
-  createGraph(locVolaGraph1, "VolaGraph1", "Volatilities for "+stock+"  "+isin, volaData, selVolas, "Strike", "Vola");
+  createGraph(locVolaGraph1, "VolaGraph1", "Volatilities for "+stock+"  "+isin, volaData, selVolas, "Strike", "Vola", "Title");
 
-  GetDataFromServer("volaparams", stock, "fillVolaParams");
+  if (volaParamsData.Contains(stock)) {
+    fillVolaParams("", volaParamsData[stock]);
+  } else {
+    GetDataFromServer("volaparams", stock, "fillVolaParams");
+  }
 }
 
 function printData(d, key, str = "") {
@@ -761,7 +797,7 @@ function fillStdDevData(sender, arg) {
   SetValue(StdGraph, "primary_axis",   "Date");
   SetValue(StdGraph, "secondary_axis", "StdDev");
   SetValue(StdGraph, "string_axis", "x");
-  setToolTip(StdGraph, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
+  setToolTip(StdGraph, toolTipWidth, toolTipHeight, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
   //SetText(StdGraph,  title);
 
   addDataToGraph(StdGraph, stdData, title, "blue:blue");
@@ -808,7 +844,7 @@ function fillDividendsData(sender, arg) {
     SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
     SetValue(DivGraph1, "secondary_axis", "Payout");
     SetValue(DivGraph1, "string_axis", "x");
-    setToolTip(DivGraph1, 100, 50, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
+    setToolTip(DivGraph1, toolTipWidth, toolTipHeight, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
     if (nbPast > 0) {
       addDataToGraph(DivGraph1, divData, pastTitle, "blue:blue");
     } 
@@ -821,7 +857,8 @@ function fillDividendsData(sender, arg) {
 }
 
 function fillStockData(sender, arg) {
-  printConsole("fillStockData arg=" + arg);
+  //printConsole("fillStockData arg=" + arg);
+  //C ABBN A 2020-04-17 12.6|0|0|4.6100001335144|4.6100001335144|CHF|EUX|per unit|4/8/2020 12:00:00 AM!
   SelectTab(4);
   
   if (arg == "") {
@@ -829,10 +866,13 @@ function fillStockData(sender, arg) {
     return;
   }
 
+  selCallPuts     = {};
+  unselCallPuts   = {};
+  expiries        = {};
   lastStockLoaded = stock;
+  expiries.Add(callputHeader);
   
   //arg = "P ABBN A 2019-04-19 24.0|4.05000019073486|4.44999980926514|4.23000001907349|4.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 23.0|3.09999990463257|3.40000009536743|3.23000001907349|3.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 22.0|2.15000009536743|2.35999989509583|2.23000001907349|2.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 21.0|1.19000005722046|1.30999994277954|1.23000001907349|1.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.5|0.709999978542328|0.819999992847443|0.740000009536743|0.740000009536743|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.0|0.270000010728836|0.379999995231628|0.330000013113022|0.330000013113022|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.5|0.0299999993294477|0.140000000596046|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.0|0.00999999977648258|0.0900000035762787|0.0500000007450581|0.0500000007450581|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.5|0|0.0799999982118607|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.0|0|0.00999999977648258|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.5|0|0|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.0|0|0.200000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 24.0|0|0.0199999995529652|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 23.0|0|0.00999999977648258|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 22.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 21.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.5|0.00999999977648258|0.0900000035762787|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.0|0.0199999995529652|0.129999995231628|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.5|0.280000001192093|0.389999985694885|0.379999995231628|0.379999995231628|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.0|0.720000028610229|0.819999992847443|0.810000002384186|0.810000002384186|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.5|1.19000005722046|1.30999994277954|1.28999996185303|1.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.0|1.69000005722046|1.80999994277954|1.78999996185303|1.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.5|2.13000011444092|2.32999992370605|2.28999996185303|2.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.0|0|0|2.78999996185303|2.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!";
-  printConsole("fillStockData:", arg);
   options = arg.Split("!");
   
   locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
@@ -849,6 +889,7 @@ function fillStockData(sender, arg) {
   stock = sender;
   stockData = {};
   processed = {};
+  prevExpiry = "";
   
   //P ANN A 2019-04-19 49.0|0|0|4.28000020980835|4.28000020980835|EUR|EUX|per unit|4/14/2019 12:00:00 AM!
   //IBM|IBM|137.914993286133|137.160003662109|USD|US|US4592001014|11/7/2019 12:00:00 AM|True: 1
@@ -872,12 +913,13 @@ function fillStockData(sender, arg) {
     if (last <= 0 || parts.size < 5 || parts[0] == "OPT") {
       continue;
     }
+    expiry = parts[3];
 
     //optionData   = {instr, bid, ask, last, settle};
     optionData   = {instr, settle};
     AddWidgetData(DataGrid, optionData,  "item");
 
-    key   = parts[1] + "_" + parts[0] + "_" + parts[3];
+    key   = parts[1] + "_" + parts[0] + "_" + expiry;
     uniqueKey = key + "_" + parts[4];
     if (processed.Contains(uniqueKey)) {
       //PrintConsole("  ALREADY EXISTS:", uniqueKey);
@@ -885,7 +927,15 @@ function fillStockData(sender, arg) {
     }
     processed.Add(uniqueKey);
     AddOrderedData(stockData, key, parts[4], last);
-}
+
+    if (prevExpiry != expiry) {
+      expiries.AddUnique(expiry);
+      if (selCallPuts.Size < 3) {
+        selCallPuts.Add(expiry);
+      }
+    }
+    prevExpiry = expiry;
+  }
   
   data[stock] = stockData;
   //PrintConsole(stockData);
@@ -1156,6 +1206,11 @@ locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -20, -10);
 AddButton(locAboutUs, "buttonAboutUs", "", 130, 130);
 AddBorder(buttonAboutUs, 0);
 SetImage(buttonAboutUs, "about");
+
+locWriteUs = GetLocation(buttonAboutUs, "LEFT", "ROOT", "BOTTOM", -10, -10);
+AddButton(locWriteUs, "buttonWriteUs", "", 130, 130);
+AddBorder(buttonWriteUs, 0);
+SetImage(buttonWriteUs, "suggest_us");
 
 locRestore = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 10, -20);
 AddButton(locRestore, "buttonRestore", "Restore", 220, 110);
