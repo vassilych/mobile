@@ -1583,13 +1583,13 @@ namespace scripting.iOS
             }
 
             float yAxis = 0;
-            if (!string.IsNullOrWhiteSpace(m_title))
+            if (m_title != null)
             {
                 UILabel titleLabel = new UILabel();
                 titleLabel.Frame = new CGRect(m_imageWidth + 1, 0, m_width - m_imageWidth - 1, 18);
                 titleLabel.TextColor = m_textColor;
                 titleLabel.Font = m_font;
-                titleLabel.Text = (tooltipView.DataPoint as DataPoint).Title.ToString();
+                titleLabel.Text = m_title + (tooltipView.DataPoint as DataPoint).Title.ToString();
                 titleLabel.TextAlignment = UITextAlignment.Center;
                 yAxis += 20;
                 customView.AddSubview(titleLabel);

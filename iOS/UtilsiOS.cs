@@ -168,15 +168,15 @@ namespace scripting.iOS
         public static bool IsiPhoneX()
         {
             CGSize screen = UtilsiOS.GetNativeScreenSize();
-            return screen.Height == 2688 || screen.Height == 2436 ||
-                   screen.Height == 1792;
-            // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828
+            return screen.Height == 2688 || screen.Height == 2436;
+                //|| screen.Height == 1792;
+            // XS: 2436x1125 XS max: 2688x1242 XR: 1792x828 or 1624x750
             // 8: 1334x750, 8 Plus: 1920x1080, SE,5: 1136x640, 4s: 960x640
         }
         public static bool IsiPhoneXR()
         {
             CGSize screen = UtilsiOS.GetNativeScreenSize();
-            return screen.Height == 1792;
+            return screen.Height == 1792 || screen.Height == 1624;
         }
 
         public static bool IsiPhonePlus()

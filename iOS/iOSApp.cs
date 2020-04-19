@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CoreGraphics;
+using Foundation;
 using SplitAndMerge;
 using UIKit;
 
@@ -207,13 +208,20 @@ namespace scripting.iOS
             }
             else if (UtilsiOS.IsiPhoneX())
             {
-                newSize = size / 1.5f;
+                newSize = size / 1.55f;
             }
             else if (UtilsiOS.IsiPhonePlus())
             {
                 newSize = size / 1.3f;
             }
             return newSize;
+        }
+
+        public static string GetAppVersion()
+        {
+            var dict = NSBundle.MainBundle.InfoDictionary;
+            var version = dict["CFBundleVersion"].ToString();
+            return version;
         }
 
         public static int GetVerticalOffset()

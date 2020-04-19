@@ -140,6 +140,7 @@ namespace scripting
             ParserFunction.RegisterFunction("_VERSION_INFO_", new GetVersionInfoFunction());
             ParserFunction.RegisterFunction("_VERSION_NUMBER_", new GetVersionNumberFunction());
             ParserFunction.RegisterFunction("_DEBUG_", new IsDebugFunction());
+            ParserFunction.RegisterFunction("_APPVERSION_", new AppVersionFunction());
             ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
@@ -147,6 +148,7 @@ namespace scripting
 
             ParserFunction.RegisterFunction("GetLocalIp", new GetLocalIpFunction(true));
             ParserFunction.RegisterFunction("isiPhoneX", new IsiPhoneXFunction());
+            ParserFunction.RegisterFunction("isiPhoneXR", new IsiPhoneXRFunction());
             ParserFunction.RegisterFunction("isAndroid", new IsAndroidFunction());
 
             ParserFunction.RegisterFunction("RunOnMain", new RunOnMainFunction());
@@ -355,6 +357,10 @@ namespace scripting
         }
         public static double TransformSize(double size, int screenWidth, double extra = 0.0)
         {
+            if (size == 0.0)
+            {
+                return size;
+            }
             if (extra == 0.0)
             {
                 extra = ScaleX;
@@ -681,6 +687,22 @@ namespace scripting
         }
     }
 
+    class AppVersionFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string version = "";
+
+#if __ANDROID__
+            version = "1.0";
+#elif __IOS__
+            version = iOSApp.GetAppVersion();
+#endif
+
+            return new Variable(version);
+        }
+    }
+
     class CheckOSFunction : ParserFunction
     {
         public enum OS { NONE, IOS, ANDROID, WINDOWS_PHONE, MAC, WINDOWS };
@@ -810,6 +832,19 @@ namespace scripting
             bool isiPhoneX = UtilsiOS.IsiPhoneX();
 #endif
             return new Variable(isiPhoneX);
+        }
+    }
+
+    class IsiPhoneXRFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+#if __ANDROID__
+            bool isiPhoneXR = false;
+#elif __IOS__
+            bool isiPhoneXR = UtilsiOS.IsiPhoneXR();
+#endif
+            return new Variable(isiPhoneXR);
         }
     }
 

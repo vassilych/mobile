@@ -118,6 +118,13 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\restore.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\purchase.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\suggest_us.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\info_i.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\main_fin2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\main_fin.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\callput_graph2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\callput_graph.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\table2.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\analysys.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

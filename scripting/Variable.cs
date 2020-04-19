@@ -1164,9 +1164,9 @@ namespace SplitAndMerge
                 {
                     string lower = val.ToLower();
                     contains = m_dictionary != null && m_dictionary.ContainsKey(lower);
-                    if (!contains && Tuple != null)
+                    if (!contains && m_tuple != null)
                     {
-                        foreach (var item in Tuple)
+                        foreach (var item in m_tuple)
                         {
                             if (item.AsString().Equals(val, comp))
                             {

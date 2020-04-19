@@ -77,6 +77,7 @@ namespace Proxy
         {
             byte[] bytes = new byte[256];
 
+            s_client.ReceiveTimeout = 10000;
             int bytesReceived = s_client.Receive(bytes);
             var newArray = TruncateArray(bytes);
             string received = Encoding.UTF8.GetString(newArray, 0, bytesReceived).Trim();
@@ -133,7 +134,8 @@ namespace Proxy
             }
             catch (Exception e)
             {
-                scripting.CommonFunctions.RunOnMainThread(callbackFunction, "", "Error: " + e.Message);
+                var msg = e is SocketException ? "Connection timeout" : e.Message;
+                scripting.CommonFunctions.RunOnMainThread(callbackFunction, "", msg);
                 s_loggedin = false;
             }
         }
@@ -157,7 +159,8 @@ namespace Proxy
             }
             catch (Exception e)
             {
-                scripting.CommonFunctions.RunOnMainThread(callbackFunction, "", e.Message);
+                var msg = e is SocketException ? "Connection timeout" : e.Message;
+                scripting.CommonFunctions.RunOnMainThread(callbackFunction, "", msg);
                 s_loggedin = false;
             }
         }

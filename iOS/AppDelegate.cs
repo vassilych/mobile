@@ -44,7 +44,7 @@ namespace scripting.iOS
 
             AppCenter.Start("0d1f57c7-e260-4abf-8e71-c72ec6f2fffc",
                    typeof(Analytics), typeof(Crashes));
-            AppCenter.LogLevel = LogLevel.Verbose;
+            //AppCenter.LogLevel = LogLevel.Verbose;
 
             // Will execute the CSCS script:
             m_viewController.Run();

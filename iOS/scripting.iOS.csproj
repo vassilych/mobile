@@ -5105,6 +5105,27 @@
     <BundleResource Include="..\scripting\Resources\drawable\suggest_us.png">
       <Link>Resources\drawable\suggest_us.png</Link>
     </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\info_i.png">
+      <Link>Resources\drawable\info_i.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\callput_graph.png">
+      <Link>Resources\drawable\callput_graph.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\main_fin2.png">
+      <Link>Resources\drawable\main_fin2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\main_fin.png">
+      <Link>Resources\drawable\main_fin.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\callput_graph2.png">
+      <Link>Resources\drawable\callput_graph2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\table2.png">
+      <Link>Resources\drawable\table2.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\analysys.png">
+      <Link>Resources\drawable\analysys.png</Link>
+    </BundleResource>
   </ItemGroup>
   <ItemGroup>
     <ITunesArtwork Include="iTunesArtwork%402x" />
