@@ -44,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomClasses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SQLLite.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InAppBilling.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)App.config" />

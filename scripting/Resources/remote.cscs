@@ -73,7 +73,7 @@ purchased    = GetSetting("purchased", "bool", false);
 listCols = {"Instrument", "string", "Settle", "number"};
 colWidth = {70, 30};
 
-allowedStocks = { "ABBN", "BAY" };
+allowedStocks = { "AAPL", "ABBN", "BAY" };
 stock = GetSetting("stock", "string", "");
 stockMenu = GetSetting("stockMenu", "string", stocksHeader);
 printConsole("Starting with fav. stock: " + stock);
@@ -96,7 +96,7 @@ function onInit(sender, arg) {
 function onException(sender, errorMsg, arg) {
   makeUnbusy();
   if (_DEBUG_) {
-    if (arg.Size > 20) {
+    if (arg.Length > 20) {
       ShowToast(sender + " " + arg, 10, "yellow", "dark_red");
       Sleep(2000);
       ShowToast(errorMsg, 10, "yellow", "dark_red");

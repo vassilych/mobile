@@ -24,7 +24,7 @@ namespace SplitAndMerge
             if (variable.Value <= 0)
             {
                 ThrowErrorMsg("Expected a positive integer instead of [" +
-                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
+                              variable.Value + "].", script, script.Current.ToString());
             }
         }
 
@@ -34,7 +34,7 @@ namespace SplitAndMerge
             if (variable.Value < 0)
             {
                 ThrowErrorMsg("Expected a non-negative integer instead of [" +
-                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
+                              variable.Value + "].", script, script.Current.ToString());
             }
         }
         public static void CheckInteger(Variable variable, ParsingScript script)
@@ -43,7 +43,7 @@ namespace SplitAndMerge
             if (variable.Value % 1 != 0.0)
             {
                 ThrowErrorMsg("Expected an integer instead of [" +
-                              variable.Value + "].", script, script != null ? script.Current.ToString() : "");
+                              variable.Value + "].", script, script.Current.ToString());
             }
         }
         public static void CheckNumber(Variable variable, ParsingScript script)
@@ -51,7 +51,7 @@ namespace SplitAndMerge
             if (variable.Type != Variable.VarType.NUMBER)
             {
                 ThrowErrorMsg("Expected a number instead of [" +
-                              variable.AsString() + "].", script, script != null ? script.Current.ToString() : "");
+                              variable.AsString() + "].", script, script.Current.ToString());
             }
         }
         public static void CheckArray(Variable variable, string name)
@@ -120,7 +120,7 @@ namespace SplitAndMerge
             if (string.IsNullOrEmpty(varName))
             {
                 string realName = Constants.GetRealName(name);
-                throw new ArgumentException("Incomplete arguments for [" + realName + "]");
+                ThrowErrorMsg("Incomplete arguments for [" + realName + "]", null, name);
             }
         }
 
@@ -534,7 +534,7 @@ namespace SplitAndMerge
 
         public static double ConvertToDouble(object obj, ParsingScript script = null)
         {
-            string str = obj.ToString();
+            string str = obj.ToString().ToLower();
             double num = 0;
 
             if (!CanConvertToDouble(str, out num) &&
@@ -547,6 +547,16 @@ namespace SplitAndMerge
 
         public static bool CanConvertToDouble(string str, out double num)
         {
+            if (str == "true")
+            {
+                num = 1.0;
+                return true;
+            }
+            if (str == "false")
+            {
+                num = 0.0;
+                return true;
+            }
             return Double.TryParse(str, NumberStyles.Number |
                                         NumberStyles.AllowExponent |
                                         NumberStyles.Float,
