@@ -74,12 +74,15 @@ listCols = {"Instrument", "string", "Settle", "number"};
 colWidth = {70, 30};
 
 allowedStocks = { "AAPL", "ABBN", "BAY" };
-stock = GetSetting("stock", "string", "");
+stock = GetSetting("stock", "string", "ABBN");
 stockMenu = GetSetting("stockMenu", "string", stocksHeader);
 printConsole("Starting with fav. stock: " + stock);
 
 username = "test";//GetText(textLogin);
 password = "test";//GetText(textPassword);
+
+toastBg = "blue";
+toastFg = "white";
 
 AutoScale(1.0);
 
@@ -371,7 +374,7 @@ function loadAllStocks(sender, arg) {
   
   AddWidgetData(allStocksCombo, stocks);
   //SetValue(allStocksCombo, "value", 0);
-  SetText(allStocksCombo, stockMenu);
+  SetText(allStocksCombo, stock);
 
   onConnect(sender, "OK");
 }
@@ -619,7 +622,9 @@ function fillVolasData(sender, arg) {
   dates          = {};
   
   nbPast = 0; nbFuture = 0;
-  PrintConsole("  looping over  ", points.Size, " vola points.");
+  //PrintConsole("  looping over  ", points.Size, " vola points.");
+  ShowToast("Loaded " + points.Size + " volatility points", 5, toastFg, toastBg);
+
   count = 0;
   for (point : points) {
     parts      = point.Split("|");
@@ -831,11 +836,13 @@ function fillStdDevData(sender, arg) {
   RemoveViewIfExists(StdGraph);
 
   stddevs[stock] = arg;
-  PrintConsole(arg);
+  //PrintConsole(arg);
   title = "Standard Deviation";
 
   points         = arg.Split("!");
   stdData        = {};
+
+  ShowToast("Loaded " + points.Size + " StdDev points", 5, toastFg, toastBg);
   
   for (point : points) {
     parts      = point.Split("|");
@@ -871,7 +878,7 @@ function fillStdDevData(sender, arg) {
 
 function fillDividendsData(sender, arg) {
   dividends[stock] = arg;
-  PrintConsole(arg);
+  //PrintConsole(arg);
   //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
   
   estimatedTitle = "Estimated Div";
@@ -896,7 +903,7 @@ function fillDividendsData(sender, arg) {
     //key        = pastTitle;
     
     AddOrderedData(divData, key, x, y, "str");
-    PrintConsole("Processed Dividend [", point, "] size=", parts.size + ", key=", key);
+    //PrintConsole("Processed Dividend [", point, "] size=", parts.size + ", key=", key);
   }
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
@@ -946,14 +953,8 @@ function fillStockData(sender, arg) {
   lastStockLoaded = stock;
   expiries.Add(callputHeader + " " + stock);
 
-  /*if (optionsLoaded) {
-    locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
-    AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
+  ShowToast("Loaded " + options.Size + " options.", 5, toastFg, toastBg);
 
-    AddWidgetData(DataGrid, listCols, "columns");
-    AddWidgetData(DataGrid, colWidth, "columnWidth");
-  }*/
-  
   ccy = market = "";
   stock = sender;
   stockData = {};
@@ -1019,6 +1020,7 @@ function fillStockData(sender, arg) {
     repaintCallPutWidget(expiries);
   }
   makeUnbusy();
+  //ShowToast("Loaded " + expiries.Size + " option expiries.", 5, toastFg, toastBg);
   printConsole("Finished fillStockData for " + stock + ", market: " + market);
 }
 
@@ -1040,12 +1042,6 @@ function reloadOptionsTable() {
   locCcyImg = GetLocation(labelCcy, "RIGHT", labelCcy, "CENTER", 10, 0);
   AddImageView(locCcyImg, "imageCcy", ccy, 100, 100);
   optionsLoaded = true;
-}
-
-function optionSelected(sender, arg) {
-  GetDataFromServer("prices", arg, "fillPrices");
-}
-function fillPrices(sender, arg) {
 }
 
 function showError(msg) {
@@ -1204,7 +1200,7 @@ locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0
 AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
 SetFontSize(allStocksCombo, fontSizeSm);
 SetValue(allStocksCombo, "alignment", "center");
-SetText(allStocksCombo, stockMenu);
+SetText(allStocksCombo, stock);
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
 AddLabel(locIsinLab, "labelIsin", "ISIN:", textWidth, textHeight);

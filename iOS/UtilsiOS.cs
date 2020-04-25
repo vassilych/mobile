@@ -95,11 +95,17 @@ namespace scripting.iOS
             }
 
             width = (float)iOSApp.AdjustSize(width);
+            if (IsiPhoneX())
+            {
+                height *= 0.75f;
+            }
 
             CGSize screen = UtilsiOS.GetScreenSize();
             var size = new CGSize(width, height);
             var x = (screen.Width - size.Width) / 2.0;
-            var y = screen.Height - size.Height - 120 * WidthMultiplier();
+
+            var downDelta = IsiPhoneX() ? 46 : IsiPhoneXR() ? 40 : 70;
+            var y = screen.Height - size.Height - downDelta * WidthMultiplier();
 
             var point = new CGPoint(x, y);
 
