@@ -186,7 +186,7 @@ function tabSelected(sender, arg) {
     RemoveViewIfExists(VolaGraph1);
     RemoveViewIfExists(VolaGraph2);
     HideView(volainfo);
-    GetDataFromServer("volas", stock, "fillVolasData");
+    GetDataFromServer("a_volas", stock, "fillVolasData");
   } elif (newtab == 3) {
     if (!data.Contains(stock)) {
       GetDataFromServer("optionprices", stock, "fillStockData");
@@ -217,6 +217,8 @@ function buttonAboutUs_click(sender, arg) {
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
                deviceInfo + ": " + deviceVersion + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
+              "RAM: " + _TOTALRAM_ + " MB\n" +
+              "App Usage: " + _USEDRAM_ + " MB\n" +
               "Developed by: " + WebSite + " \n");
 }
 
@@ -574,8 +576,8 @@ function createGraphs() {
  
   keys = getBestData(stockData, "_C_");
   PrintConsole("keys: " + keys);
-  if (keys[0] == "") {
-    loadStockWarning();
+  if (keys.Size == 0 || keys[0] == "") {
+    makeUnbusy();
     return;
   }
   
@@ -594,8 +596,8 @@ function createGraphs() {
   createGraph(locSFGraph1, "SplineGraph1", "", stockData, keys, "Strike", "Price", "Call ");
   
   keys = getBestData(stockData, "_P_");
-  if (keys[0] == "") {
-    loadStockWarning();
+  if (keys.Size == 0 || keys[0] == "") {
+    makeUnbusy();
     return;
   }
   
@@ -910,7 +912,7 @@ function fillDividendsData(sender, arg) {
 
   locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
   AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
-  SetText(DivGraph1,  "Dividends for " + stock  + "  " + isin);
+  SetText(DivGraph1,  "Dividends for " + stock);
 
   if (divData.Size > 0) {
     SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");

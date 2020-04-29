@@ -15,6 +15,13 @@ namespace Proxy
 {
     class ProxyClient
     {
+        static string s_host = "167.86.100.196";
+#if DEBUG
+        static int s_port = 33334;
+#else
+        static int s_port = 33333;
+#endif
+
         static Socket s_client;
 
         static CancellationTokenSource s_cancelTokenSource = new CancellationTokenSource();
@@ -48,8 +55,7 @@ namespace Proxy
             return client;
         }
 
-        static void StartClient(CustomFunction callbackFunction, bool forced = false,
-                                string host = "167.86.100.196", int port = 33333)
+        static void StartClient(CustomFunction callbackFunction, bool forced = false)
         {
             if (!forced && s_client != null && s_client.Connected)
             {
@@ -64,11 +70,11 @@ namespace Proxy
                 s_client.Dispose();
             }
 
-            s_client = GetConnection(host, port);
+            s_client = GetConnection(s_host, s_port);
 
             if (s_client == null)
             {
-                throw new ArgumentException("Could not connect to " + host);
+                throw new ArgumentException("Couldn't connect to TrueDividends server");
             }
 
         }

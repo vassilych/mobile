@@ -104,7 +104,7 @@ namespace scripting.iOS
             var size = new CGSize(width, height);
             var x = (screen.Width - size.Width) / 2.0;
 
-            var downDelta = IsiPhoneX() ? 46 : IsiPhoneXR() ? 40 : 70;
+            var downDelta = IsiPhoneX() ? 46 : IsiPhoneXR() ? 60 : 70;
             var y = screen.Height - size.Height - downDelta * WidthMultiplier();
 
             var point = new CGPoint(x, y);

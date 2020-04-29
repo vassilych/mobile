@@ -141,6 +141,8 @@ namespace scripting
             ParserFunction.RegisterFunction("_VERSION_NUMBER_", new GetVersionNumberFunction());
             ParserFunction.RegisterFunction("_DEBUG_", new IsDebugFunction());
             ParserFunction.RegisterFunction("_APPVERSION_", new AppVersionFunction());
+            ParserFunction.RegisterFunction("_TOTALRAM_", new GetRamFunction());
+            ParserFunction.RegisterFunction("_USEDRAM_", new AllocatedMemoryFunction());
             ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
@@ -857,6 +859,31 @@ namespace scripting
 #else
             return new Variable(false);
 #endif
+        }
+    }
+
+    class GetRamFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+
+#if __ANDROID__
+            ActivityManager actManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+            actManager.getMemoryInfo(memInfo);
+            var total = memInfo.totalMem;
+#else
+            var total = Foundation.NSProcessInfo.ProcessInfo.PhysicalMemory / (1024 * 1024);
+#endif
+            return new Variable(total);
+        }
+    }
+
+    class AllocatedMemoryFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            return new Variable(GC.GetTotalMemory(false) / (1024 * 1024));
         }
     }
 
