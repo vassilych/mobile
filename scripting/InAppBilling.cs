@@ -8,15 +8,15 @@ using SplitAndMerge;
 
 namespace scripting
 {
-    public class PurchaseFunction2 : ParserFunction
+    public class PurchaseFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name, true);
 
-            string strAction = args[0].AsString();
-            string productId = args[1].AsString();
+            string productId = args[0].AsString();
+            string strAction = args[1].AsString();
 
             InAppBilling.RegisterCallbacks(strAction);
             InAppBilling.PurchaseItem(productId);
@@ -24,7 +24,7 @@ namespace scripting
             return Variable.EmptyInstance;
         }
     }
-    public class RestoreFunction2 : ParserFunction
+    public class RestoreFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -44,18 +44,26 @@ namespace scripting
             return Variable.EmptyInstance;
         }
     }
-    public class ProductIdDescriptionFunction2 : ParserFunction
+    public class ProductIdDescriptionFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
+            Utils.CheckArgs(args.Count, 1, m_name);
 
             string productId = args[0].AsString();
+            string strAction = Utils.GetSafeString(args, 1);
 
-            string description = InAppBilling.GetDescription(productId);
+            if (string.IsNullOrWhiteSpace(strAction))
+            {
+                var desc = InAppBilling.GetDescription(productId);
+                return new Variable(desc);
+            }
 
-            return new Variable(description);
+            InAppBilling.RegisterCallbacks(strAction); 
+            InAppBilling.GetDescriptionAsync(productId);
+
+            return Variable.EmptyInstance;
         }
     }
 
@@ -104,6 +112,7 @@ namespace scripting
             OnIAPError?.Invoke("Couldn't connect to the App Store");
             return false;
         }
+
         public static string GetDescription(string productId)
         {
             string desciption;
@@ -111,6 +120,21 @@ namespace scripting
             {
                 desciption = productId;
             }
+            OnIAPOK?.Invoke(desciption);
+            return desciption;
+        }
+        public static async Task<string> GetDescriptionAsync(string productId)
+        {
+            string desciption;
+            if (!m_id2Description.TryGetValue(productId, out desciption))
+            {
+                await GetInventory(productId);
+                if (!m_id2Description.TryGetValue(productId, out desciption))
+                {
+                    desciption = productId;
+                }
+            }
+            OnIAPOK?.Invoke(desciption);
             return desciption;
         }
         static bool ProductPurchased(string productId)
@@ -161,7 +185,11 @@ namespace scripting
         public static async Task<bool> PurchaseItem(string productId, string payload = "notused")
         {
             s_errorConnecting = false;
-            await GetInventory(productId);
+            await GetInventory();
+            if (s_errorConnecting)
+            {
+                return false;
+            }
 
             bool alreadyPurchased = await WasItemPurchased(productId);
             if (alreadyPurchased)
@@ -214,6 +242,10 @@ namespace scripting
         {
             s_errorConnecting = false;
             await GetInventory();
+            if (s_errorConnecting)
+            {
+                return;
+            }
 
             string restored = "";
             foreach (string productId in m_availableProducts)

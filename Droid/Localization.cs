@@ -6,7 +6,22 @@ namespace scripting.Droid
 {
   public class Localization
   {
-    public static string CurrentCode;
+        public static string CurrentCode
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(s_currentCode))
+                {
+                    s_currentCode = Localization.GetAppLanguageCode();
+                }
+                return s_currentCode;
+            }
+            set
+            {
+                s_currentCode = value;
+            }
+        }
+        static string s_currentCode;
 
     public static Java.Util.Locale LocaleFromString(string voice, bool display = true)
     {

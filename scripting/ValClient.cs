@@ -345,7 +345,7 @@ namespace Proxy
             {
                 if (xStr == data.Tuple[index].AsString())
                 {
-                    return Variable.EmptyInstance;
+                    return new Variable(data.Tuple.Count);
                 }
                 if ((xNumeric && x < data.Tuple[index].AsDouble()))
                 {
@@ -360,7 +360,7 @@ namespace Proxy
             root.SetHashVariable(key, data);
             AddGlobal(root.ParsingToken, new GetVarFunction(root));
 
-            return Variable.EmptyInstance;
+            return new Variable(data.Tuple.Count);
         }
     }
 

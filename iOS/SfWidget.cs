@@ -185,6 +185,14 @@ namespace scripting.iOS
                 m_picker.UnSelectedItemFont = UIFont.SystemFontOfSize(m_fontSize);
                 m_picker.SelectedItemFont = UIFont.BoldSystemFontOfSize(m_fontSize + 2);
             }
+            else if (m_grid != null)
+            {
+                var columns = m_grid.Columns;
+                foreach (var column in columns)
+                {
+                    column.CellTextSize = m_fontSize;
+                }
+            }
             else
             {
                 return false;

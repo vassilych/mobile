@@ -197,13 +197,24 @@ namespace scripting.Droid
             if (m_stepper != null)
             {
                 m_stepper.FontSize = fontSize;
-                return true;
             }
-            if (m_segmented != null)
+            else if (m_segmented != null)
             {
                 m_segmented.FontSize = fontSize;
             }
-            return false;
+            else if (m_grid != null)
+            {
+                var columns = m_grid.Columns;
+                foreach (var column in columns)
+                {
+                    column.CellTextSize = (float)fontSize;
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return true;
         }
         void CreateBusyIndicator()
         {
@@ -497,12 +508,16 @@ namespace scripting.Droid
             m_grid.AutoGenerateColumns = false;
             m_grid.ShowRowHeader = false;
             m_grid.HeaderRowHeight = 45;
-            m_grid.RowHeight = 45;
+            m_grid.RowHeight = 50;
             m_grid.ColumnSizer = ColumnSizer.Star;
             m_grid.AllowDraggingRow = true;
             m_grid.AllowSwiping = true;
             m_grid.AllowResizingColumn = true;
             m_grid.AllowSorting = true;
+
+            DataGridStyle style = new DataGridStyle();
+
+            m_grid.GridStyle = style;
             //m_grid.AllowTriStateSorting = true;
             m_grid.SortColumnsChanged += (sender, e) =>
             {
@@ -794,7 +809,7 @@ namespace scripting.Droid
             ViewX = m_stepper;
         }
 
-        void StepperCallback(object sender, ValueChangedEventArgs e)
+        void StepperCallback(object sender, Com.Syncfusion.Numericupdown.ValueChangedEventArgs e)
         {
             ActionDelegate?.Invoke(WidgetName, e.Value.ToString());
             MainActivity.TheView.ShowHideKeyboard(m_stepper, false);
@@ -932,7 +947,7 @@ namespace scripting.Droid
             m_chart = new SfChart(m_context);
 
             m_chart.SetBackgroundColor(Color.Transparent);
-            m_chart.Title.Text = "Graph";
+            //m_chart.Title.Text = "Graph";
             m_chart.Title.TextSize = 15;
 
             CategoryAxis categoryaxis = new CategoryAxis();
@@ -956,6 +971,10 @@ namespace scripting.Droid
                 else if (title == "item")
                 {
                     m_model.AddPoint(data);
+                }
+                else if (title == "columnWidth")
+                {
+                    m_model.SetColumnWidths(data);
                 }
             }
             else if (m_chart != null)

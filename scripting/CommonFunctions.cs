@@ -422,59 +422,25 @@ namespace scripting
         {
             float extra = widgetWidth > 640 || original <= 14 ? 0 : original * 0.2f;
             float newSize = original - extra;
-            if (widgetWidth <= 480)
-            {
-                newSize -= 4.5f;
-            }
-            else if (widgetWidth <= 540)
-            {
-                newSize -= 4.0f;
-            }
-            else if (widgetWidth <= 600)
-            {
-                newSize -= 3.0f;
-            }
-            else if (widgetWidth <= 640)
-            {
-                newSize -= 2.0f;
-            }
-            else if (widgetWidth <= 720)
-            {
-                newSize -= 0.5f;
-            }
-            else if (widgetWidth <= 800)
-            {
-                newSize += 0.0f;
-            }
-            else if (widgetWidth <= 900)
-            {
-                newSize += 1.5f;
-            }
-            else if (widgetWidth <= 960)
-            {
-                newSize += 2.0f;
-            }
-            else if (widgetWidth <= 1024)
-            {
-                newSize += 2.5f;
-            }
-            else if (widgetWidth <= 1200)
-            {
-                newSize += 3.0f;
-            }
-            else if (widgetWidth <= 1300)
-            {
-                newSize += 3.5f;
-            }
-            else if (widgetWidth <= 1400)
-            {
-                newSize += 4.0f;
-            }
-            else
-            {
-                newSize += 4.0f;
-            }
 
+            newSize += (widgetWidth <= 480 ? -4.5f :
+                        widgetWidth <= 540 ? -4.0f :
+                        widgetWidth <= 600 ? -3.0f :
+                        widgetWidth <= 640 ? -2.0f :
+                        widgetWidth <= 720 ? -0.5f :
+                        widgetWidth <= 900 ?  0.5f :
+                        widgetWidth <= 960 ?  2.0f :
+                        widgetWidth <= 1024 ? 2.5f :
+                        widgetWidth <= 1200 ? 3.0f :
+                        widgetWidth <= 1300 ? 3.5f :
+                        widgetWidth <= 1400 ? 4.0f : 4.0f);
+
+#if __ANDROID__
+            newSize -= (widgetWidth >= 1200 ? 4.0f :
+                        widgetWidth >= 1000 ? 3.0f :
+                        widgetWidth >=  900 ? 2.0f :
+                        widgetWidth >=  800 ? 1.0f : 0f);
+#endif
             return newSize;
         }
     }
@@ -696,7 +662,8 @@ namespace scripting
             string version = "";
 
 #if __ANDROID__
-            version = "1.0";
+            var ctx = Android.App.Application.Context;
+            version = ctx.ApplicationContext.PackageManager.GetPackageInfo(ctx.ApplicationContext.PackageName, 0).VersionName;
 #elif __IOS__
             version = iOSApp.GetAppVersion();
 #endif
@@ -772,11 +739,10 @@ namespace scripting
         protected override Variable Evaluate(ParsingScript script)
         {
 #if __ANDROID__
-      string strVersion = Android.OS.Build.VERSION.Release;
+            string strVersion = Android.OS.Build.VERSION.Release;
 #elif __IOS__
             string strVersion = UIKit.UIDevice.CurrentDevice.SystemVersion;
 #endif
-
             return new Variable(strVersion);
         }
     }
@@ -868,10 +834,7 @@ namespace scripting
         {
 
 #if __ANDROID__
-            ActivityManager actManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
-            actManager.getMemoryInfo(memInfo);
-            var total = memInfo.totalMem;
+            var total = MainActivity.GetTotalMemory() / (1024 * 1024);
 #else
             var total = Foundation.NSProcessInfo.ProcessInfo.PhysicalMemory / (1024 * 1024);
 #endif

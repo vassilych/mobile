@@ -127,7 +127,8 @@ namespace SplitAndMerge
             }
 
 #if __ANDROID__
-            var total = m_grid.View.Records.Count;
+            var total = m_grid.LayoutParameters.Width;
+            return;
 #elif __IOS__
             var total = m_grid.Frame.Width;
 #endif
@@ -135,7 +136,7 @@ namespace SplitAndMerge
             {
                 var width = widths[i];
                 var column = m_grid.Columns[i];
-                column.Width = (width/totalAdjusted) * total;
+                column.Width = (width / totalAdjusted) * total;
             }
         }
 

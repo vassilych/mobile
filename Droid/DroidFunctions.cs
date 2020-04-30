@@ -239,7 +239,7 @@ namespace scripting.Droid
             }
             int corner = Utils.GetSafeInt(args, 2, 5);
             string colorStr = Utils.GetSafeString(args, 3, "#000000");
-            Color color = Color.ParseColor(colorStr);
+            Color color = UtilsDroid.String2Color(colorStr);
 
             UtilsDroid.AddViewBorder(view, color, width, corner);
             return Variable.EmptyInstance;
@@ -1450,8 +1450,8 @@ namespace scripting.Droid
                 {
                     bgColorStr = "#D3D3D3";
                 }
-                Color fgColor = Color.ParseColor(fgColorStr);
-                Color bgColor = Color.ParseColor(bgColorStr);
+                Color fgColor = UtilsDroid.String2Color(fgColorStr);
+                Color bgColor = UtilsDroid.String2Color(bgColorStr);
 
                 GradientDrawable shape = new GradientDrawable();
                 shape.SetCornerRadius(20);
@@ -1518,7 +1518,7 @@ namespace scripting.Droid
             string buttonCancel = Utils.GetSafeString(args, 4);
             string actionCancel = Utils.GetSafeString(args, 5);
 
-            msg = msg.Replace(@"\\\\n", @"\n").Replace(@"\\\n", @"\n").Replace(@"\\n", @"\n").Replace(@"\\t", @"\t");
+            msg = msg.Replace(@"\\\\n", @"\n").Replace(@"\\\n", @"\n").Replace(@"\\n", @"\n").Replace(@"\\t", @"    ").Replace(@"\t", @"    ");
 
             var tokens = msg.Split("\\n");
             int maxSize = tokens[0].Trim().Length;
@@ -1530,7 +1530,7 @@ namespace scripting.Droid
             string realMsg = "";
             for (int i = 0; i < tokens.Length; i++)
             {
-                var current = tokens[i].Trim();
+                var current = tokens[i];
                 //var missing = (maxSize - current.Length) / 2;
                 var missing = maxSize - current.Length;
                 var extra = missing > 0 ? new string(' ', missing) : "";
@@ -1666,6 +1666,7 @@ namespace scripting.Droid
             Utils.CheckArgs(args.Count, 1, m_name);
 
             string currentCode = Localization.CurrentCode;
+
             string key = args[0].AsString();
             string langCode = Utils.GetSafeString(args, 1, currentCode);
 
@@ -2002,7 +2003,7 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
-    public class RestoreFunction : ParserFunction
+    public class RestoreFunction2 : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -2046,7 +2047,7 @@ namespace scripting.Droid
             }*/
         }
     }
-    public class PurchaseFunction : ParserFunction
+    public class PurchaseFunction2 : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -2056,7 +2057,7 @@ namespace scripting.Droid
             string strAction = args[0].AsString();
             string productId = args[1].AsString();
 
-            RestoreFunction.UnsubscribeFromAll();
+            RestoreFunction2.UnsubscribeFromAll();
 
             /*InAppBilling.OnIAPOK += (productIds) => {
               UIVariable.GetAction(strAction, "", "\"" + productIds + "\"");
@@ -2071,7 +2072,7 @@ namespace scripting.Droid
             return Variable.EmptyInstance;
         }
     }
-    public class ProductIdDescriptionFunction : ParserFunction
+    public class ProductIdDescriptionFunction2 : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {

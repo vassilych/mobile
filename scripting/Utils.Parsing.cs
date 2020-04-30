@@ -1314,12 +1314,19 @@ namespace SplitAndMerge
 
         public static string StartsWith(string data, string[] items)
         {
-            foreach (string item in items)
+            try
             {
-                if (data.StartsWith(item))
+                foreach (string item in items)
                 {
-                    return item;
+                    if (data.StartsWith(item))
+                    {
+                        return item;
+                    }
                 }
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine(exc.Message);
             }
             return null;
         }
