@@ -369,7 +369,7 @@ namespace Proxy
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
+            Utils.CheckArgs(args.Count, 3, m_name);
 
             string username = args[0].AsString();
             string password = args[1].AsString();
