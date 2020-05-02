@@ -15,8 +15,8 @@ using Android.Views.InputMethods;
 
 namespace scripting.Droid
 {
-    [Activity(Theme = "@android:style/Theme.Holo.Light",
-              //Theme = "@style/MyTheme.Main",
+    [Activity(//Theme = "@android:style/Theme.Holo.Light",
+              Theme = "@style/CustomTheme",
               Icon = "@mipmap/icon",
               Label = "",
               //MainLauncher = true,

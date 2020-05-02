@@ -1265,24 +1265,44 @@ namespace scripting.Droid
     public class GadgetSizeFunction : ParserFunction
     {
         bool m_needWidth;
-        public GadgetSizeFunction(bool needWidth = true)
+        bool m_needDPI;
+
+        static int s_height;
+        static int s_width;
+        static int s_dpi;
+        public GadgetSizeFunction(bool needWidth = true, bool needDPI = false)
         {
             m_needWidth = needWidth;
+            m_needDPI = needDPI;
         }
         protected override Variable Evaluate(ParsingScript script)
         {
             script.MoveForwardIf(Constants.END_ARG_ARRAY);
 
-            DisplayMetrics bounds = new DisplayMetrics();
-            var winManager = MainActivity.TheView.WindowManager;
-            winManager.DefaultDisplay.GetMetrics(bounds);
+            if (s_width <= 0)
+            {
+                DisplayMetrics bounds = new DisplayMetrics();
+                var winManager = MainActivity.TheView.WindowManager;
+                winManager.DefaultDisplay.GetMetrics(bounds);
 
-            int width = bounds.WidthPixels < bounds.HeightPixels ?
+                s_width = bounds.WidthPixels < bounds.HeightPixels ?
                          bounds.WidthPixels : bounds.HeightPixels;
-            int height = bounds.WidthPixels < bounds.HeightPixels ?
-                         bounds.HeightPixels : bounds.WidthPixels;
-
-            return new Variable(m_needWidth ? width : height);
+                s_height = bounds.WidthPixels < bounds.HeightPixels ?
+                             bounds.HeightPixels : bounds.WidthPixels;
+                s_dpi = (int)bounds.DensityDpi;
+            }
+            return new Variable(m_needDPI ? s_dpi : m_needWidth ? s_width : s_height);
+        }
+        public static int GetDPI()
+        {
+            if (s_dpi <= 0)
+            {
+                DisplayMetrics bounds = new DisplayMetrics();
+                var winManager = MainActivity.TheView.WindowManager;
+                winManager.DefaultDisplay.GetMetrics(bounds);
+                s_dpi = (int)bounds.DensityDpi;
+            }
+            return s_dpi;
         }
     }
 

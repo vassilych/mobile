@@ -123,6 +123,7 @@ namespace scripting
             ParserFunction.RegisterFunction("SetStyle", new SetStyleFunction());
             ParserFunction.RegisterFunction("DisplayWidth", new GadgetSizeFunction(true));
             ParserFunction.RegisterFunction("DisplayHeight", new GadgetSizeFunction(false));
+            ParserFunction.RegisterFunction("DisplayDPI", new GadgetSizeFunction(false, true));
             ParserFunction.RegisterFunction("Orientation", new OrientationFunction());
             ParserFunction.RegisterFunction("GetTrie", new CreateTrieFunction());
             ParserFunction.RegisterFunction("SearchTrie", new SearchTrieFunction());
@@ -436,10 +437,14 @@ namespace scripting
                         widgetWidth <= 1400 ? 4.0f : 4.0f);
 
 #if __ANDROID__
-            newSize -= (widgetWidth >= 1200 ? 4.0f :
-                        widgetWidth >= 1000 ? 3.0f :
-                        widgetWidth >=  900 ? 2.0f :
-                        widgetWidth >=  800 ? 1.0f : 0f);
+            newSize--;
+            if (GadgetSizeFunction.GetDPI() < 500)
+            {
+                newSize -= (//widgetWidth >= 1200 ? 8.0f :
+                            widgetWidth >= 1000 ? 6.0f :
+                            widgetWidth >= 900 ? 3.0f :
+                            widgetWidth >= 800 ? 1.0f : 0f);
+            }
 #endif
             return newSize;
         }

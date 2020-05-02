@@ -1441,16 +1441,18 @@ namespace scripting.iOS
     public class GadgetSizeFunction : ParserFunction
     {
         bool m_needWidth;
-        public GadgetSizeFunction(bool needWidth = true)
+        bool m_needDPI;
+        public GadgetSizeFunction(bool needWidth = true, bool needDPI = false)
         {
             m_needWidth = needWidth;
+            m_needDPI = needDPI;
         }
         protected override Variable Evaluate(ParsingScript script)
         {
             script.MoveForwardIf(Constants.END_ARG_ARRAY);
 
             var bounds = UtilsiOS.GetNativeScreenSize();
-            return new Variable(m_needWidth ? bounds.Width : bounds.Height);
+            return new Variable(m_needDPI ? (int)(int)UIScreen.MainScreen.Scale : m_needWidth ? bounds.Width : bounds.Height);
         }
     }
 

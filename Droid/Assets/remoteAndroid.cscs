@@ -228,6 +228,7 @@ function buttonAboutUs_click(sender, arg) {
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
                deviceInfo + ": \n \t  " + deviceVersion + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
+              "DPI: " + DisplayDPI + " \n" +
               "RAM: " + _TOTALRAM_ + " MB\n" +
               "App Usage: " + _USEDRAM_ + " MB\n" +
               "Developed by: " + WebSite + " \n");
@@ -388,6 +389,7 @@ function loadAllStocks(sender, arg) {
   //SetValue(allStocksCombo, "value", 0);
   stockValue = stock == "" ? stockMenu : stock;
   SetText(allStocksCombo, stockValue);
+  SetFontSize(allStocksCombo, fontSizeSm - 1);
   //printConsole("Set stockValue=" + stockValue + ", busy=" + busy);
 
   onConnect(sender, "OK");
@@ -596,7 +598,7 @@ function createGraphs() {
   lastPriceMsg = stock + (prices.Contains(stock) ? " (ATM " + prices[stock] + ")" : "");
 
   locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
-  AddCombobox(locComboCallPuts, "callputWidget", "", 530, 60);
+  AddCombobox(locComboCallPuts, "callputWidget", "", 530, textHeight);
   AddWidgetData(callputWidget, expiries, "callPutSelected", "left");
   SetFontSize(callputWidget, fontSizeSm - 1);
   SetValue(callputWidget, "alignment", "center");
@@ -675,7 +677,7 @@ function fillVolasData(sender, arg) {
   dates.Sort();
 
   locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
-  AddCombobox(locComboVolas, "volasWidget", "", 530, 60);
+  AddCombobox(locComboVolas, "volasWidget", "", 530, textHeight);
   comboData = dates;
   comboData.Add(volaHeader + " " + stock, 0);
 
@@ -1167,7 +1169,7 @@ function buttonRestore_click(sender, arg) {
 fontSizeSm   = 13;
 fontSize     = 26;
 textHeight   = 60;
-textWidth    = 220;
+textWidth    = 260;
 tokenCount   = 0;
 busySize     = 400;
 
@@ -1281,7 +1283,7 @@ SetFontSize(labelStatus, fontSizeSm + 2);
 AlignText(labelStatus, "left");
 
 locStatus2 = GetLocation(labelStatus, "RIGHT", buttonConnect, "BOTTOM", 10, 10);
-AddLabel(locStatus2, "labelStatus2", "Disconnected", 340, 60);
+AddLabel(locStatus2, "labelStatus2", "Disconnected", 380, 60);
 SetFontSize(labelStatus2, fontSizeSm + 2);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
