@@ -451,6 +451,12 @@ namespace scripting.Droid
             actManager.GetMemoryInfo(memInfo);
             return memInfo.TotalMem;
         }
+
+        public static void GetStorage(out long fullStarage, out long freeStarage)
+        {
+            fullStarage = Android.OS.Environment.RootDirectory.TotalSpace;
+            freeStarage = Android.OS.Environment.RootDirectory.UsableSpace;
+        }
     }
 
     public class LayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener

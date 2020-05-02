@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using CoreGraphics;
+using Foundation;
 using UIKit;
 using Xamarin.Forms.Platform.iOS;
 
@@ -550,6 +551,14 @@ namespace scripting.iOS
             sysctlbyname(property, pStr, pLen, IntPtr.Zero, 0);
             return Marshal.PtrToStringAnsi(pStr);
         }
+
+        public static void GetStorage(out long fullStarage, out long freeStarage)
+        {
+            var applicationFolder = NSFileManager.DefaultManager.GetFileSystemAttributes(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+            fullStarage = (long)applicationFolder.Size;
+            freeStarage = (long)applicationFolder.FreeSize;
+        }
+
         public static string GetDeviceName()
         {
             string deviceName = GetSystemProperty("hw.machine");

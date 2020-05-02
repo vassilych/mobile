@@ -223,14 +223,15 @@ function tabSelected(sender, arg) {
 }
 
 function buttonAboutUs_click(sender, arg) {
-  deviceInfo    = _DEVICE_INFO_;
-  deviceVersion = _VERSION_INFO_;
+  freeSp  = Round(Double(_FREESPACE_ / 1024), 2);
+  totalSp = Round(Double(_TOTALSPACE_ / 1024), 2);
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
-               deviceInfo + ": \n \t  " + deviceVersion + " \n" +
+               _DEVICE_INFO_ + ": \n \t  " + _VERSION_INFO_ + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
               "DPI: " + DisplayDPI + " \n" +
               "RAM: " + _TOTALRAM_ + " MB\n" +
               "App Usage: " + _USEDRAM_ + " MB\n" +
+              "Free Space: " + freeSp + "/" + totalSp + " GB\n" +
               "Developed by: " + WebSite + " \n");
 }
 
@@ -1169,7 +1170,7 @@ function buttonRestore_click(sender, arg) {
 fontSizeSm   = 13;
 fontSize     = 26;
 textHeight   = 60;
-textWidth    = 260;
+textWidth    = 220;
 tokenCount   = 0;
 busySize     = 400;
 
@@ -1241,7 +1242,7 @@ SetFontSize(labelNextDiv, fontSizeSm);
 
 locDiv = GetLocation(labelNextDiv, "RIGHT", labelNextDiv, "CENTER", 10, -6);
 AddLabel(locDiv, "textNextDiv", "", 380, textHeight);
-SetBold(textNextDiv, fontSizeSm + 4);
+SetBold(textNextDiv, fontSizeSm + 1);
 
 locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
 AddLabel(locStdLab, "labelStd", "Standard Deviation (1 year):", textWidth, textHeight + 8);
@@ -1249,7 +1250,7 @@ SetFontSize(labelStd, fontSizeSm);
 
 locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
 AddLabel(locStd, "textStd", "", textWidth, textHeight);
-SetBold(textStd, fontSizeSm + 4);
+SetBold(textStd, fontSizeSm + 1);
 
 locUpdateLab = GetLocation("ROOT", "LEFT", labelStd, "BOTTOM", 10, 10);
 AddLabel(locUpdateLab, "labelUpdate", "Last Update:", textWidth, textHeight);

@@ -16,5 +16,6 @@
         android:padding="2dp"
         android:textStyle="bold"
         android:maxLines="5"
+        android:textColor="@android:color/black"
         android:textSize="13sp" />
 </LinearLayout>

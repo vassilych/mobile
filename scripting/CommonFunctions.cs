@@ -144,6 +144,8 @@ namespace scripting
             ParserFunction.RegisterFunction("_APPVERSION_", new AppVersionFunction());
             ParserFunction.RegisterFunction("_TOTALRAM_", new GetRamFunction());
             ParserFunction.RegisterFunction("_USEDRAM_", new AllocatedMemoryFunction());
+            ParserFunction.RegisterFunction("_TOTALSPACE_", new GetStorageFunction());
+            ParserFunction.RegisterFunction("_FREESPACE_", new GetStorageFunction(false));
             ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
@@ -844,6 +846,28 @@ namespace scripting
             var total = Foundation.NSProcessInfo.ProcessInfo.PhysicalMemory / (1024 * 1024);
 #endif
             return new Variable(total);
+        }
+    }
+
+
+    class GetStorageFunction : ParserFunction
+    {
+        bool m_isTotal;
+        public GetStorageFunction(bool isTotal = true)
+        {
+            m_isTotal = isTotal;
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            long total, free;
+#if __ANDROID__
+
+            MainActivity.GetStorage(out total, out free);
+#else
+            UtilsiOS.GetStorage(out total, out free);
+#endif
+            var result = (m_isTotal ? total : free) / (1024 * 1024);
+            return new Variable(result);
         }
     }
 

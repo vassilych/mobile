@@ -212,13 +212,15 @@ function tabSelected(sender, arg) {
 }
 
 function buttonAboutUs_click(sender, arg) {
-  deviceInfo    = _DEVICE_INFO_;
-  deviceVersion = _VERSION_INFO_;
+  freeSp  = Round(Double(_FREESPACE_ / 1024), 2);
+  totalSp = Round(Double(_TOTALSPACE_ / 1024), 2);
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
-               deviceInfo + ": " + deviceVersion + " \n" +
+               _DEVICE_INFO_ + ": \n \t  " + _VERSION_INFO_ + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
+              "DPI: " + DisplayDPI + " \n" +
               "RAM: " + _TOTALRAM_ + " MB\n" +
               "App Usage: " + _USEDRAM_ + " MB\n" +
+              "Free Space: " + freeSp + "/" + totalSp + " GB\n" +
               "Developed by: " + WebSite + " \n");
 }
 

@@ -75,6 +75,7 @@ namespace scripting.Droid
         public string FontName { get; set; }
         bool m_bold;
         bool m_italic;
+        Color m_fontColor;
 
         public void SetViewLayout(int width, int height)
         {
@@ -594,6 +595,18 @@ namespace scripting.Droid
                 Spinner spinner = ViewX as Spinner;
                 spinner.ItemSelected += (sender, e) =>
                 {
+                    if (m_fontColor != null && spinner.SelectedView is LinearLayout)
+                    {
+                        var layout = spinner.SelectedView as LinearLayout;
+                        for (int i = 0; i < layout.ChildCount; i++)
+                        {
+                            var child = layout.GetChildAt(i);
+                            if (child is TextView)
+                            {
+                                //((TextView)child).SetTextColor(m_fontColor);
+                            }
+                        }
+                    }
                     var adapter = spinner.Adapter as TextImageAdapter;
                     var item = adapter != null ? adapter.Position2Text(e.Position) : "";
                     UIVariable.GetAction(strAction, varName, item);
@@ -1002,19 +1015,25 @@ namespace scripting.Droid
                 return false;
             }
 
-            Color color = UtilsDroid.String2Color(colorStr);
+            m_fontColor = UtilsDroid.String2Color(colorStr);
 
             if (ViewX is Button)
             {
-                ((Button)ViewX).SetTextColor(color);
+                ((Button)ViewX).SetTextColor(m_fontColor);
             }
             else if (ViewX is TextView)
             {
-                ((TextView)ViewX).SetTextColor(color);
+                ((TextView)ViewX).SetTextColor(m_fontColor);
             }
             else if (ViewX is EditText)
             {
-                ((EditText)ViewX).SetTextColor(color);
+                ((EditText)ViewX).SetTextColor(m_fontColor);
+            }
+            else if (ViewX is Spinner)
+            {
+                var spinner = ViewX as Spinner;
+                var view = spinner.SelectedView as TextView;
+                view?.SetTextColor(m_fontColor);
             }
             else
             {
