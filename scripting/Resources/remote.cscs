@@ -389,6 +389,9 @@ function onConnect(sender, arg) {
 }
 
 function setConnectionStatus(arg) {
+  if (arg == "") {
+    arg = "Connection reset";
+  }
   if (arg == "OK") {
     connectionSuccess();
     if (stock != "" && stock.Upper != stocksHeader.Upper && checkStockPaid()) {
@@ -405,10 +408,6 @@ function setConnectionStatus(arg) {
 
 function onStockData(sender, arg) {
   PrintConsole("OnStockData: " + arg);
-  if (arg == "") {
-    setConnectionStatus("Couldn't get data for stock " + stock);
-    return;
-  }
   // CH0012221716|23.0300006866455|0.0932817980647087|2020-01-29|2020-05-06|CHF 0.957409977912903 on 2020-05-06
 
   stockData = arg.Split("|");
@@ -609,8 +608,9 @@ function createGraphs() {
 }
 
 function fillVolasData(sender, arg) {
-  if (arg == "") {
-    setConnectionStatus("Connection reset");
+  points         = arg.Split("\t");
+  if (points.Size < 2) {
+    setConnectionStatus(arg);
     return;
   }
   PrintConsole("fillVolasData ", stock, ":", arg);
@@ -626,7 +626,6 @@ function fillVolasData(sender, arg) {
 
   title          = key = "Volatilities";
   isin           = "";
-  points         = arg.Split("\t");
   dates          = {};
   
   nbPast = 0; nbFuture = 0;
@@ -699,8 +698,9 @@ function fillVolasData(sender, arg) {
 }
 
 function fillVolaParams(sender, arg) {
-  if (arg == "") {
-    setConnectionStatus("Connection reset");
+  points         = arg.Split("\t");
+  if (points.Size < 2) {
+    setConnectionStatus(arg);
     return;
   }
 
@@ -708,7 +708,6 @@ function fillVolaParams(sender, arg) {
   volaParamsData[stock] = arg;
   volaParams = {};
 
-  points         = arg.Split("\t");
   paramsData     = {};
   keys           = {};
   volaParams     = {};
@@ -847,8 +846,9 @@ function printData(d, key, str = "") {
 
 function fillStdDevData(sender, arg) {
   RemoveViewIfExists(StdGraph);
-  if (arg == "") {
-    setConnectionStatus("Connection reset");
+  points         = arg.Split("!");
+  if (points.Size < 2) {
+    setConnectionStatus(arg);
     return;
   }
 
@@ -856,7 +856,6 @@ function fillStdDevData(sender, arg) {
   //PrintConsole(arg);
   title = "Standard Deviation";
 
-  points         = arg.Split("!");
   stdData        = {};
 
   ShowToast("Loaded " + points.Size + " StdDev points", 5, toastFg, toastBg);
@@ -894,8 +893,9 @@ function fillStdDevData(sender, arg) {
 }
 
 function fillDividendsData(sender, arg) {
-  if (arg == "") {
-    setConnectionStatus("Connection reset");
+  points         = arg.Split("\t");
+  if (points.Size < 2) {
+    setConnectionStatus(arg);
     return;
   }
 
@@ -906,7 +906,6 @@ function fillDividendsData(sender, arg) {
   estimatedTitle = "Estimated Div";
   pastTitle      = "Paid/Declared Div";
   isin           = "";
-  points         = arg.Split("\t");
   divData        = {};
   
   nbPast = 0; nbFuture = 0;
@@ -952,21 +951,15 @@ function fillDividendsData(sender, arg) {
 
 function fillStockData(sender, arg) {
   PrintConsole("fillStockData arg=" + arg);
-  if (arg == "") {
-    setConnectionStatus("Connection reset");
-    return;
-  }
-
-  //C ABBN A 2020-04-17 12.6|0|0|4.6100001335144|4.6100001335144|CHF|EUX|per unit|4/8/2020 12:00:00 AM!
-  optionsLoaded = currentTab == 4;
-   
-  //arg = "P ABBN A 2019-04-19 24.0|4.05000019073486|4.44999980926514|4.23000001907349|4.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 23.0|3.09999990463257|3.40000009536743|3.23000001907349|3.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 22.0|2.15000009536743|2.35999989509583|2.23000001907349|2.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 21.0|1.19000005722046|1.30999994277954|1.23000001907349|1.23000001907349|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.5|0.709999978542328|0.819999992847443|0.740000009536743|0.740000009536743|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 20.0|0.270000010728836|0.379999995231628|0.330000013113022|0.330000013113022|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.5|0.0299999993294477|0.140000000596046|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 19.0|0.00999999977648258|0.0900000035762787|0.0500000007450581|0.0500000007450581|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.5|0|0.0799999982118607|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 18.0|0|0.00999999977648258|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.5|0|0|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN P A 2019-04-19 17.0|0|0.200000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 24.0|0|0.0199999995529652|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 23.0|0|0.00999999977648258|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 22.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 21.0|0|0.0700000002980232|0.00999999977648258|0.00999999977648258|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.5|0.00999999977648258|0.0900000035762787|0.0199999995529652|0.0199999995529652|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 20.0|0.0199999995529652|0.129999995231628|0.100000001490116|0.100000001490116|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.5|0.280000001192093|0.389999985694885|0.379999995231628|0.379999995231628|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 19.0|0.720000028610229|0.819999992847443|0.810000002384186|0.810000002384186|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.5|1.19000005722046|1.30999994277954|1.28999996185303|1.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 18.0|1.69000005722046|1.80999994277954|1.78999996185303|1.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.5|2.13000011444092|2.32999992370605|2.28999996185303|2.28999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!OPT ABBN C A 2019-04-19 17.0|0|0|2.78999996185303|2.78999996185303|CHF|EUX|per unit|4/14/2019 12:00:00 AM!";
   options = arg.Split("!");
   if (options.Size < 2 && !arg.Contains("|")) {
     setConnectionStatus(arg);
     return;
   }
 
+  //C ABBN A 2020-04-17 12.6|0|0|4.6100001335144|4.6100001335144|CHF|EUX|per unit|4/8/2020 12:00:00 AM!
+  optionsLoaded = currentTab == 4;
+   
   selCallPuts     = {};
   unselCallPuts   = {};
   expiries        = {};
