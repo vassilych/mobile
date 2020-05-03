@@ -1451,8 +1451,13 @@ namespace scripting.iOS
         {
             script.MoveForwardIf(Constants.END_ARG_ARRAY);
 
+            if (m_needDPI)
+            {
+                return new Variable(UtilsiOS.GetDeviceDPI());
+            }
+
             var bounds = UtilsiOS.GetNativeScreenSize();
-            return new Variable(m_needDPI ? (int)(int)UIScreen.MainScreen.Scale : m_needWidth ? bounds.Width : bounds.Height);
+            return new Variable(m_needWidth ? bounds.Width : bounds.Height);
         }
     }
 

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using CoreGraphics;
 using Foundation;
 using UIKit;
+using Xamarin.Essentials;
 using Xamarin.Forms.Platform.iOS;
 
 namespace scripting.iOS
@@ -64,7 +65,7 @@ namespace scripting.iOS
             location.SetSize(width, height);
         }
 
-        public static UIView ConvertFormsToNative(Xamarin.Forms.View view, CGRect size)
+        /*public static UIView ConvertFormsToNative(Xamarin.Forms.View view, CGRect size)
         {
             var renderer = Platform.CreateRenderer(view);
 
@@ -80,7 +81,7 @@ namespace scripting.iOS
             nativeView.SetNeedsLayout();
 
             return nativeView;
-        }
+        }*/
         public static void ShowToast(String message, UIColor fgColor = null,
                                      UIColor bgColor = null,
                                      double duration = 10.0f,
@@ -600,6 +601,7 @@ namespace scripting.iOS
                 case "iPhone12,1": return "iPhone 11";
                 case "iPhone12,3": return "iPhone 11 Pro";
                 case "iPhone12,5": return "iPhone 11 Pro Max";
+                case "iPhone12,8": return "iPhone SE 2nd gen";
 
                 case "iPad2,1": return "iPad 2 Wi-Fi";
                 case "iPad2,2": return "iPad 2 GSM";
@@ -662,6 +664,113 @@ namespace scripting.iOS
                 case "iPod9,1": return "iPod Touch 7 Gen";
             }
             return deviceName;
+        }
+
+        public static int GetDeviceDPI()
+        {
+            string deviceName = GetSystemProperty("hw.machine");
+
+            switch (deviceName)
+            {
+                case "iPhone3,1":
+                case "iPhone3,2":
+                case "iPhone3,3":
+                case "iPhone4,1":
+                case "iPhone5,1":
+                case "iPhone5,2":
+                case "iPhone5,3":
+                case "iPhone5,4":
+                case "iPhone6,1":
+                case "iPhone6,2": return 326;
+                case "iPhone7,1": return 401;
+                case "iPhone7,2":
+                case "iPhone8,1": return 326;
+                case "iPhone8,2": return 401;
+                case "iPhone8,4":
+                case "iPhone9,1":
+                case "iPhone9,3": return 326;
+                case "iPhone9,2":
+                case "iPhone9,4": return 401;
+                case "iPhone10,1":
+                case "iPhone10,4": return 326;
+                case "iPhone10,2":
+                case "iPhone10,5": return 401;
+                case "iPhone10,3":
+                case "iPhone10,6":
+                case "iPhone11,2":
+                case "iPhone11,4":
+                case "iPhone11,6": return 458;
+                case "iPhone11,8":
+                case "iPhone12,1": return 326;
+                case "iPhone12,3":
+                case "iPhone12,5": return 458;
+                case "iPhone12,8": return 326;
+
+                case "iPad2,1":
+                case "iPad2,2":
+                case "iPad2,3":
+                case "iPad2,4": return 132;
+                case "iPad2,5":
+                case "iPad2,6":
+                case "iPad2,7": return 163;
+                case "iPad3,1":
+                case "iPad3,2":
+                case "iPad3,3":
+                case "iPad3,4":
+                case "iPad3,5":
+                case "iPad3,6":
+                case "iPad4,1":
+                case "iPad4,2":
+                case "iPad4,3": return 264;
+                case "iPad4,4":
+                case "iPad4,5":
+                case "iPad4,6":
+                case "iPad4,7":
+                case "iPad4,8":
+                case "iPad4,9":
+                case "iPad5,1":
+                case "iPad5,2": return 326;
+                case "iPad5,3":
+                case "iPad5,4":
+                case "iPad6,3":
+                case "iPad6,4":
+                case "iPad6,7":
+                case "iPad6,8":
+                case "iPad6,11":
+                case "iPad6,12":
+                case "iPad7,1":
+                case "iPad7,2":
+                case "iPad7,3":
+                case "iPad7,4":
+                case "iPad7,5":
+                case "iPad7,6":
+                case "iPad8,1":
+                case "iPad8,2":
+                case "iPad8,3":
+                case "iPad8,4":
+                case "iPad8,5":
+                case "iPad8,6":
+                case "iPad8,7":
+                case "iPad8,8": return 264;
+                case "iPad11,1":
+                case "iPad11,2": return 326;
+                case "iPad11,3":
+                case "iPad11,4": return 264;
+
+                case "iPod1,1":
+                case "iPod2,1":
+                case "iPod3,1": return 163;
+                case "iPod4,1":
+                case "iPod5,1":
+                case "iPod6,1":
+                case "iPod7,1":
+                case "iPod9,1": return 326;
+            }
+
+            var displayInfo = DeviceDisplay.MainDisplayInfo;
+            var dpi = (int)displayInfo.Density * 163;
+
+            return dpi;
         }
     }
 }
