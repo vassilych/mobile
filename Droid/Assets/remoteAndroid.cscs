@@ -205,9 +205,9 @@ function tabSelected(sender, arg) {
     }
     createGraphs();
   } elif (newtab == 4) {
-    printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
+    //printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
     if (stock == lastStockLoaded && optionsLoaded) {
-      printConsole("No reload needed for stock " + stock);
+      //printConsole("No reload needed for stock " + stock);
       makeUnbusy();
       return;
     }
@@ -275,7 +275,7 @@ function allStocksCombo_click(sender, arg) {
   if (busy) {
     return;
   }
-  PrintConsole("allStocksCombo_click " + sender + " -- " + arg + " init " + init);
+  //PrintConsole("allStocksCombo_click " + sender + " -- " + arg + " init " + init);
   setStock(arg);
   if (stocks.size <= 1) {
     if (!init) {
@@ -334,7 +334,7 @@ function checkStockOK() {
 }
 
 function checkStockPaid() {
-  printConsole("checkStockPaid stock =" + stock);
+  //printConsole("checkStockPaid stock =" + stock);
   setStock(stock);
   if (!checkStockOK()) {
     return false;
@@ -344,7 +344,7 @@ function checkStockPaid() {
 
 function buttonConnect_click(sender, arg) {
   stock = GetText(allStocksCombo).Trim;
-  printConsole("buttonConnect_click stock =" + stock);
+  //printConsole("buttonConnect_click stock =" + stock);
   if (stocks.size > 1 && (stock == "" || stock.Upper == stocksHeader.Upper)) {
     AlertDialog(AppName, "Please provide a valid stock name");
     return;
@@ -360,7 +360,7 @@ function buttonConnect_click(sender, arg) {
   SetSetting("stock", stock);
   //ShowHideKeyboard(textStock, false);
 
-  printConsole("buttonConnect_click stocks.size =" + stocks.size);
+  //printConsole("buttonConnect_click stocks.size =" + stocks.size);
   if (stocks.size <= 1) {
     GetDataFromServer("allstocks", "", "loadAllStocks");
   } else {
@@ -373,7 +373,7 @@ function loadAllStocks(sender, arg) {
   stocks              = {};
   stocks.Add(stocksHeader);
   stockData = arg.Split("!");
-  printConsole("LoadAllStocks " + stockData.Size + " stocks: " + arg);
+  //printConsole("LoadAllStocks " + stockData.Size + " stocks: " + arg);
   for (item : stockData) {
     parts = item.Split('|');
     if (parts.Size < 2) {
@@ -511,6 +511,7 @@ function getBestData(stockData, pattern) {
 function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
                      primary_axis = "Strike", secondary_axis = "Price", toolTipTitle = "") {
   AddSfSplineGraph(locSFGraph, graphName, "", graphWidth, graphHeight);
+  SetFontSize(graphName, fontSizeSm - 1);
   //PrintConsole("... createGraph " + graphName + ": " + keys);
 
   colorIndex = -1;
@@ -601,7 +602,7 @@ function createGraphs() {
   locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
   AddCombobox(locComboCallPuts, "callputWidget", "", 530, textHeight);
   AddWidgetData(callputWidget, expiries, "callPutSelected", "left");
-  SetFontSize(callputWidget, fontSizeSm - 1);
+  SetFontSize(callputWidget, fontSizeSm + 1);
   SetValue(callputWidget, "alignment", "center");
   SetValue(callputWidget, "fontcolor", "red");
   SetValue(callputWidget, 0, "black");
@@ -683,7 +684,7 @@ function fillVolasData(sender, arg) {
   comboData.Add(volaHeader + " " + stock, 0);
 
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
-  SetFontSize(volasWidget, fontSizeSm - 1);
+  SetFontSize(volasWidget, fontSizeSm + 1);
   SetValue(volasWidget, "alignment", "center");
   SetValue(volasWidget, "fontcolor", "red");
   SetValue(volasWidget, 0, "black");
@@ -886,6 +887,7 @@ function fillStdDevData(sender, arg) {
 
   locStdGraph = GetLocation("ROOT", "CENTER", DivGraph1, "BOTTOM", 0, 0);
   AddSfColumnGraph(locStdGraph, "StdGraph", "", graphWidth, graphHeight);
+  SetFontSize(StdGraph, fontSizeSm - 1);
 
   SetValue(StdGraph, "primary_axis",   "Date");
   SetValue(StdGraph, "secondary_axis", "StdDev");
@@ -934,6 +936,7 @@ function fillDividendsData(sender, arg) {
   locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
   AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
   SetText(DivGraph1,  "Dividends for " + stock);
+  SetFontSize(DivGraph1, fontSizeSm - 1);
 
   if (divData.Size > 0) {
     SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
@@ -966,8 +969,6 @@ function fillStockData(sender, arg) {
   options = arg.Split("!");
   
   //PrintConsole(options.Size + " StockDataOptions: " + arg);
-  ShowToast("Loaded " + options.Size + " options.", 5, toastFg, toastBg);
-
   if (options.Size < 2 && !arg.Contains("|")) {
     setConnectionStatus(arg);
     return;
@@ -1035,9 +1036,6 @@ function fillStockData(sender, arg) {
       currentCount = 0;
     }
     prevExpiry = expiry;
-    /*if (++count > 400) {
-      break;
-    }*/
   }
   
   PrintConsole(expiries.Size + " expiries.");
@@ -1051,6 +1049,8 @@ function fillStockData(sender, arg) {
     repaintCallPutWidget(expiries);
   }
   makeUnbusy();
+  ShowToast("Loaded " + options.Size + " options.", 5, toastFg, toastBg);
+
   //printConsole("Finished fillStockData for " + stock + ", market: " + market);
 }
 
@@ -1209,7 +1209,7 @@ SetFontSize(labelStock, fontSizeSm);
 
 locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
 AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
-SetFontSize(allStocksCombo, fontSizeSm - 1);
+SetFontSize(allStocksCombo, fontSizeSm + 1);
 SetValue(allStocksCombo, "alignment", "center");
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
@@ -1242,7 +1242,7 @@ SetFontSize(labelNextDiv, fontSizeSm);
 
 locDiv = GetLocation(labelNextDiv, "RIGHT", labelNextDiv, "CENTER", 10, -6);
 AddLabel(locDiv, "textNextDiv", "", 380, textHeight);
-SetBold(textNextDiv, fontSizeSm + 1);
+SetBold(textNextDiv, fontSizeSm);
 
 locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
 AddLabel(locStdLab, "labelStd", "Standard Deviation (1 year):", textWidth, textHeight + 8);
@@ -1250,7 +1250,7 @@ SetFontSize(labelStd, fontSizeSm);
 
 locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
 AddLabel(locStd, "textStd", "", textWidth, textHeight);
-SetBold(textStd, fontSizeSm + 1);
+SetBold(textStd, fontSizeSm);
 
 locUpdateLab = GetLocation("ROOT", "LEFT", labelStd, "BOTTOM", 10, 10);
 AddLabel(locUpdateLab, "labelUpdate", "Last Update:", textWidth, textHeight);

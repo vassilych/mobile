@@ -440,10 +440,10 @@ namespace scripting
 
 #if __ANDROID__
             newSize--;
-            if (GadgetSizeFunction.GetDPI() < 500)
+            if (GadgetSizeFunction.GetDPI() < 460)
             {
                 newSize -= (//widgetWidth >= 1200 ? 8.0f :
-                            widgetWidth >= 1000 ? 6.0f :
+                            widgetWidth >= 1000 ? 7.0f :
                             widgetWidth >= 900 ? 3.0f :
                             widgetWidth >= 800 ? 1.0f : 0f);
             }

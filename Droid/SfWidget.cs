@@ -70,6 +70,8 @@ namespace scripting.Droid
         Color m_bgColor = Color.Transparent;
         Color m_fontColor = Color.Black;
 
+        float m_fontSize = 15;
+
         string m_data;
         Context m_context;
         int m_width;
@@ -194,6 +196,7 @@ namespace scripting.Droid
         }
         public override bool SetFontSize(double fontSize)
         {
+            m_fontSize = (float)fontSize;
             if (m_stepper != null)
             {
                 m_stepper.FontSize = fontSize;
@@ -209,6 +212,10 @@ namespace scripting.Droid
                 {
                     column.CellTextSize = (float)fontSize;
                 }
+            }
+            else if (m_chart != null)
+            {
+                m_chart.Title.TextSize = m_fontSize;
             }
             else
             {
@@ -998,6 +1005,7 @@ namespace scripting.Droid
                     {
                         //doughnutSeries.Label = title;
                         m_chart.Title.Text = title;
+                        m_chart.Title.TextSize = m_fontSize;
                     }
                     doughnutSeries.DataMarker.ShowLabel = true;
                     doughnutSeries.DataMarker.LabelContent = title == "values" ? LabelContent.YValue :
@@ -1067,6 +1075,7 @@ namespace scripting.Droid
                     m_chart.Legend.Visibility = Visibility.Visible;
                     m_chart.Legend.ToggleSeriesVisibility = true;
                     m_chart.Legend.DockPosition = ChartDock.Bottom;
+                    m_chart.Title.TextSize = m_fontSize;
                 }
             }
             else if (m_picker != null)

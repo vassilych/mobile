@@ -193,6 +193,10 @@ namespace scripting.iOS
                     column.CellTextSize = m_fontSize;
                 }
             }
+            else if (m_chart != null)
+            {
+                m_chart.Title.Font = UIFont.SystemFontOfSize(m_fontSize);
+            }
             else
             {
                 return false;
