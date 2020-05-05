@@ -112,7 +112,7 @@ function onException(sender, errorMsg, arg) {
 function startUp() {
   reset_purchase_restore();
   makeBusy();
-  printConsole("Logging in user " + username);
+  //printConsole("Logging in user " + username);
   loggedIn = Login(username, password, "onInit");
 }
 
@@ -392,6 +392,7 @@ function setConnectionStatus(arg) {
   if (arg == "") {
     arg = "Connection reset";
   }
+  print("Setting connection status: " + arg);
   if (arg == "OK") {
     connectionSuccess();
     if (stock != "" && stock.Upper != stocksHeader.Upper && checkStockPaid()) {
@@ -407,7 +408,7 @@ function setConnectionStatus(arg) {
 }
 
 function onStockData(sender, arg) {
-  PrintConsole("OnStockData: " + arg);
+  //PrintConsole("OnStockData: " + arg);
   // CH0012221716|23.0300006866455|0.0932817980647087|2020-01-29|2020-05-06|CHF 0.957409977912903 on 2020-05-06
 
   stockData = arg.Split("|");
@@ -469,14 +470,14 @@ function stockSelected(sender, arg) {
   prevStockSelection = arg;
 
   stock = arg;
-  printConsole("stockSelected: [" + stock + "]");
+  //printConsole("stockSelected: [" + stock + "]");
 
   cleanUpViews();
   makeBusy();
   parts = arg.Split(' ');
   stock = parts.First;
   GetDataFromServer("optionprices", stock, "fillStockData");
-  printConsole("Requested data for " + stock + ". Market: " + market);
+  //printConsole("Requested data for " + stock + ". Market: " + market);
 }
 
 function getBestData(stockData, pattern) {
@@ -496,14 +497,14 @@ function getBestData(stockData, pattern) {
 function createGraph(locSFGraph, graphName, graphTitle, stockData, keys,
                      primary_axis = "Strike", secondary_axis = "Price", toolTipTitle = "") {
   AddSfSplineGraph(locSFGraph, graphName, "", graphWidth, graphHeight);
-  PrintConsole("... createGraph " + graphName + ": " + keys);
+  //PrintConsole("... createGraph " + graphName + ": " + keys);
 
   colorIndex = -1;
   for (key : keys) {
     if (++colorIndex >= graphColors.size) {
       colorIndex = 0;
     }
-    printConsole("-- GraphData " + graphName + " " + key + ": " + graphColors[colorIndex]);
+    //printConsole("-- GraphData " + graphName + " " + key + ": " + graphColors[colorIndex]);
     addDataToGraph(graphName, stockData, key, graphColors[colorIndex]);
   }
 
@@ -573,10 +574,10 @@ function createGraphs() {
   
   stockData = data[stock];
   //PrintConsole("StockData: " + stockData);
-  PrintConsole("expiries: " + expiries);
+  //PrintConsole("expiries: " + expiries);
  
   keys = getBestData(stockData, "_C_");
-  PrintConsole("keys: " + keys);
+  //PrintConsole("keys: " + keys);
   if (keys.Size == 0 || keys[0] == "") {
     makeUnbusy();
     return;
@@ -613,7 +614,7 @@ function fillVolasData(sender, arg) {
     setConnectionStatus(arg);
     return;
   }
-  PrintConsole("fillVolasData ", stock, ":", arg);
+  //PrintConsole("fillVolasData ", stock, ":", arg);
   RemoveViewIfExists(volasWidget);
 
   volasToShow  = 1;
@@ -636,7 +637,7 @@ function fillVolasData(sender, arg) {
   for (point : points) {
     parts      = point.Split("|");
     count++;
-    if (count % 100 == 0) { PrintConsole("  ", count, ". Processing Vola [", point, "] size=", parts.size); }
+    //if (count % 100 == 0) { PrintConsole("  ", count, ". Processing Vola [", point, "] size=", parts.size); }
     if (parts.size < 4) {
       continue;
     }
@@ -704,7 +705,7 @@ function fillVolaParams(sender, arg) {
     return;
   }
 
-  PrintConsole("Processing fillVolaParams [" + arg + "], selVolas: [" + selVolas + "]");
+  //PrintConsole("Processing fillVolaParams [" + arg + "], selVolas: [" + selVolas + "]");
   volaParamsData[stock] = arg;
   volaParams = {};
 
@@ -771,7 +772,7 @@ function callPutSelected(sender, arg) {
   }
   prevCallPutSelection = arg;
 
-  PrintConsole("selCallPuts1=" + selCallPuts + ": " + selCallPuts.Contains(arg));
+  //PrintConsole("selCallPuts1=" + selCallPuts + ": " + selCallPuts.Contains(arg));
   if (selCallPuts.Contains(arg)) {
     selCallPuts.Remove(arg);
     unselCallPuts.Add(arg);
@@ -781,7 +782,7 @@ function callPutSelected(sender, arg) {
     selCallPuts.Add(arg);
     SetValue(callputWidget, arg, "dark_green");
   }
-  PrintConsole("selCallPuts2=" + selCallPuts);
+  //PrintConsole("selCallPuts2=" + selCallPuts);
   createGraphs();
 }
 
@@ -799,7 +800,7 @@ function repaintCallPutWidget(dates) {
 }
 
 function volaSelected(sender, arg) {
-  PrintConsole(sender, " volaSelected: [", arg, "], prevVolaSelection=", prevVolaSelection);
+  //PrintConsole(sender, " volaSelected: [", arg, "], prevVolaSelection=", prevVolaSelection);
   if (arg.StartsWith(volaHeader)) {// || arg == prevVolaSelection) {
     PrintConsole("No need to reload Volas, prevVolaSelection=", prevVolaSelection);
     makeUnbusy();
@@ -846,6 +847,10 @@ function printData(d, key, str = "") {
 
 function fillStdDevData(sender, arg) {
   RemoveViewIfExists(StdGraph);
+  if (arg == "") {
+    makeUnbusy();
+    return;
+  }
   points         = arg.Split("!");
   if (points.Size < 2) {
     setConnectionStatus(arg);
@@ -866,13 +871,13 @@ function fillStdDevData(sender, arg) {
       continue;
     }
     //AAPL|0.450625985860825|320.029998779297|2020-05-10|2020-02-09|2020-02-09
-    PrintConsole("Processing [", point, "] size=", parts.size);
+    //PrintConsole("Processing [", point, "] size=", parts.size);
     x          = parts[3];
     y          = Round(double(parts[1]), 4);    
     AddOrderedData(stdData, title, x, y, "str");
   }
   
-  PrintConsole("Loaded ", stdData.size, " stddevs points.");
+  //PrintConsole("Loaded ", stdData.size, " stddevs points.");
 
   if (stdData.size == 0) {
     makeUnbusy();
@@ -950,7 +955,7 @@ function fillDividendsData(sender, arg) {
 }
 
 function fillStockData(sender, arg) {
-  PrintConsole("fillStockData arg=" + arg);
+  //PrintConsole("fillStockData arg=" + arg);
   options = arg.Split("!");
   if (options.Size < 2 && !arg.Contains("|")) {
     setConnectionStatus(arg);

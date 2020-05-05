@@ -161,10 +161,11 @@ namespace scripting.iOS
                     type = UIVariable.UIType.SEGMENTED;
                     widget = new UISegmentedControl(rect);
                     break;
-                    //default:
-                    //  type = UIVariable.UIType.VIEW;
-                    //  widget = new UIView(rect);
-                    //  break;
+                //default:
+                //  type = UIVariable.UIType.VIEW;
+                //  widget = new UIView(rect);
+                //  break;
+                default: return null;
             }
             SetOptionsFunction.SetMultiline(widget);
 
