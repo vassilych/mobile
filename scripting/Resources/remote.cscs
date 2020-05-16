@@ -43,7 +43,7 @@ busyOptions   = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe
 graphColors  = {"dark_green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
                 "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue", "green"};
-hack     = false;
+hack     = _DEBUG_;
 markets  = { "Market", "CH", "DE", "US" };
 market   = "";
 starting = true;
@@ -215,6 +215,7 @@ function buttonAboutUs_click(sender, arg) {
   freeSp  = Round(Double(_FREESPACE_ / 1024), 2);
   totalSp = Round(Double(_TOTALSPACE_ / 1024), 2);
   AlertDialog(AppName, " \nVersion " + VERSION + " \n" +
+              "Built: " + _BUILDTIME_ + " \n" +
                _DEVICE_INFO_ + ": " + _VERSION_INFO_ + " \n" +
               "Screen: " + DisplayWidth + " x " + DisplayHeight + " \n" +
               "DPI: " + DisplayDPI + " \n" +
@@ -392,7 +393,7 @@ function setConnectionStatus(arg) {
   if (arg == "") {
     arg = "Connection reset";
   }
-  print("Setting connection status: " + arg);
+  printConsole("Setting connection status: [" + arg + "]");
   if (arg == "OK") {
     connectionSuccess();
     if (stock != "" && stock.Upper != stocksHeader.Upper && checkStockPaid()) {
@@ -483,11 +484,11 @@ function stockSelected(sender, arg) {
 function getBestData(stockData, pattern) {
   //ABBN_C_2020-04-17
 
+  result = {};
   if (selCallPuts.Size == 0 && expiries.Size > 2) {
     selCallPuts.Add(expiries[1]);
     unselCallPuts.Remove(expiries[1]);
   }
-  result = {};
   for (expiry : selCallPuts) {
     result.Add(stock + pattern + expiry);
   }
@@ -571,18 +572,18 @@ function createGraphs() {
     ShowToast("Load stock data first...", 7, "yellow", "dark_green");
     return;
   }
-  
+
   stockData = data[stock];
   //PrintConsole("StockData: " + stockData);
   //PrintConsole("expiries: " + expiries);
- 
+
   keys = getBestData(stockData, "_C_");
-  //PrintConsole("keys: " + keys);
+  PrintConsole("keys: " + keys);
   if (keys.Size == 0 || keys[0] == "") {
     makeUnbusy();
     return;
   }
-  
+
   lastPriceMsg = stock + (prices.Contains(stock) ? " (ATM " + prices[stock] + ")" : "");
 
   locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
@@ -596,13 +597,13 @@ function createGraphs() {
   
   locSFGraph1 = GetLocation("ROOT", "CENTER", callputWidget, "BOTTOM");
   createGraph(locSFGraph1, "SplineGraph1", "", stockData, keys, "Strike", "Price", "Call ");
-  
+
   keys = getBestData(stockData, "_P_");
   if (keys.Size == 0 || keys[0] == "") {
     makeUnbusy();
     return;
   }
-  
+
   locSFGraph2 = GetLocation("ROOT", "CENTER", SplineGraph1, "BOTTOM", 0, 0);
   createGraph(locSFGraph2, "SplineGraph2", "", stockData, keys, "Strike", "Price", "Put ");
   makeUnbusy();
@@ -898,6 +899,14 @@ function fillStdDevData(sender, arg) {
 }
 
 function fillDividendsData(sender, arg) {
+  locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
+  AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
+  SetText(DivGraph1,  "Dividends for " + stock);
+
+  if (arg == "") {
+    GetDataFromServer("stockstddev", stock, "fillStdDevData");
+    return;
+  }
   points         = arg.Split("\t");
   if (points.Size < 2) {
     setConnectionStatus(arg);
@@ -933,10 +942,6 @@ function fillDividendsData(sender, arg) {
   }
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
-
-  locDivGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 2 + extraTop);
-  AddSfColumnGraph(locDivGraph1, "DivGraph1", "", graphWidth, graphHeight);
-  SetText(DivGraph1,  "Dividends for " + stock);
 
   if (divData.Size > 0) {
     SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
@@ -978,7 +983,10 @@ function fillStockData(sender, arg) {
   stockData = {};
   processed = {};
   optionDataArr = {}; 
+  expiry = "";
   prevExpiry = "";
+  prevSettle = 0;
+  diffValues = 0;
   
   //P ANN A 2019-04-19 49.0|0|0|4.28000020980835|4.28000020980835|EUR|EUX|per unit|4/14/2019 12:00:00 AM!
   //IBM|IBM|137.914993286133|137.160003662109|USD|US|US4592001014|11/7/2019 12:00:00 AM|True: 1
@@ -1003,6 +1011,7 @@ function fillStockData(sender, arg) {
       continue;
     }
     expiry = parts[3];
+    diffValues += settle != prevSettle;
 
     key   = parts[1] + "_" + parts[0] + "_" + expiry;
     uniqueKey = key + "_" + parts[4];
@@ -1019,15 +1028,21 @@ function fillStockData(sender, arg) {
     AddOrderedData(stockData, key, parts[4], last);
 
     if (prevExpiry != expiry) {
-      expiries.AddUnique(expiry);
-      if (selCallPuts.Size < 1) {
-        selCallPuts.AddUnique(expiry);
-        //SetValue(callputWidget, expiry, "dark_green");
+      if (diffValues > 2) {
+        expiries.AddUnique(prevExpiry);
+        if (selCallPuts.Size < 1) {
+          selCallPuts.AddUnique(expiry);
+          //SetValue(callputWidget, expiry, "dark_green");
+        }
       }
+      diffValues = 0;
     }
     prevExpiry = expiry;
+    prevSettle = settle;
   }
-  
+  if (diffValues > 2 && expiry != "") {
+    expiries.AddUnique(expiry);
+  }  
   data[stock] = stockData;
   //PrintConsole(stockData);
   

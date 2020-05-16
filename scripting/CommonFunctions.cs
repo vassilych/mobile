@@ -146,6 +146,7 @@ namespace scripting
             ParserFunction.RegisterFunction("_USEDRAM_", new AllocatedMemoryFunction());
             ParserFunction.RegisterFunction("_TOTALSPACE_", new GetStorageFunction());
             ParserFunction.RegisterFunction("_FREESPACE_", new GetStorageFunction(false));
+            ParserFunction.RegisterFunction("_BUILDTIME_", new BuildTimeFunction());
             ParserFunction.RegisterFunction("CompareVersions", new CompareVersionsFunction());
 
             ParserFunction.RegisterFunction("Run", new RunScriptFunction());
@@ -700,16 +701,47 @@ namespace scripting
 #elif SILVERLIGHT
             isTheOS = m_os == OS.WINDOWS_PHONE;
 #endif
-
             return new Variable(isTheOS);
         }
     }
+
+    class BuildTimeFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            var linkTimeLocal = GetLinkerTime(System.Reflection.Assembly.GetExecutingAssembly());
+            return new Variable(linkTimeLocal.ToString("yyyy/MM/dd HH:mm"));
+        }
+
+        public static DateTime GetLinkerTime(System.Reflection.Assembly assembly, TimeZoneInfo target = null)
+        {
+            var filePath = assembly.Location;
+            const int c_PeHeaderOffset = 60;
+            const int c_LinkerTimestampOffset = 8;
+
+            var buffer = new byte[2048];
+
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                stream.Read(buffer, 0, 2048);
+
+            var offset = BitConverter.ToInt32(buffer, c_PeHeaderOffset);
+            var secondsSince1970 = BitConverter.ToInt32(buffer, offset + c_LinkerTimestampOffset);
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            var linkTimeUtc = epoch.AddSeconds(secondsSince1970);
+
+            var tz = target ?? TimeZoneInfo.Local;
+            var localTime = TimeZoneInfo.ConvertTimeFromUtc(linkTimeUtc, tz);
+
+            return localTime;
+        }
+    }
+
     class GetDeviceInfoFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
             string deviceName = "";
-
 #if __ANDROID__
       deviceName   = Android.OS.Build.Brand;
       string model = Android.OS.Build.Model;

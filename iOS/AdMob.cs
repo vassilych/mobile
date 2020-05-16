@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CoreGraphics;
-using Firebase.Analytics;
-using Google.MobileAds;
+//using Firebase.Analytics;
+//using Google.MobileAds;
 using SplitAndMerge;
 using UIKit;
 
@@ -14,7 +14,7 @@ namespace scripting.iOS
     static string m_interstitialId;
     static string m_bannerId;
 
-    static Interstitial m_adInterstitial;
+    /*static Interstitial m_adInterstitial;
 
     BannerView m_adView;
     bool viewOnScreen = false;
@@ -143,7 +143,7 @@ namespace scripting.iOS
       // Request an ad
       m_adView.LoadRequest(request);
       return m_adView;
-    }
+    }*/
   }
   public class InitAds : ParserFunction
   {
@@ -160,7 +160,7 @@ namespace scripting.iOS
       string bannerId = Utils.GetSafeString(args, 1);
 
       if (!m_initDone) {
-        AdMob.Init(appId, interstId, bannerId);
+        //AdMob.Init(appId, interstId, bannerId);
         m_initDone = true;
       }
 
@@ -171,7 +171,7 @@ namespace scripting.iOS
   {
     protected override Variable Evaluate(ParsingScript script)
     {
-      AdMob.ShowInterstitialAd(AppDelegate.GetCurrentController());
+      //AdMob.ShowInterstitialAd(AppDelegate.GetCurrentController());
       script.MoveForwardIf(Constants.END_ARG);
 
       return Variable.EmptyInstance;
