@@ -390,8 +390,7 @@ function loadAllStocks(sender, arg) {
   //SetValue(allStocksCombo, "value", 0);
   stockValue = stock == "" ? stockMenu : stock;
   SetText(allStocksCombo, stockValue);
-  SetFontSize(allStocksCombo, fontSizeSm - 1);
-  //printConsole("Set stockValue=" + stockValue + ", busy=" + busy);
+  SetFontSize(allStocksCombo, comboFont);
 
   onConnect(sender, "OK");
 }
@@ -602,7 +601,8 @@ function createGraphs() {
   locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
   AddCombobox(locComboCallPuts, "callputWidget", "", 530, textHeight);
   AddWidgetData(callputWidget, expiries, "callPutSelected", "left");
-  SetFontSize(callputWidget, fontSizeSm + 1);
+  SetFontSize(callputWidget, comboFont);
+  SetFontColor(callputWidget, "blue");
   SetValue(callputWidget, "alignment", "center");
   SetValue(callputWidget, "fontcolor", "red");
   SetValue(callputWidget, 0, "black");
@@ -684,7 +684,8 @@ function fillVolasData(sender, arg) {
   comboData.Add(volaHeader + " " + stock, 0);
 
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
-  SetFontSize(volasWidget, fontSizeSm + 1);
+  SetFontColor(volasWidget, "blue");
+  SetFontSize(volasWidget, comboFont);
   SetValue(volasWidget, "alignment", "center");
   SetValue(volasWidget, "fontcolor", "red");
   SetValue(volasWidget, 0, "black");
@@ -1173,6 +1174,7 @@ textHeight   = 60;
 textWidth    = 220;
 tokenCount   = 0;
 busySize     = 400;
+comboFont    = fontSizeSm + 3;
 
 graphWidth   = 620;
 graphHeight  = 480;
@@ -1209,7 +1211,9 @@ SetFontSize(labelStock, fontSizeSm);
 
 locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
 AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
-SetFontSize(allStocksCombo, fontSizeSm + 1);
+SetFontSize(allStocksCombo, comboFont);
+SetFontColor(allStocksCombo, "blue");
+//SetBackgroundColor(allStocksCombo, "white");
 SetValue(allStocksCombo, "alignment", "center");
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);

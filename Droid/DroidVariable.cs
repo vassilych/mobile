@@ -76,6 +76,7 @@ namespace scripting.Droid
         bool m_bold;
         bool m_italic;
         Color m_fontColor;
+        Color m_bgColor;
 
         public void SetViewLayout(int width, int height)
         {
@@ -350,7 +351,9 @@ namespace scripting.Droid
                 TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
                 if (adapter != null)
                 {
-                    int pos = adapter.Text2Position(text);
+                    adapter.BGColor = m_bgColor;
+                    adapter.FontColor = m_fontColor;
+                    int pos = adapter.SelectText(text);
                     spinner.SetSelection(pos);
                 }
             }
@@ -595,19 +598,11 @@ namespace scripting.Droid
                 Spinner spinner = ViewX as Spinner;
                 spinner.ItemSelected += (sender, e) =>
                 {
-                    if (m_fontColor != null && spinner.SelectedView is LinearLayout)
-                    {
-                        var layout = spinner.SelectedView as LinearLayout;
-                        for (int i = 0; i < layout.ChildCount; i++)
-                        {
-                            var child = layout.GetChildAt(i);
-                            if (child is TextView)
-                            {
-                                //((TextView)child).SetTextColor(m_fontColor);
-                            }
-                        }
-                    }
                     var adapter = spinner.Adapter as TextImageAdapter;
+                    if (adapter != null)
+                    {
+                        adapter.SetSelectedView(spinner.SelectedView as LinearLayout, e.Position);
+                    }
                     var item = adapter != null ? adapter.Position2Text(e.Position) : "";
                     UIVariable.GetAction(strAction, varName, item);
                 };
@@ -937,7 +932,10 @@ namespace scripting.Droid
                 }
                 string first = null;//InitValue == null ? null : InitValue.AsString();
                 adapter.SetItems(data, first);
+                adapter.BGColor = m_bgColor;
+                adapter.FontColor = m_fontColor;
                 spinner.Adapter = adapter;
+
                 AddAction(varName, title);
             }
             else if (ViewX is ListView)
@@ -970,6 +968,8 @@ namespace scripting.Droid
                     adapter = new TextImageAdapter(MainActivity.TheView);
                 }
                 adapter.SetPics(images);
+                adapter.BGColor = m_bgColor;
+                adapter.FontColor = m_fontColor;
                 spinner.Adapter = adapter;
                 if (!string.IsNullOrEmpty(title))
                 {
@@ -999,12 +999,22 @@ namespace scripting.Droid
                 return false;
             }
 
-            var color = UtilsDroid.String2Color(colorStr);
+            m_bgColor = UtilsDroid.String2Color(colorStr);
             if (alpha < 1.0)
             {
-                color = Color.Argb((int)(alpha * 255), color.R, color.G, color.B);
+                m_bgColor = Color.Argb((int)(alpha * 255), m_bgColor.R, m_bgColor.G, m_bgColor.B);
             }
-            ViewX.SetBackgroundColor(color);
+            ViewX.SetBackgroundColor(m_bgColor);
+
+            if (ViewX is Spinner)
+            {
+                Spinner spinner = ViewX as Spinner;
+                TextImageAdapter adapter = spinner.Adapter as TextImageAdapter;
+                if (adapter != null)
+                {
+                    adapter.BGColor = m_bgColor;
+                }
+            }
 
             return true;
         }
@@ -1034,6 +1044,10 @@ namespace scripting.Droid
                 var spinner = ViewX as Spinner;
                 var view = spinner.SelectedView as TextView;
                 view?.SetTextColor(m_fontColor);
+                if (spinner.Adapter != null)
+                {
+                    ((TextImageAdapter)(spinner.Adapter)).FontColor = m_fontColor;
+                }
             }
             else
             {

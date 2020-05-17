@@ -454,8 +454,13 @@ namespace scripting.Droid
 
         public static void GetStorage(out long fullStarage, out long freeStarage)
         {
-            fullStarage = Android.OS.Environment.RootDirectory.TotalSpace;
-            freeStarage = Android.OS.Environment.RootDirectory.UsableSpace;
+            StatFs stat = new StatFs(Android.OS.Environment.DataDirectory.Path);
+            long blockSize = stat.BlockSizeLong;
+            long totalBlocks = stat.BlockCountLong;
+            long availableBlocks = stat.AvailableBlocksLong;
+
+            fullStarage = totalBlocks * blockSize;
+            freeStarage = availableBlocks * blockSize;
         }
     }
 

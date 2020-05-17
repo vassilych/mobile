@@ -18,10 +18,22 @@ namespace scripting.Droid
         List<string> m_names;
         List<int> m_pics;
         string m_first;
+        Color m_fontColor;
+        bool m_colorSet;
+        bool m_prevColorSet;
+        int m_prevSelection = -1;
+
+        Dictionary<int, TextView> m_viewCache = new Dictionary<int, TextView>();
 
         public float TextSize { get; set; }
         public Typeface Typeface { get; set; }
         public TypefaceStyle TypefaceStyle { get; set; }
+        public Color PrevFontColor { get; set; }
+        public Color FontColor {
+            get { return m_fontColor; }
+            set { m_fontColor = value; m_colorSet = true; } }
+        public Color BGColor { get; set; }
+        public int SelectedIndex { get; set; }
 
         public TextImageAdapter(Context context)
         {
@@ -101,46 +113,50 @@ namespace scripting.Droid
             return base.GetDropDownView(position, convertView, parent);
         }
 
-        public View GetViewOld(int position, View convertView, ViewGroup parent)
+        public void SetSelectedView(LinearLayout layout, int position)
         {
-            bool oldVersion = Android.OS.Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.Lollipop;
-            if (oldVersion)
+            SelectedIndex = position;
+            if (!m_colorSet || layout == null || !m_prevColorSet)
             {
-                return GetViewOld(position, convertView, parent);
+                return;
             }
-
-            LinearLayout layout = new LinearLayout(m_context);
-            //layout.SetBackgroundColor(m_bgcolor);//Android.Graphics.Color.ParseColor("#91F6FF"));
-            layout.LayoutParameters = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
-            layout.DescendantFocusability = DescendantFocusability.BlockDescendants;
-
-            if (m_pics != null && position < m_pics.Count && m_pics[position] >= 0)
+            for (int i = 0; i < layout.ChildCount; i++)
             {
-                ImageView imageView = new ImageView(m_context);
-                imageView.SetImageResource(m_pics[position]);
-                layout.AddView(imageView);
-            }
-            if (m_names != null && position < m_names.Count)
-            {
-                TextView textView = new TextView(m_context);
-                textView.Text = " " + m_names[position];
-                if (m_pics != null && (position >= m_pics.Count || m_pics[position] < 0))
+                var child = layout.GetChildAt(i);
+                if (child is TextView)
                 {
-                    textView.SetMinHeight(textView.Height + 15);
-                    textView.Gravity = GravityFlags.Center;
+                    var textView = (TextView)child;
+                    textView.SetTextColor(FontColor);
+                    if (m_prevColorSet && m_prevSelection >= 0 && m_prevSelection != SelectedIndex &&
+                        m_viewCache.TryGetValue(m_prevSelection, out TextView previous))
+                    {
+                        previous.SetTextColor(PrevFontColor);
+                    }
                 }
-                else
-                {
-                    textView.TranslationY = 8;
-                }
-
-                layout.AddView(textView, ViewGroup.LayoutParams.MatchParent);
             }
-
-            convertView = layout;
-            return convertView;
+            m_prevSelection = position;
         }
+        public int SelectText(string text)
+        {
+            int position = Text2Position(text);
+            SelectedIndex = position;
+
+            if (!m_colorSet)
+            {
+                return position;
+            }
+            if (m_prevColorSet && m_prevSelection >= 0 && m_viewCache.TryGetValue(m_prevSelection, out TextView previous))
+            {
+                previous.SetTextColor(PrevFontColor);
+            }
+            if (m_viewCache.TryGetValue(position, out TextView current))
+            {
+                current.SetTextColor(FontColor);
+            }
+            m_prevSelection = SelectedIndex;
+            return position;
+        }
+
         public override View GetView(int position, View convertView, ViewGroup parent)
         {
             View view = convertView;
@@ -152,6 +168,36 @@ namespace scripting.Droid
             {
                 TextView textView = view.FindViewById<TextView>(Android.Resource.Id.Text1);
                 textView.Text = m_names[position];
+
+                if (m_colorSet)
+                {
+                    if (!m_prevColorSet)
+                    {
+                        PrevFontColor = UtilsDroid.String2Color(Java.Lang.String.Format("#%06X", 0xFFFFFF & textView.CurrentTextColor));
+                        m_prevColorSet = true;
+                    }
+
+                    m_viewCache[position] = textView;
+                    textView.SetTextColor(position == SelectedIndex ? FontColor : PrevFontColor);
+                    if (position == SelectedIndex)
+                    {
+                        textView.SetTextColor(FontColor);
+                        if (FontColor != null)
+                        {
+                            Console.WriteLine(textView.Text);
+                            textView.SetTextColor(FontColor);
+                        }
+                        if (BGColor != null)
+                        {
+                            textView.SetBackgroundColor(BGColor);
+                        }
+                    }
+                    else if (position != 0)
+                    {
+                        textView.SetTextColor(PrevFontColor);
+                    }
+                    m_prevSelection = SelectedIndex;
+                }
                 if (TextSize > 0)
                 {
                     textView.TextSize = TextSize;
