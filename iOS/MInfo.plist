@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>ch.mydividends.vk</string>
+	<string>ch.imath.vk</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
-	<string>10.3</string>
+	<string>10.0</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
@@ -49,21 +49,21 @@
 	<string>This app needs access to photos</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to photos</string>
-	<key>CFBundleName</key>
-	<string>TrueDividends</string>
+	<key>CFBundleVersion</key>
+	<string>1.2.2</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.2.1</string>
 	<key>CFBundleDisplayName</key>
-	<string>TrueDividends</string>
-	<key>UIStatusBarHidden</key>
-	<true/>
+	<string>LarissaMath</string>
+	<key>UILaunchStoryboardName</key>
+	<string>Main</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-5365456490909700~2481398691</string>
-	<key>XSAppIconAssets</key>
-	<string>Assets.xcassets/AppIcon.appiconset</string>
+	<key>CFBundleName</key>
+	<string>LarissaMath</string>
 	<key>XSLaunchImageAssets</key>
 	<string>Assets.xcassets/LaunchImage.launchimage</string>
-	<key>CFBundleShortVersionString</key>
-	<string>2.0</string>
-	<key>CFBundleVersion</key>
-	<string>2.0.1</string>
+	<key>XSAppIconAssets</key>
+	<string>Assets.xcassets/AppIcon.appiconset</string>
 </dict>
 </plist>

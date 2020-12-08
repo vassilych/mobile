@@ -403,10 +403,19 @@ namespace scripting.iOS
                     {
                         to++;
                     }
+                    if (from < 0 || to < 0 || from >= m_model.DataPoints.Count || to >= m_model.DataPoints.Count)
+                    {
+                        return;
+                    }
                     var init = e.RowData;
                     Console.WriteLine("Drag {0} {1} -- > {2} {3}",
                                       from, e.RowData, to, e.CurrentRowData);
-                    m_model.SwapRows(from, to);
+                    try
+                    {
+                        m_model.SwapRows(from, to);
+                    }
+                    catch (Exception)
+                    { }
                 }
             };
 
@@ -856,6 +865,7 @@ namespace scripting.iOS
                                                                                  SFChartLabelContent.Percentage;
                     doughnutSeries.DataMarkerPosition = SFChartCircularSeriesLabelPosition.OutsideExtended;
                     doughnutSeries.LegendIcon = SFChartLegendIcon.Circle;
+                    doughnutSeries.StrokeColor = UIColor.White;
                     if (!string.IsNullOrEmpty(extra))
                     {
                         var angles = extra.Split(new char[] { ',', ':' });
@@ -880,6 +890,7 @@ namespace scripting.iOS
                     series.DataMarker.MarkerWidth = 5;
                     series.DataMarker.ShowMarker = true;
                     series.LegendIcon = SFChartLegendIcon.Rectangle;
+                    series.Color = UIColor.White;
                     if (!string.IsNullOrEmpty(extra))
                     {
                         var colors = extra.Split(new char[] { ',', ':' });
@@ -905,6 +916,7 @@ namespace scripting.iOS
                     series.DataMarker.MarkerWidth = 5;
                     series.DataMarker.ShowMarker = true;
                     series.LegendIcon = SFChartLegendIcon.Pentagon;
+                    series.StrokeColor = UIColor.White;
                     if (!string.IsNullOrEmpty(extra))
                     {
                         var colors = extra.Split(new char[] { ',', ':' });
@@ -1410,9 +1422,33 @@ namespace scripting.iOS
                 m_picker.UnSelectedItemTextColor = color;
                 m_picker.SelectedItemTextColor = color;
             }
-            else if (m_chart != null && m_chart.Title != null)
+            else if (m_chart != null)
             {
-                m_chart.Title.TextColor = color;
+                if (m_chart.Title != null)
+                {
+                    m_chart.Title.TextColor = color;
+                }
+
+                if (m_chart.PrimaryAxis != null)
+                {
+                    m_chart.PrimaryAxis.Title.Color = color;
+                    m_chart.PrimaryAxis.AxisLineStyle.LineColor = color;
+                    m_chart.PrimaryAxis.MajorGridLineStyle.LineColor = color;
+                    m_chart.PrimaryAxis.MajorTickStyle.LineColor = color;
+                    m_chart.PrimaryAxis.LabelStyle.Color = color;
+                }
+                if (m_chart.SecondaryAxis != null)
+                {
+                    m_chart.SecondaryAxis.Title.Color = color;
+                    m_chart.SecondaryAxis.AxisLineStyle.LineColor = color;
+                    m_chart.SecondaryAxis.MajorGridLineStyle.LineColor = color;
+                    m_chart.SecondaryAxis.MajorTickStyle.LineColor = color;
+                    m_chart.SecondaryAxis.LabelStyle.Color = color;
+
+                }
+
+                m_chart.Legend.LabelStyle.Color = color;
+                m_chart.Legend.Title.TextColor = color;
             }
             else if (m_stepper != null)
             {

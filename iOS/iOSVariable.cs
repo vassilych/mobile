@@ -1253,7 +1253,15 @@ namespace scripting.iOS
 
             UIColor color = UtilsiOS.String2Color(colorStr);
 
-            if (ViewX is UIButton)
+            if (WidgetType == UIType.COMBOBOX)
+            {
+                m_button.SetTitleColor(color, UIControlState.Normal);
+                if (m_textField != null)
+                {
+                    m_textField.TextColor = color;
+                }
+            }
+            else if (ViewX is UIButton)
             {
                 UIButton button = (UIButton)ViewX;
                 button.SetTitleColor(color, UIControlState.Normal);
@@ -1331,6 +1339,9 @@ namespace scripting.iOS
                         break;
                     case "backgroundcolorbutton2":
                         m_button2.BackgroundColor = UtilsiOS.String2Color(arg2);
+                        break;
+                    case "backgroundcolorview2":
+                        m_extraView1.BackgroundColor = UtilsiOS.String2Color(arg2);
                         break;
                     case "fontcolor":
                         var color = UtilsiOS.String2Color(arg2);

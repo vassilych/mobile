@@ -407,9 +407,10 @@ namespace SplitAndMerge
                 return false;
             }
 
-            // Case of a negative number, or starting with the closing bracket:
+            // Case of a negative number, or a pointer, or starting with the closing bracket:
             if (item.Length == 0 &&
-               ((ch == '-' && next != '-') || ch == Constants.END_ARRAY
+               ((ch == '-' && next != '-') || ch == '&'
+                                           || ch == Constants.END_ARRAY
                                            || ch == Constants.END_ARG))
             {
                 return true;
@@ -590,6 +591,10 @@ namespace SplitAndMerge
             {
                 MergeNumbers(leftCell, rightCell, script);
             }
+            else if (leftCell.Type == Variable.VarType.DATETIME)
+            {
+                OperatorAssignFunction.DateOperator(leftCell, rightCell, leftCell.Action, script);
+            }
             else
             {
                 MergeStrings(leftCell, rightCell, script);
@@ -705,8 +710,12 @@ namespace SplitAndMerge
                     break;
                 case "===":
                     leftCell.Value = Convert.ToDouble(
-                        leftCell.Type == rightCell.Type &&
-                        leftCell.AsString() == rightCell.AsString());
+                        (leftCell.Type == rightCell.Type &&
+                         leftCell.AsString() == rightCell.AsString()) ||
+                        (leftCell.Type == Variable.VarType.UNDEFINED &&
+                         rightCell.AsString() == Constants.UNDEFINED) ||
+                        (rightCell.Type == Variable.VarType.UNDEFINED &&
+                         leftCell.AsString() == Constants.UNDEFINED));
                     break;
                 case "!==":
                     leftCell.Value = Convert.ToDouble(

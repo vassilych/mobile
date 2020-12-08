@@ -42,7 +42,7 @@ namespace scripting.iOS
             m_view = Window.RootViewController.View;
             m_view.BackgroundColor = UIColor.White;
 
-            AppCenter.Start("0d1f57c7-e260-4abf-8e71-c72ec6f2fffc",
+            AppCenter.Start("d7bceeaf-be3e-4be5-bc0a-25af01c1091c",
                    typeof(Analytics), typeof(Crashes));
             //AppCenter.LogLevel = LogLevel.Verbose;
 

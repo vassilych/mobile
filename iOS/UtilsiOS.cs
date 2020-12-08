@@ -602,6 +602,10 @@ namespace scripting.iOS
                 case "iPhone12,3": return "iPhone 11 Pro";
                 case "iPhone12,5": return "iPhone 11 Pro Max";
                 case "iPhone12,8": return "iPhone SE 2nd gen";
+                case "iPhone13,1": return "iPhone 12 Mini";
+                case "iPhone13,2": return "iPhone 12";
+                case "iPhone13,3": return "iPhone 12 Pro";
+                case "iPhone13,4": return "iPhone 12 Pro Max";
 
                 case "iPad2,1": return "iPad 2 Wi-Fi";
                 case "iPad2,2": return "iPad 2 GSM";
@@ -653,6 +657,8 @@ namespace scripting.iOS
                 case "iPad11,2": return "iPad mini 5th Gen";
                 case "iPad11,3": return "iPad Air 3rd Gen WiFi";
                 case "iPad11,4": return "iPad Air 3rd Gen";
+                case "iPad13,1": return "iPad Air 4th Gen WiFi";
+                case "iPad13,2": return "iPad Air 4th Gen WiFi LTE";
 
                 case "iPod1,1": return "iPod Touch";
                 case "iPod2,1": return "iPod Touch 1 Gen";
@@ -705,6 +711,10 @@ namespace scripting.iOS
                 case "iPhone12,3":
                 case "iPhone12,5": return 458;
                 case "iPhone12,8": return 326;
+                case "iPhone13,1": return 476;
+                case "iPhone13,2": return 460;
+                case "iPhone13,3": return 460;
+                case "iPhone13,4": return 458;
 
                 case "iPad2,1":
                 case "iPad2,2":
@@ -756,6 +766,8 @@ namespace scripting.iOS
                 case "iPad11,2": return 326;
                 case "iPad11,3":
                 case "iPad11,4": return 264;
+                case "iPad13,1": return 264;
+                case "iPad13,2": return 264;
 
                 case "iPod1,1":
                 case "iPod2,1":

@@ -82,6 +82,7 @@ namespace scripting.iOS
     public class iOSApp : UITabBarController
     {
         static List<iOSTab> m_tabs = new List<iOSTab>();
+        static List<iOSVariable> m_allViews = new List<iOSVariable>();
         static iOSTab m_activeTab;
         static List<iOSVariable> m_hiddenViews = new List<iOSVariable>();
         static List<iOSVariable> m_nonTabViews = new List<iOSVariable>();
@@ -89,6 +90,12 @@ namespace scripting.iOS
            new Dictionary<iOSVariable, iOSTab>();
 
         public static Action<int> TabSelectedDelegate;
+
+        public static string FontColorString
+        {
+            get;
+            set;
+        }
 
         static UIInterfaceOrientationMask m_orientationMask = UIInterfaceOrientationMask.AllButUpsideDown;
 
@@ -268,6 +275,23 @@ namespace scripting.iOS
             }
         }
 
+        public static void SetForegroundColor(string colorStr)
+        {
+            FontColorString = colorStr; 
+            for (int i = 0; i < m_allViews.Count; i++)
+            {
+                m_allViews[i].SetFontColor(colorStr);
+            }
+        }
+        public static void SetForegroundColor(iOSVariable widget)
+        {
+            if (string.IsNullOrWhiteSpace(FontColorString))
+            {
+                return;
+            }
+            widget.SetFontColor(FontColorString);
+        }
+
         public static void AddView(iOSVariable view)
         {
             if (m_activeTab == null)
@@ -277,11 +301,13 @@ namespace scripting.iOS
             }
             m_activeTab.AddView(view);
             m_view2Tab[view] = m_activeTab;
+            m_allViews.Add(view);
+            SetForegroundColor(view);
         }
         public static void RemoveView(iOSVariable view)
         {
-            iOSTab tab;
-            if (m_view2Tab.TryGetValue(view, out tab))
+            m_allViews.Remove(view);
+            if (m_view2Tab.TryGetValue(view, out iOSTab tab))
             {
                 tab.RemoveView(view);
             }
@@ -302,6 +328,7 @@ namespace scripting.iOS
             view.ViewY?.RemoveFromSuperview();
             view.ViewX?.RemoveFromSuperview();
             m_nonTabViews.Remove(view);
+            m_allViews.Remove(view);
         }
         public static void RemoveTabViews(int tabId)
         {
@@ -318,6 +345,7 @@ namespace scripting.iOS
             {
                 m_tabs[i].RemoveAll();
             }
+            m_allViews.Clear();
         }
 
         public void Run()

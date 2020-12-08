@@ -716,7 +716,9 @@ namespace scripting
         public static DateTime GetLinkerTime(System.Reflection.Assembly assembly, TimeZoneInfo target = null)
         {
             var filePath = assembly.Location;
-            const int c_PeHeaderOffset = 60;
+            var localTime = File.GetLastWriteTime(filePath);
+
+            /*const int c_PeHeaderOffset = 60;
             const int c_LinkerTimestampOffset = 8;
 
             var buffer = new byte[2048];
@@ -731,7 +733,7 @@ namespace scripting
             var linkTimeUtc = epoch.AddSeconds(secondsSince1970);
 
             var tz = target ?? TimeZoneInfo.Local;
-            var localTime = TimeZoneInfo.ConvertTimeFromUtc(linkTimeUtc, tz);
+            var localTime = TimeZoneInfo.ConvertTimeFromUtc(linkTimeUtc, tz);*/
 
             return localTime;
         }

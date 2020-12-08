@@ -1151,31 +1151,35 @@ namespace scripting.iOS
 
             UIViewController controller = AppDelegate.GetCurrentController();
 
-            var okCancelAlertController = UIAlertController.Create(title, msg, UIAlertControllerStyle.Alert);
-            var okAction = UIAlertAction.Create(buttonOK, UIAlertActionStyle.Default,
-                alert =>
-                {
-                    if (!string.IsNullOrWhiteSpace(actionOK))
-                    {
-                        UIVariable.GetAction(actionOK, buttonOK, "1");
-                    }
-                });
-            okCancelAlertController.AddAction(okAction);
-
-            if (!string.IsNullOrWhiteSpace(buttonCancel))
+            scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
             {
-                var cancelAction = UIAlertAction.Create(buttonCancel, UIAlertActionStyle.Cancel,
+                var okCancelAlertController = UIAlertController.Create(title, msg, UIAlertControllerStyle.Alert);
+                var okAction = UIAlertAction.Create(buttonOK, UIAlertActionStyle.Default,
                     alert =>
                     {
-                        if (!string.IsNullOrWhiteSpace(actionCancel))
+                        if (!string.IsNullOrWhiteSpace(actionOK))
                         {
-                            UIVariable.GetAction(actionCancel, buttonCancel, "0");
+                            UIVariable.GetAction(actionOK, buttonOK, "1");
                         }
                     });
-                okCancelAlertController.AddAction(cancelAction);
-            }
+                okCancelAlertController.AddAction(okAction);
 
-            controller.PresentViewController(okCancelAlertController, true, null);
+                if (!string.IsNullOrWhiteSpace(buttonCancel))
+                {
+                    var cancelAction = UIAlertAction.Create(buttonCancel, UIAlertActionStyle.Cancel,
+                        alert =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(actionCancel))
+                            {
+                                UIVariable.GetAction(actionCancel, buttonCancel, "0");
+                            }
+                        });
+                    okCancelAlertController.AddAction(cancelAction);
+                }
+
+                controller.PresentViewController(okCancelAlertController, true, null);
+            });
+
             return Variable.EmptyInstance;
         }
     }
@@ -1408,8 +1412,15 @@ namespace scripting.iOS
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name, true);
+            Utils.CheckArgs(args.Count, 1, m_name);
 
+            if (args.Count == 1)
+            {
+                iOSApp.SetForegroundColor(args[0].AsString());
+                return Variable.EmptyInstance;
+            }
+
+            Utils.CheckArgs(args.Count, 2, m_name);
             iOSVariable widget = Utils.GetVariable(args[0].AsString(), script) as iOSVariable;
             Utils.CheckNotNull(widget, m_name, script, 0);
 
@@ -1803,6 +1814,12 @@ namespace scripting.iOS
         {
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 1, m_name);
+
+            return Restore(args);
+        }
+
+        public static Variable Restore(List<Variable> args)
+        {
             string strAction = args[0].AsString();
 
             for (int i = 1; i < args.Count; i++)
@@ -1832,9 +1849,14 @@ namespace scripting.iOS
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 2, m_name, true);
 
-            string strAction = args[0].AsString();
-            string productId = args[1].AsString();
+            string productId = args[0].AsString();
+            string strAction = args[1].AsString();
 
+            return Purchase(productId, strAction);
+        }
+
+        public static Variable Purchase(string productId, string strAction)
+        {
             IAP.AddProductId(productId);
 
             IAP.IAPOK += (productIds) =>
@@ -1859,9 +1881,12 @@ namespace scripting.iOS
             Utils.CheckArgs(args.Count, 1, m_name, true);
 
             string productId = args[0].AsString();
+            return GetDescription(productId);
+        }
 
+        public static Variable GetDescription(string productId)
+        {
             string description = IAP.GetDescription(productId);
-
             return new Variable(description);
         }
     }

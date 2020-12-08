@@ -114,9 +114,12 @@ namespace SplitAndMerge
         public const string NAME_EXISTS = "NameExists";
         public const string NAMESPACE = "Namespace";
         public const string NOW = "Now";
+        public const string ON_EXCEPTION = "OnException";
         public const string OBJECT_PROPERTIES = "Properties";
         public const string OBJECT_TYPE = "Type";
         public const string PI = "pi";
+        public const string POINTER = "->";
+        public const string POINTER_REF = "&";
         public const string POW = "pow";
         public const string PRINT = "print";
         public const string PSTIME = "pstime";
@@ -236,6 +239,8 @@ namespace SplitAndMerge
         public const string MATH_TANH     = "Math.Tanh";
         public const string MATH_TRUNC    = "Math.Trunc";
 
+        public const string CONSOLE_LOG   = "console.log";
+
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
         // Special property for converting an object to a string:
@@ -244,7 +249,7 @@ namespace SplitAndMerge
         public static string END_ARG_STR = END_ARG.ToString();
         public static string NULL_ACTION = END_ARG.ToString();
 
-        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", ":" };
+        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":" };
         public static string[] MATH_ACTIONS = { "===", "!==",
                                                 "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
                                                 "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "="};
@@ -269,6 +274,7 @@ namespace SplitAndMerge
 
         public static string TOKEN_SEPARATION_STR = "<>=+-*/%&|^,!()[]{}\t\n;: ";
         public static char[] TOKEN_SEPARATION = TOKEN_SEPARATION_STR.ToCharArray();
+        public static char[] TOKENS_SEPARATION = ",;)".ToCharArray();
 
         // Functions that allow a space separator after them, on top of parentheses. The
         // function arguments may have spaces as well, e.g. copy a.txt b.txt
@@ -375,6 +381,7 @@ namespace SplitAndMerge
                 case Variable.VarType.OBJECT:   return "OBJECT";
                 case Variable.VarType.BREAK:    return "BREAK";
                 case Variable.VarType.CONTINUE: return "CONTINUE";
+                case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }
         }

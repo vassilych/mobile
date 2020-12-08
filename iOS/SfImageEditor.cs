@@ -35,7 +35,7 @@ namespace scripting.iOS
       m_rect = rect;
 
       m_sfImageEditor = new SfImageEditor(m_rect);
-      m_sfImageEditor.ImageSaved += (sender, args) => {
+      /*m_sfImageEditor.ImageSaved += (sender, args) => {
         if (!string.IsNullOrEmpty(m_actionDoneEdit)) {
           UIVariable.GetAction(m_actionDoneEdit, WidgetName, "\"" + args.Location + "\"");
         }
@@ -49,7 +49,7 @@ namespace scripting.iOS
           //ActionDelegate?.Invoke(WidgetName, "");
           m_editing = false;
         }
-      };
+      };*/
       m_sfImageEditor.Hidden = true;
       ViewX = m_sfImageEditor;
     }

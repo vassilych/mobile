@@ -205,6 +205,28 @@ namespace SplitAndMerge
             ThrowErrorMsg(msg, code, lineNumber, filename);
         }
 
+        public static bool CheckLegalName(string name, ParsingScript script = null, bool throwError = true)
+        {
+            if (string.IsNullOrWhiteSpace(name) || Constants.CheckReserved(name))
+            {
+                if (!throwError)
+                {
+                    return false;
+                }
+                Utils.ThrowErrorMsg(name + " is a reserved name.", script, name);
+            }
+            if (Char.IsDigit(name[0]) || name[0] == '-')
+            {
+                if (!throwError)
+                {
+                    return false;
+                }
+                Utils.ThrowErrorMsg(name + " has illegal first character " + name[0], null, name);
+            }
+
+            return true;
+        }
+
         public static ParsingScript GetTempScript(string str, ParserFunction.StackLevel stackLevel, string name = "",
             ParsingScript script = null, ParsingScript parentScript = null,
             int parentOffset = 0, CSCSClass.ClassInstance instance = null)
@@ -506,8 +528,14 @@ namespace SplitAndMerge
             return token;
         }
 
-        public static Variable GetVariable(string varName, ParsingScript script, bool testNull = true)
+        public static Variable GetVariable(string varName, ParsingScript script = null, bool testNull = true)
         {
+            varName = varName.ToLower();
+            if (script == null)
+            {
+                script = new ParsingScript("");
+            }
+
             ParserFunction func = ParserFunction.GetVariable(varName, script);
             if (!testNull && func == null)
             {
@@ -716,7 +744,7 @@ namespace SplitAndMerge
 
         public static string GetFullPath(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path))
             {
                 return path;
             }
@@ -759,6 +787,18 @@ namespace SplitAndMerge
                 Console.WriteLine("Exception getting current directory: {0}", exc.Message);
             }
             return "";
+        }
+
+        public static void ExtendArrayIfNeeded<T>(List<T> array, int count, T defaultValue)
+        {
+            if (array.Count <= count)
+            {
+                array.Capacity = count + 1;
+                while (array.Count <= count)
+                {
+                    array.Add(defaultValue);
+                }
+            }
         }
     }
 }

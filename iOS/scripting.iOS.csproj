@@ -31,7 +31,7 @@
     <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
     <CodesignEntitlements></CodesignEntitlements>
     <CodesignEntitlements></CodesignEntitlements>
-    <CodesignProvision>CSCSDistrProvision</CodesignProvision>
+    <CodesignProvision>MyDividendsDistr</CodesignProvision>
     <MtouchFloat32>true</MtouchFloat32>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
@@ -70,7 +70,7 @@
     <MtouchUseThumb></MtouchUseThumb>
 <CrashReportingDelay>-1</CrashReportingDelay>
 <LangVersion>latest</LangVersion>
-<CodesignProvision>iMathDistr</CodesignProvision>
+<CodesignProvision>MyDividendsDistr</CodesignProvision>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
@@ -276,16 +276,16 @@
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\80-1.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\87.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1242x2688.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch828x1792.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1125x2436.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1242x2208.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch750x1334.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch2048x2732.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch640x960.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch640x1136.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch768x1024.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1536x2048.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1536x2048.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_768x1024.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_640x1136.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_640x960.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_2048x2732.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_750x1334.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1242x2208.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1125x2436.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_828x1792.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1242x2688.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />

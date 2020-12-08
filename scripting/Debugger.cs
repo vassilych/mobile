@@ -163,7 +163,6 @@ namespace SplitAndMerge
 
                 m_steppingIns.Clear();
                 m_completedStepIn.Reset();
-
                 ProcessingBlock = SendBackResult = InInclude = End =  false;      
                 m_blockLevel = m_maxBlockLevel = 0;
             }

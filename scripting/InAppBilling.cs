@@ -17,11 +17,14 @@ namespace scripting
 
             string productId = args[0].AsString();
             string strAction = args[1].AsString();
-
+#if __IOS__
+            return scripting.iOS.PurchaseFunction.Purchase(productId, strAction);
+#else
             InAppBilling.RegisterCallbacks(strAction);
             InAppBilling.PurchaseItem(productId);
 
             return Variable.EmptyInstance;
+#endif
         }
     }
     public class RestoreFunction : ParserFunction
@@ -30,6 +33,9 @@ namespace scripting
         {
             List<Variable> args = script.GetFunctionArgs();
             Utils.CheckArgs(args.Count, 1, m_name);
+#if __IOS__
+            return scripting.iOS.RestoreFunction.Restore(args);
+#else
             string strAction = args[0].AsString();
 
             for (int i = 1; i < args.Count; i++)
@@ -42,6 +48,7 @@ namespace scripting
             InAppBilling.Restore();
 
             return Variable.EmptyInstance;
+#endif
         }
     }
     public class ProductIdDescriptionFunction : ParserFunction
@@ -53,7 +60,9 @@ namespace scripting
 
             string productId = args[0].AsString();
             string strAction = Utils.GetSafeString(args, 1);
-
+#if __IOS__
+            return scripting.iOS.ProductIdDescriptionFunction.GetDescription(productId);
+#else
             if (string.IsNullOrWhiteSpace(strAction))
             {
                 var desc = InAppBilling.GetDescription(productId);
@@ -64,6 +73,7 @@ namespace scripting
             InAppBilling.GetDescriptionAsync(productId);
 
             return Variable.EmptyInstance;
+#endif
         }
     }
 

@@ -193,7 +193,7 @@ namespace SplitAndMerge
 
         static bool ActionForUndefined(string action)
         {
-            return !string.IsNullOrWhiteSpace(action) && action.EndsWith("=");
+            return !string.IsNullOrWhiteSpace(action) && action.EndsWith("=") && action.Length > 1;
         }
 
         static ParserFunction GetRegisteredAction(string name, ParsingScript script, ref string action)
@@ -203,7 +203,7 @@ namespace SplitAndMerge
                 return null;
             }
 
-            if (ActionForUndefined(action) && script.Rest.StartsWith(Constants.UNDEFINED))
+            if (false && ActionForUndefined(action) && script.Rest.StartsWith(Constants.UNDEFINED))
             {
                 IsUndefinedFunction undef = new IsUndefinedFunction(name, action);
                 return undef;
@@ -290,15 +290,16 @@ namespace SplitAndMerge
             return impl;
         }
 
-        public static ParserFunction GetVariable(string name, ParsingScript script, bool force = false)
+        public static ParserFunction GetVariable(string name, ParsingScript script = null, bool force = false)
         {
-            if (!force && script.TryPrev() == Constants.START_ARG)
+            if (!force && script != null && script.TryPrev() == Constants.START_ARG)
             {
                 return GetFunction(name, script);
             }
             name = Constants.ConvertName(name);
             ParserFunction impl;
-            StackLevel localStack = script.StackLevel != null ? script.StackLevel : s_locals.Count > StackLevelDelta ? s_lastExecutionLevel : null;
+            StackLevel localStack = script != null &&  script.StackLevel != null ?
+                 script.StackLevel : s_locals.Count > StackLevelDelta ? s_lastExecutionLevel : null;
             if (localStack != null)
             {
                 Dictionary<string, ParserFunction> local = localStack.Variables;
@@ -323,6 +324,33 @@ namespace SplitAndMerge
             return GetFunction(name, script);
         }
 
+        public static Variable GetVariableValue(string name, ParsingScript script = null)
+        {
+            name = Constants.ConvertName(name);
+            ParserFunction impl = null;
+            StackLevel localStack = script != null && script.StackLevel != null ?
+                 script.StackLevel : s_locals.Count > StackLevelDelta ? s_lastExecutionLevel : null;
+            if (localStack != null && localStack.Variables.TryGetValue(name, out impl) &&
+                impl is GetVarFunction)
+            {
+                return (impl as GetVarFunction).Value;
+            }
+
+            string scopeName = script == null || script.Filename == null ? "" : script.Filename;
+            impl = GetLocalScopeVariable(name, scopeName);
+            if (impl == null && s_variables.TryGetValue(name, out impl))
+            {
+                impl = impl.NewInstance();
+            }
+
+            if (impl != null && impl is GetVarFunction)
+            {
+                return (impl as GetVarFunction).Value;
+            }
+
+            return null;
+        }
+
         public static ParserFunction GetFunction(string name, ParsingScript script)
         {
             name = Constants.ConvertName(name);
@@ -344,6 +372,7 @@ namespace SplitAndMerge
         public static void UpdateFunction(string name, ParserFunction function)
         {
             name = Constants.ConvertName(name);
+            Utils.CheckLegalName(name);
             lock (s_variables)
             {
                 // First search among local variables.
@@ -389,10 +418,7 @@ namespace SplitAndMerge
             ParsingScript script = null, bool localIfPossible = false)
         {
             name          = Constants.ConvertName(name);
-            if (Constants.CheckReserved(name))
-            {
-                Utils.ThrowErrorMsg(name + " is a reserved name.", script, name);
-            }
+            Utils.CheckLegalName(name, script);
 
             bool globalOnly = !localIfPossible && !LocalNameExists(name);
             Dictionary<string, ParserFunction> lastLevel = GetLastLevel();
@@ -407,11 +433,6 @@ namespace SplitAndMerge
             if (!globalOnly && !localIfPossible && script != null && script.StackLevel != null && !GlobalNameExists(name))
             {
                 script.StackLevel.Variables[name] = function;
-                var handle = OnVariableChange;
-                if (handle != null)
-                {
-                    handle.Invoke(function.Name, function.Value, false);
-                }
             }
 
             if (!globalOnly && s_locals.Count > StackLevelDelta &&
@@ -627,9 +648,13 @@ namespace SplitAndMerge
         public static void AddGlobal(string name, ParserFunction function,
                                      bool isNative = true)
         {
+            Utils.CheckLegalName(name);
             name = Constants.ConvertName(name);
             NormalizeValue(function);
             function.isNative = isNative;
+
+            var handle = OnVariableChange;
+            bool exists = handle != null && s_variables.ContainsKey(name);
             s_variables[name] = function;
 
             function.Name = Constants.GetRealName(name);
@@ -639,10 +664,9 @@ namespace SplitAndMerge
                 Translation.AddTempKeyword(name);
             }
 #endif
-            var handle = OnVariableChange;
             if (handle != null && function is GetVarFunction)
             {
-                handle.Invoke(function.Name, ((GetVarFunction)function).Value, true);
+                handle.Invoke(function.Name, ((GetVarFunction)function).Value, exists);
             }
         }
 
@@ -779,14 +803,17 @@ namespace SplitAndMerge
             {
                 ((GetVarFunction)local).Value.ParamName = local.Name;
             }
+
+            var handle = OnVariableChange;
+            bool exists = handle != null && s_lastExecutionLevel.Variables.ContainsKey(name);
+
             s_lastExecutionLevel.Variables[name] = local;
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
             Translation.AddTempKeyword(name);
 #endif
-            var handle = OnVariableChange;
             if (handle != null && local is GetVarFunction)
             {
-                handle.Invoke(local.Name, ((GetVarFunction)local).Value, false);
+                handle.Invoke(local.Name, ((GetVarFunction)local).Value, exists);
             }
         }
 

@@ -8,6 +8,7 @@ InitSyncfusion("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5
 //InitSyncfusion("MjEzMjM4QDMxMzcyZTM0MmUzMFpUdERwTWxzdGJwbm43Mit3dk1qZXpqcTZCcUdMaDM4YTlidktSY2Q1M2s9");
 // 18.1.0.42
 //InitSyncfusion("MjM0MTk0QDMxMzgyZTMxMmUzMElTRkt2dmpPUFdoN0NhaFlGT2NNT25UMnA4TGRzanJVckw0dXE5WnZ3Nzg9");
+InitIAP();
 
 data          = {};
 prices        = {};
@@ -43,7 +44,7 @@ busyOptions   = {"ball", "battery", "box", "doublecircle", "ecg", "gear", "globe
 graphColors  = {"dark_green", "yellow", "red", "blue", "orange", "purple", "brown", "pink", "gray", "rose",
                 "magenta", "silver", "black", "white", "deep_sky_blue", "deep_pink", "sky_blue", "light_cyan",
                 "light_yellow", "light_blue", "light_green", "dark_gray", "dark_green", "dark_red", "dark_blue", "green"};
-hack     = _DEBUG_;
+hack     = false;//_DEBUG_;
 markets  = { "Market", "CH", "DE", "US" };
 market   = "";
 starting = true;
@@ -72,6 +73,8 @@ purchased    = GetSetting("purchased", "bool", false);
 //colWidth = {40, 15, 15, 15, 15};
 listCols = {"Instrument", "string", "Settle", "number"};
 colWidth = {70, 30};
+bestStocksCols = {"Instrument", "string", "Rel.Divid.", "number", "Std.Dev.", "number", "Sharpe", "number"};
+bestStocksWidth = {40, 20, 20, 20};
 
 allowedStocks = { "AAPL", "ABBN", "BAY" };
 stock = GetSetting("stock", "string", "ABBN");
@@ -188,11 +191,16 @@ function tabSelected(sender, arg) {
     HideView(volainfo);
     GetDataFromServer("a_volas", stock, "fillVolasData");
   } elif (newtab == 3) {
-    if (!data.Contains(stock)) {
+    /*if (!data.Contains(stock)) {
       GetDataFromServer("optionprices", stock, "fillStockData");
       return;
     }
-    createGraphs();
+    createGraphs();*/
+    if (NameExists(DataGrid)) {
+      makeUnbusy();
+      return;
+    }
+    GetDataFromServer("beststocks", stock, "fillBestStocks");
   } elif (newtab == 4) {
     printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
     if (stock == lastStockLoaded && optionsLoaded) {
@@ -589,12 +597,12 @@ function createGraphs() {
   locComboCallPuts = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
   AddCombobox(locComboCallPuts, "callputWidget", "", 530, 50);
   AddWidgetData(callputWidget, expiries, "callPutSelected", "left");
-  SetFontSize(callputWidget, 14);
+  SetFontSize(callputWidget, fontSizeSm);
   SetValue(callputWidget, "alignment", "center");
   SetValue(callputWidget, "fontcolor", "red");
   SetValue(callputWidget, 0, "black");
   AddAction(callputWidget, "callPutSelected");
-  
+
   locSFGraph1 = GetLocation("ROOT", "CENTER", callputWidget, "BOTTOM");
   createGraph(locSFGraph1, "SplineGraph1", "", stockData, keys, "Strike", "Price", "Call ");
 
@@ -610,13 +618,22 @@ function createGraphs() {
 }
 
 function fillVolasData(sender, arg) {
+  PrintConsole("fillVolasData ", stock, ", dates:", dates, ", arg:", ":", arg);
+  RemoveViewIfExists(volasWidget);
+
+  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
+  AddCombobox(locComboVolas, "volasWidget", "", 530, 50);
+  SetValue(volasWidget, "backgroundcolorview2", colorFg);
+  SetFontSize(volasWidget, fontSizeSm + 1);
+
   points         = arg.Split("\t");
-  if (points.Size < 2) {
+  if (arg == "") {
+    volaSelected("", "");
+    return;
+  } elif (points.Size < 2) {
     setConnectionStatus(arg);
     return;
   }
-  //PrintConsole("fillVolasData ", stock, ":", arg);
-  RemoveViewIfExists(volasWidget);
 
   volasToShow  = 1;
   volaData     = {};
@@ -668,14 +685,10 @@ function fillVolasData(sender, arg) {
   }
 
   dates.Sort();
-
-  locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
-  AddCombobox(locComboVolas, "volasWidget", "", 530, 50);
   comboData = dates;
   comboData.Add(volaHeader + " " + stock, 0);
 
   AddWidgetData(volasWidget, comboData, "volaSelected", "left");
-  SetFontSize(volasWidget, 14);
   SetValue(volasWidget, "alignment", "center");
   SetValue(volasWidget, "fontcolor", "red");
   SetValue(volasWidget, 0, "black");
@@ -1057,6 +1070,42 @@ function fillStockData(sender, arg) {
   printConsole("Finished fillStockData for " + stock + ", market: " + market);
 }
 
+function fillBestStocks(sender, arg) {
+  PrintConsole("fillBestStocks arg=" + arg);
+  bestStocks = arg.Split("!");
+  if (bestStocks.Size < 2 && !arg.Contains("|")) {
+    setConnectionStatus(arg);
+    return;
+  }
+
+  //C ABBN A 2020-04-17 12.6|0|0|4.6100001335144|4.6100001335144|CHF|EUX|per unit|4/8/2020 12:00:00 AM!
+  RemoveViewIfExists(DataGrid);
+  locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
+  AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
+
+  AddWidgetData(DataGrid, bestStocksCols, "columns");
+  AddWidgetData(DataGrid, bestStocksWidth, "columnWidth");
+
+  bestStocksArr = {};
+  for (bestStock : bestStocks) {
+    curr = bestStock.Split("|");
+    if (curr.size < 4) {
+      continue;
+    }
+    instr  = curr[0];
+    reldiv = Round(Double(curr[1]), 2);
+    stddev = Round(Double(curr[2]), 2);
+    sharpe = Round(Double(curr[3]), 2);
+    bestStockData   = {instr, reldiv, stddev, sharpe};
+    AddWidgetData(DataGrid, bestStockData, "item");
+  }
+
+  makeUnbusy();
+  ShowToast("Loaded " + bestStocks.Size + " stocks.", 5, toastFg, toastBg);
+  printConsole("Finished fillBestStocks");
+}
+
+
 function reloadOptionsTable() {
   locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
   AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
@@ -1113,7 +1162,7 @@ function resetButtons() {
 
 function buttonPurchase_click(sender, arg) {
   ShowToast(Localize("Please wait while purchasing..."), 10, "blue");
-  Purchase("on_purchase", productId);
+  Purchase(productId, "on_purchase");
 }
 
 function on_purchase(error, productId) {
@@ -1196,21 +1245,24 @@ if (isiPhoneX || isiPhoneXR) {
   graphWidth   = 600;
   graphHeight  = 600;
   tableHeight  = 1080;
-  extraTop     = 30;
+  extraTop     = 34;
 }
 
 //printConsole("extraTop=" + extraTop);
 
-SetBackgroundColor("cyan");
+SetBackgroundColor("black");
+colorFg = "yellow";
+SetFontColor("yellow");
 
 numberTabs = 5;
 currentTab = 0;
 
-AddOrSelectTab("Main",         "main_fin.png",  "main_fin2.png");
+AddOrSelectTab("Main",         "main_fin.png",   "main_fin2.png");
 AddOrSelectTab("Analysys",     "dividends2.png", "analysys.png");
-AddOrSelectTab("Volas",        "vola.png",      "vola2.png");
-AddOrSelectTab("Opt. Charts",  "callput_graph.png", "callput_graph2.png");
-AddOrSelectTab("Opt. Table",   "table2.png",     "learn2.png");
+AddOrSelectTab("Volas",        "vola.png",       "vola2.png");
+AddOrSelectTab("Performance",  "table2.png",     "learn2.png");
+//AddOrSelectTab("Opt. Charts",  "callput_graph.png", "callput_graph2.png");
+//AddOrSelectTab("Opt. Table",   "table2.png",     "learn2.png");
 
 SelectTab(2);
 
@@ -1234,6 +1286,7 @@ AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
 SetFontSize(allStocksCombo, fontSizeSm);
 SetValue(allStocksCombo, "alignment", "center");
 SetText(allStocksCombo, stock);
+SetValue(allStocksCombo, "backgroundcolorview2", colorFg);
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
 AddLabel(locIsinLab, "labelIsin", "ISIN:", textWidth, textHeight);
@@ -1296,21 +1349,21 @@ HideView(textStd);
 HideView(labelUpdate);
 HideView(textUpdate);
 
-locConnect = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 40);
-AddButton(locConnect, "buttonConnect", "", 240, 120);
-SetImage(buttonConnect, "connect");
-AddBorder(buttonConnect, 0);
-
-locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 200);
+locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 80);
 AddLabel(locStatus, "labelStatus", "Status:", 180, 60);
 SetFontSize(labelStatus, fontSizeSm + 2);
 AlignText(labelStatus, "left");
 
-locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", 10, 0);
-AddLabel(locStatus2, "labelStatus2", "Disconnected", 340, 60);
-SetFontSize(labelStatus2, fontSizeSm + 2);
+locConnect = GetLocation("ROOT", "CENTER", "labelStatus", "BOTTOM", 0, 20);
+AddButton(locConnect, "buttonConnect", "", 180, 180);
+SetImage(buttonConnect, "connect");
+AddBorder(buttonConnect, 0);
+
+locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", -10, 0);
+AddLabel(locStatus2, "labelStatus2", "Disconnected", 360, 60);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
+SetBold(labelStatus2, fontSizeSm + 5);
 
 locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -20, -10);
 AddButton(locAboutUs, "buttonAboutUs", "", 130, 130);
@@ -1326,13 +1379,11 @@ locRestore = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 10, -20);
 AddButton(locRestore, "buttonRestore", "Restore", 220, 110);
 SetImage(buttonRestore, "restore");
 SetFontSize(buttonRestore, fontSize);
-SetFontColor(buttonRestore, "white");
 /*
 locPurchase = GetLocation(buttonRestore, "RIGHT", buttonRestore, "CENTER", 6, 0);
 AddButton(locPurchase, "buttonPurchase", "Purchase", 220, 110);
 SetImage(buttonPurchase, "purchase");
-SetFontSize(buttonPurchase, fontSize);
-SetFontColor(buttonPurchase, "white");*/
+SetFontSize(buttonPurchase, fontSize);*/
 
 OnTabSelected("tabSelected");
 startUp();

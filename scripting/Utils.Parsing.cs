@@ -97,8 +97,36 @@ namespace SplitAndMerge
             return value;
         }
 
-        public static string GetToken(ParsingScript script, char[] to, bool eatLast = false)
+        public static List<string> GetTokens(ParsingScript script, char[] separators = null)
+        {
+            List<string> result = null;
+            if (separators != null)
+            {
+                result = new List<string>();
+                while (script.StillValid())
+                {
+                    bool isString = script.StartsWith("\"");
+                    var token = Utils.GetToken(script, separators);
+                    if (string.IsNullOrEmpty(token) || token == Constants.END_STATEMENT.ToString())
+                    {
+                        break;
+                    }
+                    if (isString)
+                    {
+                        token = "\"" + token + "\"";
+                    }
+                    result.Add(token);
+                }
+            }
+            else
+            {
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG, Constants.END_STATEMENT);
+                result = GetCompiledArgs(body);
+            }
+            return result;
+        }
 
+        public static string GetToken(ParsingScript script, char[] to, bool eatLast = false)
         {
             char curr = script.TryCurrent();
             char prev = script.TryPrev();
@@ -113,6 +141,8 @@ namespace SplitAndMerge
                     prev = script.TryPrev();
                 }
             }
+
+            script.MoveForwardIf(Constants.SPACE);
 
             // String in quotes
             bool inQuotes = curr == Constants.QUOTE || curr == Constants.QUOTE1;
@@ -477,7 +507,6 @@ namespace SplitAndMerge
                 end = Constants.END_STATEMENT;
             }
 
-            // ScriptingEngine - body is unsed (used in Debugging) but GetBodyBetween has sideeffects			
 #pragma warning disable 219
             string body = Utils.GetBodyBetween(tempScript, start, end);
 #pragma warning restore 219
@@ -760,6 +789,8 @@ namespace SplitAndMerge
             char prev = Constants.EMPTY;
             char prevprev = Constants.EMPTY;
             int angleBrackets = 0;
+            int curlyBrackets = 0;
+            int squareBrackets = 0;
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -782,8 +813,20 @@ namespace SplitAndMerge
                     case '>':
                         if (!inQuotes) angleBrackets--;
                         break;
+                    case '{':
+                        if (!inQuotes) curlyBrackets++;
+                        break;
+                    case '}':
+                        if (!inQuotes) curlyBrackets--;
+                        break;
+                    case '[':
+                        if (!inQuotes) squareBrackets++;
+                        break;
+                    case ']':
+                        if (!inQuotes) squareBrackets--;
+                        break;
                     case ',':
-                        if (inQuotes || angleBrackets > 0)
+                        if (inQuotes || angleBrackets > 0 || curlyBrackets > 0 || squareBrackets > 0)
                         {
                             break;
                         }
@@ -1314,19 +1357,12 @@ namespace SplitAndMerge
 
         public static string StartsWith(string data, string[] items)
         {
-            try
+            foreach (string item in items)
             {
-                foreach (string item in items)
+                if (data.StartsWith(item))
                 {
-                    if (data.StartsWith(item))
-                    {
-                        return item;
-                    }
+                    return item;
                 }
-            }
-            catch(Exception exc)
-            {
-                Console.WriteLine(exc.Message);
             }
             return null;
         }
@@ -1518,6 +1554,26 @@ namespace SplitAndMerge
             string dst = validateQuotes ? "\"" : "\\\"";
             argsStr = argsStr.Replace(src, dst);
             return argsStr;
+        }
+
+        public static List<string> SplitToken(string token)
+        {
+            List<string> tokens = new List<string>();
+            char[] separators = { '+', '-', '*', '/' };
+            var start = 0;
+            var end = token.IndexOfAny(separators, start + 1);
+            while(end > 0)
+            {
+                tokens.Add(token.Substring(start, end - start));
+                tokens.Add(token.Substring(end, 1));
+                start = end + 1;
+                end = token.IndexOfAny(separators, start + 1);
+            }
+            if (start < token.Length)
+            {
+                tokens.Add(token.Substring(start));
+            }
+            return tokens;
         }
 
         public static Variable Calculate(string functionName, string argsStr)
