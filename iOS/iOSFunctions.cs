@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using AdvancedColorPicker;
 using CoreAnimation;
 using CoreGraphics;
@@ -1132,8 +1133,35 @@ namespace scripting.iOS
             return result;
         }
     }
+    public static class AsyncHelper
+    {
+        private static readonly TaskFactory _taskFactory = new
+            TaskFactory(CancellationToken.None,
+                        TaskCreationOptions.None,
+                        TaskContinuationOptions.None,
+                        TaskScheduler.Default);
+
+        public static TResult RunSync<TResult>(Func<Task<TResult>> func)
+            => _taskFactory
+                .StartNew(func)
+                .Unwrap()
+                .GetAwaiter()
+                .GetResult();
+
+        public static void RunSync(Func<Task> func)
+            => _taskFactory
+                .StartNew(func)
+                .Unwrap()
+                .GetAwaiter()
+                .GetResult();
+    }
     public class AlertDialogFunction : ParserFunction
     {
+        bool m_editField;
+        public AlertDialogFunction(bool edit = false)
+        {
+            m_editField = edit;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
@@ -1151,6 +1179,25 @@ namespace scripting.iOS
 
             UIViewController controller = AppDelegate.GetCurrentController();
 
+            if (m_editField)
+            {
+                var page = new Xamarin.Forms.Page();
+                Task task = null;
+                //AsyncHelper.RunSync(() => page.DisplayAlert("Alert", "Continue..", "Yes", "No"));
+                scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
+                {
+                    task = Task.Run(async () => await page.DisplayAlert("Alert", "Continue..", "Yes", "No"));
+                    /*string result = page.DisplayPromptAsync(title, msg).Result;
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        UIVariable.GetAction(actionOK, buttonOK, result);
+                    }*/
+                });
+                Thread.Sleep(500);
+                Task.WaitAll(task);
+
+                return Variable.EmptyInstance;
+            }
             scripting.iOS.AppDelegate.GetCurrentController().InvokeOnMainThread(() =>
             {
                 var okCancelAlertController = UIAlertController.Create(title, msg, UIAlertControllerStyle.Alert);
@@ -1162,6 +1209,7 @@ namespace scripting.iOS
                             UIVariable.GetAction(actionOK, buttonOK, "1");
                         }
                     });
+
                 okCancelAlertController.AddAction(okAction);
 
                 if (!string.IsNullOrWhiteSpace(buttonCancel))
@@ -2146,6 +2194,131 @@ namespace scripting.iOS
             AppDelegate.SetController(style, typeName, orientation);
 
             return Variable.EmptyInstance;
+        }
+    }
+    internal class DialogFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name);
+
+            var texts = Utils.GetSafeVariable(args, 0);
+            var actions = Utils.GetSafeVariable(args, 1);
+
+            int c = 10;
+            var x = c - c++;
+
+            ShowView(texts, actions);
+            return Variable.EmptyInstance;
+        }
+
+        public static void MakeCorners(UIView view, float angle = 25f, bool makeShadow = true)
+        {
+            view.Layer.CornerRadius = angle;
+            view.Layer.BorderWidth = 1.5f;
+            view.Layer.BorderColor = UIColor.LightGray.CGColor;
+
+            if (makeShadow)
+            {
+                view.Layer.ShadowColor = UIColor.Black.CGColor;
+                view.Layer.ShadowOpacity = 0.8f;
+                view.Layer.ShadowRadius = 3.0f;
+                view.Layer.ShadowOffset = new CGSize(2.0, 2.0);
+            }
+        }
+
+        void ShowView(Variable texts, Variable actions)
+        {
+            if (texts.Tuple == null || texts.Tuple.Count < 3 ||
+                actions.Tuple == null || actions.Tuple.Count < 3)
+            {
+                return;
+            }
+            var m_detailView = new UIView();
+            m_detailView.BackgroundColor = UIColor.White;
+            MakeCorners(m_detailView);
+
+            var frameWidth = (UIScreen.MainScreen.ApplicationFrame.Width / 10) * 8;
+            var frameHeight = (UIScreen.MainScreen.ApplicationFrame.Height / 10) * 3.3;
+
+            var x = (UIScreen.MainScreen.ApplicationFrame.Width - frameWidth) / 2;
+            var y = 100f;
+            var height = 30f;
+            m_detailView.Frame = new CGRect(x, y, frameWidth, frameHeight);
+
+            UILabel lab = new UILabel();
+            lab.TextAlignment = UITextAlignment.Center;
+            lab.LineBreakMode = UILineBreakMode.WordWrap;
+            lab.Lines = 2;
+
+            lab.Frame = new CGRect(10, 10, frameWidth - 20, height * 3);
+            lab.Text = texts.Tuple[0].AsString();
+            m_detailView.AddSubview(lab);
+
+            y = 3f * height;
+
+            UITextField texti = null;
+            AppDelegate.GetCurrentView().AddSubview(m_detailView);
+
+            for (int i = 1; i < texts.Tuple.Count; i += 2)
+            {
+                UILabel coli = new UILabel();
+                coli.Frame = new CGRect(x + 5, y + 5, m_detailView.Frame.Right / 3, height);
+                coli.Text = texts.Tuple[i].AsString();
+
+                texti = new UITextField();
+                texti.Frame = new CGRect(coli.Frame.Right + 10, y + 5, m_detailView.Frame.Right / 3, height);
+                texti.BackgroundColor = UIColor.LightTextColor;
+                texti.Placeholder = i < texts.Tuple.Count ? texts.Tuple[i + 1].AsString() : "";
+                //texti.SelectedTextRange = texti.GetTextRange(texti.BeginningOfDocument, texti.BeginningOfDocument);
+                iOSVariable.MakeBottomBorder(texti, (int)texti.Frame.Width, (int)texti.Frame.Height);
+                texti.ShouldReturn = (tf) => {
+                    tf.ResignFirstResponder();
+                    return true;
+                };
+                texti.TouchUpOutside += delegate
+                {
+                    texti.ResignFirstResponder();
+                };
+
+                m_detailView.AddSubview(coli);
+                m_detailView.AddSubview(texti);
+
+                y += 2 * height;
+            }
+
+            UIButton save = new UIButton();
+            save.SetTitle(actions.Tuple[0].AsString(), UIControlState.Normal);
+            save.BackgroundColor = UIColor.DarkGray;
+            save.Font = UIFont.FromName("Helvetica-Bold", 12f);
+            save.Frame = new CGRect(m_detailView.Frame.Right / 4, frameHeight - 2 * height, 60, height);
+            save.TouchUpInside += (sender2, e2) =>
+            {
+                UIVariable.GetAction(actions.Tuple[1].AsString(), actions.Tuple[0].AsString(), texti.Text);
+                m_detailView.RemoveFromSuperview();
+            };
+
+            UIButton cancel = new UIButton();
+            cancel.SetTitle(actions.Tuple[2].AsString(), UIControlState.Normal);
+            cancel.TouchUpInside += (sender2, e2) =>
+            {
+                if (actions.Tuple.Count > 3)
+                {
+                    UIVariable.GetAction(actions.Tuple[3].AsString(), actions.Tuple[0].AsString());
+                }
+                m_detailView.RemoveFromSuperview();
+            };
+
+            cancel.BackgroundColor = UIColor.DarkGray;
+            cancel.Font = UIFont.FromName("Helvetica-Bold", 12f);
+            cancel.Frame = new CGRect(save.Frame.Right + 10, save.Frame.Top, 60, height);
+
+            MakeCorners(save, 10, false);
+            MakeCorners(cancel, 10, false);
+
+            m_detailView.AddSubview(save);
+            m_detailView.AddSubview(cancel);
         }
     }
 }
