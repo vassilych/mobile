@@ -1,6 +1,7 @@
 ﻿using System;
 using SplitAndMerge;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 #if __ANDROID__
 using scripting.Droid;
@@ -12,12 +13,10 @@ namespace scripting
 {
     public class CustomInit
     {
-        public static void InitAndRunScript()
+        public static void InitAndRunScript(string fileName = "start.cscs")
         {
             UIVariable.WidgetTypes.Add(new AdMob());
             UIVariable.WidgetTypes.Add(new SfWidget());
-
-            string fileName = "start.cscs";
 
             ParserFunction.RegisterFunction("InitAds", new InitAds());
             ParserFunction.RegisterFunction("ShowInterstitial", new ShowInterstitial());
@@ -37,6 +36,7 @@ namespace scripting
             ParserFunction.RegisterFunction("AddSfDoughnutGraph", new AddWidgetFunction("SfDoughnutGraph"));
             ParserFunction.RegisterFunction("AddSfCalendar", new AddWidgetFunction("SfCalendar"));
             ParserFunction.RegisterFunction("AddSfAppointment", new AddAppointmentFunction());
+            //ParserFunction.RegisterFunction("AddSfDialog", new AddWidgetFunction("SfDialog"));
             ParserFunction.RegisterFunction("AddSfImageEditor", new AddWidgetFunction("SfImageEditor"));
             ParserFunction.RegisterFunction("StartSfImageEditor", new StartSfImageEditor());
 
@@ -73,6 +73,9 @@ namespace scripting
             ParserFunction.RegisterFunction("Login", new Proxy.LoginFunction());
             ParserFunction.RegisterFunction("GetDataFromServer", new Proxy.GetServerDataFunction());
             ParserFunction.RegisterFunction("AddOrderedData", new Proxy.AddOrderedDataFunction());
+
+
+
             CommonFunctions.RunScript(fileName);
         }
     }

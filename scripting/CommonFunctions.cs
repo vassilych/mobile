@@ -98,6 +98,7 @@ namespace scripting
             ParserFunction.RegisterFunction("KillMe", new KillMeFunction());
             ParserFunction.RegisterFunction("ShowToast", new ShowToastFunction());
             ParserFunction.RegisterFunction("AlertDialog", new AlertDialogFunction());
+            //ParserFunction.RegisterFunction("AlertEditDialog", new AlertDialogFunction(true));
             ParserFunction.RegisterFunction("ColorPicker", new PickColorDialogFunction());
             ParserFunction.RegisterFunction("ConvertColor", new ConvertColorFunction());
 
@@ -134,6 +135,8 @@ namespace scripting
             ParserFunction.RegisterFunction("EnableWidget", new EnableFunction());
             ParserFunction.RegisterFunction("SetSecure", new MakeSecureFunction());
             ParserFunction.RegisterFunction("SaveToPhotos", new SaveToPhotosFunction());
+
+            ParserFunction.RegisterFunction("AddCustomDialog", new DialogFunction());
 
             ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
             ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));

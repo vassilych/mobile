@@ -74,7 +74,7 @@ namespace scripting.iOS
         public enum SyncFusionType
         {
             NONE, QR_BARCODE, CODE39_BARCODE, CIRCULAR_GAUGE, DIGITAL_GAUGE, STEPPER, BUSY_INDICATOR,
-            CALENDAR, PICKER, SEGMENTED, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID
+            CALENDAR, PICKER, SEGMENTED, SPLINE_GRAPH, DOUGHNUT_GRAPH, COLUMN_GRAPH, DATA_GRID, DIALOG
         };
 
         public SyncFusionType SfType { get; set; }
@@ -125,6 +125,9 @@ namespace scripting.iOS
                 case SyncFusionType.SPLINE_GRAPH:
                     CreateGraph();
                     break;
+                case SyncFusionType.DIALOG:
+                    //CreateDialog();
+                    break;
             }
             ViewX.Tag = ++m_currentTag;
             AddAction(name, name + "_click");
@@ -165,6 +168,8 @@ namespace scripting.iOS
                     return new SfWidget(SfWidget.SyncFusionType.PICKER, widgetName, initArg, rect);
                 case "SfSegmentedControl":
                     return new SfWidget(SfWidget.SyncFusionType.SEGMENTED, widgetName, initArg, rect);
+                case "SfDialog":
+                    return new SfWidget(SfWidget.SyncFusionType.DIALOG, widgetName, initArg, rect);
             }
             return null;
         }
@@ -491,6 +496,10 @@ namespace scripting.iOS
         {
             get
             {
+                if (m_grid == null)
+                {
+                    return 0;
+                }
                 return (m_grid.GroupColumnDescriptions.Count > 0 ?
                         m_grid.View.TopLevelGroup.DisplayElements.Count :
                         m_grid.View.Records.Count);
@@ -842,9 +851,11 @@ namespace scripting.iOS
                 {
                     string coord = data[i];
                     double value = Utils.ConvertToDouble(data[i + 1]);
-                    double x;
-                    DataPoint dp = Utils.CanConvertToDouble(coord, out x) ?
-                                   new DataPoint(x, value, title) : new DataPoint(coord, value, title);
+                    double x = 0;
+                    bool xNum = m_chart.PrimaryAxis is SFNumericalAxis &&
+                        Utils.CanConvertToDouble(coord, out x);
+                    DataPoint dp = xNum ?
+                        new DataPoint(x, value, title) : new DataPoint(coord, value, title);
                     collection.Add(dp);
                 }
                 if (SfType == SyncFusionType.DOUGHNUT_GRAPH)
@@ -934,7 +945,6 @@ namespace scripting.iOS
                 {
                     m_chart.Legend.Visible = true;
                     m_chart.Legend.DockPosition = SFChartLegendPosition.Top;
-                    //m_chart.Legend.
                     m_chart.Legend.ToggleSeriesVisibility = true;
                 }
             }
@@ -1149,6 +1159,11 @@ namespace scripting.iOS
                     case "allow_sort":
                         m_grid.AllowSorting = valueNum > 0;
                         break;
+                    case "header_color":
+                        var gridStyle = new MyGridStyle(m_bgColor, m_fontColor);
+                        gridStyle.HeaderColor = UtilsiOS.String2Color(arg2);
+                        m_grid.GridStyle = gridStyle;
+                        break;
                 }
             }
             else if (m_barcode != null)
@@ -1181,7 +1196,7 @@ namespace scripting.iOS
                     case "string_axis":
                         SFCategoryAxis catAxis = new SFCategoryAxis();
                         catAxis.LabelPlacement = SFChartLabelPlacement.BetweenTicks;
-                        m_chart.PrimaryAxis    = catAxis;
+                        m_chart.PrimaryAxis = catAxis;
                         break;
                     case "y_min":
                         numericalaxis.Minimum = new NSNumber(valueNum);
@@ -1222,6 +1237,28 @@ namespace scripting.iOS
                     case "tooltip_title":
                         Utils.CheckNotNull(m_chart.Delegate, "ChartTooltipDelegate", null);
                         ((ChartTooltipDelegate)m_chart.Delegate).SetTitle(arg2);
+                        break;
+                    case "axis_color":
+                        if (m_chart.PrimaryAxis != null)
+                        {
+                            m_chart.PrimaryAxis.Title.Color = UtilsiOS.String2Color(arg2);
+                            m_chart.PrimaryAxis.AxisLineStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.PrimaryAxis.MajorGridLineStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.PrimaryAxis.MajorTickStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.PrimaryAxis.LabelStyle.Color = UtilsiOS.String2Color(arg2);
+                        }
+                        if (m_chart.SecondaryAxis != null)
+                        {
+                            m_chart.SecondaryAxis.Title.Color = UtilsiOS.String2Color(arg2);
+                            m_chart.SecondaryAxis.AxisLineStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.SecondaryAxis.MajorGridLineStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.SecondaryAxis.MajorTickStyle.LineColor = UtilsiOS.String2Color(arg2);
+                            m_chart.SecondaryAxis.LabelStyle.Color = UtilsiOS.String2Color(arg2);
+                        }
+                        break;
+                    case "legend_clor":
+                        m_chart.Legend.LabelStyle.Color = UtilsiOS.String2Color(arg2);
+                        m_chart.Legend.Title.TextColor = UtilsiOS.String2Color(arg2);
                         break;
                 }
             }
@@ -1382,6 +1419,7 @@ namespace scripting.iOS
             else if (m_grid != null)
             {
                 m_grid.BackgroundColor = color;
+                m_grid.GridStyle = new MyGridStyle(m_bgColor, m_fontColor);
             }
             else if (m_barcode != null)
             {
@@ -1428,27 +1466,6 @@ namespace scripting.iOS
                 {
                     m_chart.Title.TextColor = color;
                 }
-
-                if (m_chart.PrimaryAxis != null)
-                {
-                    m_chart.PrimaryAxis.Title.Color = color;
-                    m_chart.PrimaryAxis.AxisLineStyle.LineColor = color;
-                    m_chart.PrimaryAxis.MajorGridLineStyle.LineColor = color;
-                    m_chart.PrimaryAxis.MajorTickStyle.LineColor = color;
-                    m_chart.PrimaryAxis.LabelStyle.Color = color;
-                }
-                if (m_chart.SecondaryAxis != null)
-                {
-                    m_chart.SecondaryAxis.Title.Color = color;
-                    m_chart.SecondaryAxis.AxisLineStyle.LineColor = color;
-                    m_chart.SecondaryAxis.MajorGridLineStyle.LineColor = color;
-                    m_chart.SecondaryAxis.MajorTickStyle.LineColor = color;
-                    m_chart.SecondaryAxis.LabelStyle.Color = color;
-
-                }
-
-                m_chart.Legend.LabelStyle.Color = color;
-                m_chart.Legend.Title.TextColor = color;
             }
             else if (m_stepper != null)
             {
@@ -1480,6 +1497,10 @@ namespace scripting.iOS
             else if (m_circularGauge != null && m_circularGauge.Headers.Count > 0)
             {
                 m_circularGauge.Headers[0].TextColor = color;
+            }
+            else if (m_grid != null)
+            {
+                m_grid.GridStyle = new MyGridStyle(m_bgColor, m_fontColor);
             }
             else
             {
@@ -1673,5 +1694,82 @@ namespace scripting.iOS
             }
             return label;
         }*/
+    }
+
+    public class MyGridStyle : DataGridStyle
+    {
+        public UIColor Background { get; set; } = UIColor.White;
+        public UIColor Foreground { get; set; } = UIColor.Black;
+        public UIColor HeaderColor { get; set; } = UIColor.Black;
+
+        public MyGridStyle()
+        {
+        }
+        public MyGridStyle(UIColor bgcolor, UIColor fgColor)
+        {
+            Background = bgcolor;
+            Foreground = fgColor;
+        }
+
+        public override UIColor GetHeaderBackgroundColor()
+        {
+            return UIColor.FromRGB(15, 15, 15);
+        }
+
+        public override UIColor GetHeaderForegroundColor()
+        {
+            return HeaderColor;
+        }
+
+        public override UIColor GetRecordBackgroundColor()
+        {
+            return Background;
+        }
+
+        public override UIColor GetRecordForegroundColor()
+        {
+            return Foreground;
+        }
+
+        public override UIColor GetSelectionBackgroundColor()
+        {
+            return UIColor.FromRGB(42, 159, 214);
+        }
+
+        public override UIColor GetSelectionForegroundColor()
+        {
+            return UIColor.FromRGB(255, 255, 255);
+        }
+
+        public override UIColor GetCaptionSummaryRowBackgroundColor()
+        {
+            return UIColor.FromRGB(02, 02, 02);
+        }
+
+        public override UIColor GetCaptionSummaryRowForeGroundColor()
+        {
+            return UIColor.FromRGB(255, 255, 255);
+        }
+
+        public override UIColor GetBorderColor()
+        {
+            return UIColor.FromRGB(81, 83, 82);
+        }
+
+        public override UIColor GetLoadMoreViewBackgroundColor()
+        {
+            return UIColor.FromRGB(242, 242, 242);
+        }
+
+        public override UIColor GetLoadMoreViewForegroundColor()
+        {
+            return UIColor.FromRGB(34, 31, 31);
+        }
+
+        /*public override UIColor GetAlternatingRowBackgroundColor()
+        {
+            return UIColor.Cyan;
+        }*/
+
     }
 }
