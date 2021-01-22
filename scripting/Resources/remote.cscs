@@ -73,7 +73,7 @@ purchased    = GetSetting("purchased", "bool", false);
 //colWidth = {40, 15, 15, 15, 15};
 listCols = {"Instrument", "string", "Settle", "number"};
 colWidth = {70, 30};
-bestStocksCols = {"Instrument", "string", "Rel.Divid.", "number", "Std.Dev.", "number", "Sharpe", "number"};
+bestStocksCols = {"Instrument", "string", "Rel.Divid.", "number", "Std.Dev.", "number", "Ratio", "number"};
 bestStocksWidth = {40, 20, 20, 20};
 
 allowedStocks = { "AAPL", "ABBN", "BAY" };
@@ -84,8 +84,13 @@ printConsole("Starting with fav. stock: " + stock);
 username = "test";//GetText(textLogin);
 password = "test";//GetText(textPassword);
 
-toastBg = "blue";
-toastFg = "white";
+toastBg = "gray";
+toastFg = "blue";
+
+SetBackgroundColor("black");
+colorFg1 = "white";
+colorFg2 = "light_gray";
+SetFontColor(colorFg1);
 
 AutoScale(1.0);
 
@@ -130,7 +135,7 @@ function makeBusy() {
   }
   busyType = busyOptions[busyIndex];
   SetValue(BusyIndicator, "type",  busyType);
-  SetValue(BusyIndicator, "color", "blue");
+  SetValue(BusyIndicator, "color", "light_gray");
   SetValue(BusyIndicator, "secondary_color", "red");
   //SetValue(BusyIndicator, "duration", stepperValue);
   busy = true;
@@ -191,29 +196,11 @@ function tabSelected(sender, arg) {
     HideView(volainfo);
     GetDataFromServer("a_volas", stock, "fillVolasData");
   } elif (newtab == 3) {
-    /*if (!data.Contains(stock)) {
-      GetDataFromServer("optionprices", stock, "fillStockData");
-      return;
-    }
-    createGraphs();*/
     if (NameExists(DataGrid)) {
       makeUnbusy();
       return;
     }
     GetDataFromServer("beststocks", stock, "fillBestStocks");
-  } elif (newtab == 4) {
-    printConsole("stock=" + stock + ", lastStockLoaded=" + lastStockLoaded);
-    if (stock == lastStockLoaded && optionsLoaded) {
-      printConsole("No reload needed for stock " + stock);
-      makeUnbusy();
-      return;
-    }
-    if (stock == lastStockLoaded && !optionsLoaded) {
-      reloadOptionsTable();
-      makeUnbusy();
-      return;
-    }
-    GetDataFromServer("optionprices", stock, "fillStockData");
   } else {
     makeUnbusy();
   }
@@ -234,10 +221,35 @@ function buttonAboutUs_click(sender, arg) {
 }
 
 function buttonWriteUs_click(sender, arg) {
+  //AlertEditDialog(AppName, "Please fill out the stock info....");
+  //locDia = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 0);
+  AddCustomDialog({"Please suggest a stock you would like to see in this app.", "Stock:", "stock to add"},
+                  {"Submit", "stockSubmitted", "Cancel"});
+}
+
+function buttonRateUs_click(sender, arg) {
   AlertDialog(AppName, "You will be redirected to the AppStore Review page. \n" +
                        "Please write there what stocks you would like to include. \n" +
                        "Your general feedback will also be appreciated.",
                        "OK", "feedback_click", "Cancel");
+}
+
+function stockSubmitted(sender, arg) {
+  if (arg == "") {
+    AlertDialog(AppName, "Please fill out the stock info.");
+    return;
+  }
+  PrintConsole("Submitting stock: [" + arg + "] ...");
+  GetDataFromServer("feedback", arg, "stockSuggested");
+}
+
+function stockSuggested(sender, arg) {
+  PrintConsole("Submited stock: [" + arg + "]");
+  if (arg == "" || arg.StartsWith("Error") || arg.StartsWith("Couldn't")) {
+    AlertDialog(AppName, "Couldn't connect to the server.");
+    return;
+  }
+  AlertDialog(AppName, "Feedback sent.");
 }
 
 function feedback_click(sender, arg) {
@@ -265,6 +277,14 @@ function volainfo_click(sender, arg) {
   }*/
   text = "First graph is the Implied Volatility graph and second graph is the parametrized curve that estimates volatility.\n\n" +
          "Stay tuned for the refined parametrization (SVI).";
+
+  AlertDialog(AppName, text);
+}
+
+function perfinfo_click(sender, arg) {
+  text = "\nThe second column shows the dividend relative to the stock price.\n\n" +
+         "The third one shows the stock standard deviation.\n\n" +
+         "The last column shows the ratio between them: the larger the value, the more attractive we can expect the stock to be.\n";
 
   AlertDialog(AppName, text);
 }
@@ -308,6 +328,7 @@ function setStock(arg) {
     stock = stock.Substring(3);
     stockMenu = stockMenu.Substring(3);
     hack = true;
+    purchased = true;
   }
   SetSetting("stock", stock);
   SetSetting("stockMenu", stockMenu);
@@ -485,7 +506,7 @@ function stockSelected(sender, arg) {
   makeBusy();
   parts = arg.Split(' ');
   stock = parts.First;
-  GetDataFromServer("optionprices", stock, "fillStockData");
+  //GetDataFromServer("optionprices", stock, "fillStockData");
   //printConsole("Requested data for " + stock + ". Market: " + market);
 }
 
@@ -567,8 +588,6 @@ function addDataToGraph(graphName, graphData, key, colors) {
 function loadStockWarning() {
   makeUnbusy();
   ShowToast("Loading stock data first...", 7, "yellow", "dark_green");
-  SelectTab(4);
-  GetDataFromServer("optionprices", stock, "fillStockData");
 }
 
 function createGraphs() {
@@ -623,7 +642,7 @@ function fillVolasData(sender, arg) {
 
   locComboVolas = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, extraTop);
   AddCombobox(locComboVolas, "volasWidget", "", 530, 50);
-  SetValue(volasWidget, "backgroundcolorview2", colorFg);
+  SetValue(volasWidget, "backgroundcolorview2", colorFg1);
   SetFontSize(volasWidget, fontSizeSm + 1);
 
   points         = arg.Split("\t");
@@ -926,6 +945,11 @@ function fillDividendsData(sender, arg) {
     return;
   }
 
+  SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
+  SetValue(DivGraph1, "secondary_axis", "Payout");
+  SetValue(DivGraph1, "string_axis", "x");
+  setToolTip(DivGraph1, toolTipWidth, toolTipHeight, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
+
   dividends[stock] = arg;
   //PrintConsole(arg);
   //CH0012221716|0.800000011920929|0.850000023841858|CHF|Laufende Dividende|2019-05-06  CH0012221716|0.779999971389771|0.850000023841858|CHF|Laufende Dividende|2018-04-04  CH0012221716|0.759999990463257|0.850000023841858|CHF|Laufende Dividende|2017-04-19  CH0012221716|0.239999994635582|0.850000023841858|CHF|Laufende Dividende|2007-05-08  CH0012221716|0.119999997317791|0.850000023841858|CHF|Laufende Dividende|2006-05-09
@@ -947,127 +971,29 @@ function fillDividendsData(sender, arg) {
     estimated  = Bool(parts[6]);
     nbPast    += !estimated;
     nbFuture  += estimated;
+    /*if (!estimated && nbPast > 4) {
+      continue;
+    }
+    if (estimated && nbFuture > 4) {
+      continue;
+    }*/
     key        = estimated ? estimatedTitle : pastTitle;
     //key        = pastTitle;
     
     AddOrderedData(divData, key, x, y, "str");
-    //PrintConsole("Processed Dividend [", point, "] size=", parts.size + ", key=", key);
+    PrintConsole("Processed Dividend [", point, "] size=", parts.size + ", key=", key, ", x=", x, ", y=", y);
   }
   
   PrintConsole("Loaded ", nbPast, " past dividends and ", nbFuture, " estimated for ", isin);
 
-  if (divData.Size > 0) {
-    SetValue(DivGraph1, "primary_axis",   "Ex-Dividend Date");
-    SetValue(DivGraph1, "secondary_axis", "Payout");
-    SetValue(DivGraph1, "string_axis", "x");
-    setToolTip(DivGraph1, toolTipWidth, toolTipHeight, "orange", "dark_blue", 12, "coins", 30, 50, "", "");
-    if (nbPast > 0) {
+  if (nbPast > 0) {
       addDataToGraph(DivGraph1, divData, pastTitle, "blue:blue");
-    } 
-    if (nbFuture > 0) {
+  } 
+  if (nbFuture > 0) {
       addDataToGraph(DivGraph1, divData, estimatedTitle, "orange:orange");
-    } 
-  }
+  } 
   lastAnalysisLoaded = stock;
   GetDataFromServer("stockstddev", stock, "fillStdDevData");
-}
-
-function fillStockData(sender, arg) {
-  //PrintConsole("fillStockData arg=" + arg);
-  options = arg.Split("!");
-  if (options.Size < 2 && !arg.Contains("|")) {
-    setConnectionStatus(arg);
-    return;
-  }
-
-  //C ABBN A 2020-04-17 12.6|0|0|4.6100001335144|4.6100001335144|CHF|EUX|per unit|4/8/2020 12:00:00 AM!
-  optionsLoaded = currentTab == 4;
-   
-  selCallPuts     = {};
-  unselCallPuts   = {};
-  expiries        = {};
-  lastStockLoaded = stock;
-  expiries.Add(callputHeader + " " + stock);
-
-  ShowToast("Loaded " + options.Size + " options.", 5, toastFg, toastBg);
-
-  ccy = market = "";
-  stock = sender;
-  stockData = {};
-  processed = {};
-  optionDataArr = {}; 
-  expiry = "";
-  prevExpiry = "";
-  prevSettle = 0;
-  diffValues = 0;
-  
-  //P ANN A 2019-04-19 49.0|0|0|4.28000020980835|4.28000020980835|EUR|EUX|per unit|4/14/2019 12:00:00 AM!
-  //IBM|IBM|137.914993286133|137.160003662109|USD|US|US4592001014|11/7/2019 12:00:00 AM|True: 1
-  previousKey = "";
-  for (option : options) {
-    data = option.Split("|");
-    if (data.size < 9) {
-      continue;
-    }
-    instr  = data[0];
-    bid    = Round(Double(data[1]), 4);
-    ask    = Round(Double(data[2]), 4);
-    last   = Round(Double(data[3]), 4);
-    settle = Round(Double(data[4]), 4);
-    ccy    = data[5];
-    market = data[6];
-    //typeq  = data[7];
-    //date   = data[8];
-
-    parts = instr.Split(" ");
-    if (last <= 0 || parts.size < 5 || parts[0] == "OPT") {
-      continue;
-    }
-    expiry = parts[3];
-    diffValues += settle != prevSettle;
-
-    key   = parts[1] + "_" + parts[0] + "_" + expiry;
-    uniqueKey = key + "_" + parts[4];
-    if (processed.Contains(uniqueKey)) {
-      //PrintConsole("  ALREADY EXISTS:", uniqueKey);
-      continue;
-    }
-    processed.Add(uniqueKey);
-
-    //optionData   = {instr, bid, ask, last, settle};
-    optionData   = {instr, settle};
-    optionDataArr.Add(optionData);
-
-    AddOrderedData(stockData, key, parts[4], last);
-
-    if (prevExpiry != expiry) {
-      if (diffValues > 2) {
-        expiries.AddUnique(prevExpiry);
-        if (selCallPuts.Size < 1) {
-          selCallPuts.AddUnique(expiry);
-          //SetValue(callputWidget, expiry, "dark_green");
-        }
-      }
-      diffValues = 0;
-    }
-    prevExpiry = expiry;
-    prevSettle = settle;
-  }
-  if (diffValues > 2 && expiry != "") {
-    expiries.AddUnique(expiry);
-  }  
-  data[stock] = stockData;
-  //PrintConsole(stockData);
-  
-  if (optionsLoaded) {
-    reloadOptionsTable();
-  } else {
-    createGraphs();
-    repaintCallPutWidget(expiries);
-  }
-  makeUnbusy();
-  //ShowToast("Loaded " + expiries.Size + " option expiries.", 5, toastFg, toastBg);
-  printConsole("Finished fillStockData for " + stock + ", market: " + market);
 }
 
 function fillBestStocks(sender, arg) {
@@ -1082,7 +1008,7 @@ function fillBestStocks(sender, arg) {
   RemoveViewIfExists(DataGrid);
   locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
   AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
-
+  SetValue(DataGrid, "header_color", colorFg2);
   AddWidgetData(DataGrid, bestStocksCols, "columns");
   AddWidgetData(DataGrid, bestStocksWidth, "columnWidth");
 
@@ -1092,7 +1018,17 @@ function fillBestStocks(sender, arg) {
     if (curr.size < 4) {
       continue;
     }
-    instr  = curr[0];
+    if (!purchased) {
+      instr = "Only Paid Version";
+      for (i = 0; i < allowedStocks.Length; i++) {
+        if (curr[0].Contains(allowedStocks[i])) {
+          instr  = curr[0];
+          break;
+        }
+      }
+    } else {
+      instr  = curr[0];
+    }
     reldiv = Round(Double(curr[1]), 2);
     stddev = Round(Double(curr[2]), 2);
     sharpe = Round(Double(curr[3]), 2);
@@ -1103,27 +1039,6 @@ function fillBestStocks(sender, arg) {
   makeUnbusy();
   ShowToast("Loaded " + bestStocks.Size + " stocks.", 5, toastFg, toastBg);
   printConsole("Finished fillBestStocks");
-}
-
-
-function reloadOptionsTable() {
-  locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
-  AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
-
-  AddWidgetData(DataGrid, listCols, "columns");
-  AddWidgetData(DataGrid, colWidth, "columnWidth");
-
-  for (optionData : optionDataArr) {
-    AddWidgetData(DataGrid, optionData, "item");
-  }
-
-  locCcyLab = GetLocation("ROOT", "CENTER", DataGrid, "BOTTOM", -30, 24);
-  AddLabel(locCcyLab, "labelCcy", "Currency:", 180, 60);
-  SetFontSize(labelCcy, 14);
-
-  locCcyImg = GetLocation(labelCcy, "RIGHT", labelCcy, "CENTER", 10, 0);
-  AddImageView(locCcyImg, "imageCcy", ccy, 100, 100);
-  optionsLoaded = true;
 }
 
 function showError(msg) {
@@ -1161,7 +1076,7 @@ function resetButtons() {
 }
 
 function buttonPurchase_click(sender, arg) {
-  ShowToast(Localize("Please wait while purchasing..."), 10, "blue");
+  ShowToast(Localize("Please wait while purchasing..."), 10, toastFg, toastBg);
   Purchase(productId, "on_purchase");
 }
 
@@ -1173,7 +1088,7 @@ function on_purchase(error, productId) {
   }
 
   //description = ProductIdDescription(productId);
-  ShowToast(Localize("Purchased Unlimited Usage"), 7, "blue");
+  ShowToast(Localize("Purchased Unlimited Usage"), 7, toastFg, toastBg);
   complete_purchase_restore(productId);
   //PrintConsole("Purchased: ", productId, ": ", description);
 }
@@ -1220,23 +1135,23 @@ function reset_purchase_restore() {
 }
 
 function buttonRestore_click(sender, arg) {
-  ShowToast(Localize("Please wait while restoring..."), 10, "blue");
+  ShowToast(Localize("Please wait while restoring..."), 10, toastFg, toastBg);
   Restore("on_restore", productId);
 }
 
 //--------- GUI Code Starts Here ----------------
 
-fontSizeSm   = 13;
+fontSizeSm   = 14;
 fontSize     = 26;
-textHeight   = 60;
-textWidth    = 220;
+textHeight   = 80;
+textWidth    = 236;
 tokenCount   = 0;
 busySize     = 400;
 
 graphWidth   = 620;
 graphHeight  = 480;
 tableWidth   = 620;
-tableHeight  = 880;
+tableHeight  = 1000;
 extraTop     = 10;
 
 isiPhoneX    = isiPhoneX();
@@ -1244,17 +1159,13 @@ isiPhoneX    = isiPhoneX();
 if (isiPhoneX || isiPhoneXR) {
   graphWidth   = 600;
   graphHeight  = 600;
-  tableHeight  = 1080;
+  tableHeight  = 1200;
   extraTop     = 34;
 }
 
 //printConsole("extraTop=" + extraTop);
 
-SetBackgroundColor("black");
-colorFg = "yellow";
-SetFontColor("yellow");
-
-numberTabs = 5;
+numberTabs = 4;
 currentTab = 0;
 
 AddOrSelectTab("Main",         "main_fin.png",   "main_fin2.png");
@@ -1271,70 +1182,92 @@ AddButton(locVolaInfo, "volainfo", "", 50, 50);
 AddBorder(volainfo, 0);
 SetImage(volainfo, "info_i");
 
+SelectTab(3);
+
+locPerfInfo = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", 0, 0);
+AddButton(locPerfInfo, "perfinfo", "", 50, 50);
+AddBorder(perfinfo, 0);
+SetImage(perfinfo, "info_i");
+
 SelectTab(0);
 
 locLoading = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", -80, -120);
 AddLabel(locLoading, "labelLoading", "", 580, 160);
 AlignText(labelLoading, "center");
 
+
 locStockLab = GetLocation("ROOT", "LEFT", "ROOT", "TOP", 10, extraTop);
 AddLabel(locStockLab, "labelStock", "Stock:", textWidth, textHeight);
 SetFontSize(labelStock, fontSizeSm);
+SetFontColor(labelStock, colorFg2);
 
 locComboAllStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
-AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight);
+AddCombobox(locComboAllStocks, "allStocksCombo", "::::edit", 380, textHeight - 20);
 SetFontSize(allStocksCombo, fontSizeSm);
 SetValue(allStocksCombo, "alignment", "center");
 SetText(allStocksCombo, stock);
-SetValue(allStocksCombo, "backgroundcolorview2", colorFg);
+SetValue(allStocksCombo, "backgroundcolorview2", colorFg1);
+SetFontColor(allStocksCombo, colorFg1);
 
 locIsinLab = GetLocation("ROOT", "LEFT", labelStock, "BOTTOM", 10, 10);
 AddLabel(locIsinLab, "labelIsin", "ISIN:", textWidth, textHeight);
 SetFontSize(labelIsin, fontSizeSm);
+SetFontColor(labelIsin, colorFg2);
 
 locIsin = GetLocation(labelIsin, "RIGHT", labelIsin, "CENTER", 10);
 AddLabel(locIsin, "textIsin", "", textWidth, textHeight);
 SetFontSize(textIsin, fontSizeSm);
+SetFontColor(textIsin, colorFg1);
 
 locCloseLab = GetLocation("ROOT", "LEFT", labelIsin, "BOTTOM", 10, 10);
 AddLabel(locCloseLab, "labelClose", "Close:", textWidth, textHeight);
 SetFontSize(labelClose, fontSizeSm);
+SetFontColor(labelClose, colorFg2);
 
 locClose = GetLocation(labelClose, "RIGHT", labelClose, "CENTER", 10);
 AddLabel(locClose, "textClose", "", textWidth, textHeight);
 SetFontSize(textClose, fontSizeSm);
+SetFontColor(textClose, colorFg1);
 
 locLastDivLab = GetLocation("ROOT", "LEFT", labelClose, "BOTTOM", 10, 10);
 AddLabel(locLastDivLab, "labelLastDiv", "Paid/Declared Dividend:", textWidth, textHeight);
 SetFontSize(labelLastDiv, fontSizeSm);
+SetFontColor(labelLastDiv, colorFg2);
 
 locLastDiv = GetLocation(labelLastDiv, "RIGHT", labelLastDiv, "CENTER", 10);
 AddLabel(locLastDiv, "textLastDiv", "", 380, textHeight);
 SetFontSize(textLastDiv, fontSizeSm);
+SetFontColor(textLastDiv, colorFg1);
 
 locNextDivLab = GetLocation("ROOT", "LEFT", labelLastDiv, "BOTTOM", 10, 10);
 AddLabel(locNextDivLab, "labelNextDiv", "Next Dividend:", textWidth, textHeight);
 SetFontSize(labelNextDiv, fontSizeSm);
+SetFontColor(labelNextDiv, colorFg2);
 
 locDiv = GetLocation(labelNextDiv, "RIGHT", labelNextDiv, "CENTER", 10);
 AddLabel(locDiv, "textNextDiv", "", 380, textHeight);
 SetBold(textNextDiv, fontSizeSm + 2);
+SetFontColor(textNextDiv, colorFg1);
 
 locStdLab = GetLocation("ROOT", "LEFT", labelNextDiv, "BOTTOM", 10, 10);
-AddLabel(locStdLab, "labelStd", "Standard Deviation (1 year):", textWidth, textHeight);
+AddLabel(locStdLab, "labelStd", "Standard Deviation (1y):", textWidth, textHeight);
 SetFontSize(labelStd, fontSizeSm);
+SetFontColor(labelStd, colorFg2);
 
 locStd = GetLocation(labelStd, "RIGHT", labelStd, "CENTER", 10);
 AddLabel(locStd, "textStd", "", textWidth, textHeight);
 SetBold(textStd, fontSizeSm + 2);
+SetFontColor(textStd, colorFg1);
 
 locUpdateLab = GetLocation("ROOT", "LEFT", labelStd, "BOTTOM", 10, 10);
 AddLabel(locUpdateLab, "labelUpdate", "Last Update:", textWidth, textHeight);
 SetFontSize(labelUpdate, fontSizeSm);
+SetFontColor(labelUpdate, colorFg2);
 
 locUpdate = GetLocation(labelUpdate, "RIGHT", labelUpdate, "CENTER", 10);
 AddLabel(locUpdate, "textUpdate", "", textWidth, textHeight);
 SetFontSize(textUpdate, fontSizeSm);
+SetFontColor(textUpdate, colorFg1);
 
 HideView(labelIsin);
 HideView(textIsin);
@@ -1349,36 +1282,43 @@ HideView(textStd);
 HideView(labelUpdate);
 HideView(textUpdate);
 
-locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 80);
+locStatus = GetLocation("ROOT", "LEFT", "ROOT", "CENTER", 10, 160);
 AddLabel(locStatus, "labelStatus", "Status:", 180, 60);
-SetFontSize(labelStatus, fontSizeSm + 2);
+SetBold(labelStatus, fontSizeSm + 2);
 AlignText(labelStatus, "left");
+SetFontColor(labelStatus, colorFg2);
 
-locConnect = GetLocation("ROOT", "CENTER", "labelStatus", "BOTTOM", 0, 20);
-AddButton(locConnect, "buttonConnect", "", 180, 180);
+locConnect = GetLocation("ROOT", "CENTER", "labelStatus", "BOTTOM", 0, 30);
+AddButton(locConnect, "buttonConnect", "", 120, 120);
 SetImage(buttonConnect, "connect");
 AddBorder(buttonConnect, 0);
 
-locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", -10, 0);
-AddLabel(locStatus2, "labelStatus2", "Disconnected", 360, 60);
+locStatus2 = GetLocation(labelStatus, "RIGHT", labelStatus, "CENTER", -20, 0);
+AddLabel(locStatus2, "labelStatus2", "Disconnected", 500, 60);
 SetFontColor(labelStatus2, "red");
 AlignText(labelStatus2, "left");
-SetBold(labelStatus2, fontSizeSm + 5);
+SetBold(labelStatus2, fontSizeSm + 4);
 
 locAboutUs = GetLocation("ROOT", "RIGHT", "ROOT", "BOTTOM", -20, -10);
-AddButton(locAboutUs, "buttonAboutUs", "", 130, 130);
+AddButton(locAboutUs, "buttonAboutUs", "", 100, 100);
 AddBorder(buttonAboutUs, 0);
-SetImage(buttonAboutUs, "about");
+SetImage(buttonAboutUs, "info_i");
 
-locWriteUs = GetLocation(buttonAboutUs, "LEFT", "ROOT", "BOTTOM", -10, -10);
-AddButton(locWriteUs, "buttonWriteUs", "", 130, 130);
+locRateUs = GetLocation(buttonAboutUs, "LEFT", "ROOT", "BOTTOM", -10, -10);
+AddButton(locRateUs, "buttonRateUs", "", 100, 100);
+AddBorder(buttonRateUs, 0);
+SetImage(buttonRateUs, "rate_us");
+
+locWriteUs = GetLocation(buttonRateUs, "LEFT", "ROOT", "BOTTOM", -10, -10);
+AddButton(locWriteUs, "buttonWriteUs", "", 100, 100);
 AddBorder(buttonWriteUs, 0);
 SetImage(buttonWriteUs, "suggest_us");
 
 locRestore = GetLocation("ROOT", "LEFT", "ROOT", "BOTTOM", 10, -20);
-AddButton(locRestore, "buttonRestore", "Restore", 220, 110);
+AddButton(locRestore, "buttonRestore", "Restore", 200, 100);
 SetImage(buttonRestore, "restore");
 SetFontSize(buttonRestore, fontSize);
+SetFontColor(buttonRestore, "yellow");
 /*
 locPurchase = GetLocation(buttonRestore, "RIGHT", buttonRestore, "CENTER", 6, 0);
 AddButton(locPurchase, "buttonPurchase", "Purchase", 220, 110);

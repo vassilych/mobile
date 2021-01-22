@@ -126,6 +126,7 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\callput_graph.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\table2.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\analysys.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\rate_us.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />

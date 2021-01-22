@@ -74,7 +74,7 @@ namespace Proxy
 
             if (s_client == null)
             {
-                throw new ArgumentException("Couldn't connect to the TrueDividends server");
+                throw new ArgumentException("Couldn't connect to the TrueDividends server.");
             }
 
         }
