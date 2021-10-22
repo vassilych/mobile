@@ -278,14 +278,14 @@
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1536x2048.png" />
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_768x1024.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_640x1136.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_640x960.png" />
     <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_2048x2732.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_750x1334.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1242x2208.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1125x2436.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_828x1792.png" />
-    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\TD_1242x2688.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch750x1334-1.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch640x960-1.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch640x1136-1.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1242x2688-2.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch828x1792-2.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch1125x2436-2.png" />
+    <ImageAsset Include="Assets.xcassets\LaunchImage.launchimage\Launch2208-1.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -302,6 +302,7 @@
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
     <None Include="packages.config" />
+    <None Include="Info %28copy%29.plist" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
@@ -5115,6 +5116,24 @@
     </BundleResource>
     <BundleResource Include="..\scripting\Resources\drawable\analysys.png">
       <Link>Resources\drawable\analysys.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\MSFT.png">
+      <Link>Resources\drawable\MSFT.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\GOOG.png">
+      <Link>Resources\drawable\GOOG.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\drawable\UBSG.png">
+      <Link>Resources\drawable\UBSG.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\MSFT.csv">
+      <Link>Resources\MSFT.csv</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\GOOG.csv">
+      <Link>Resources\GOOG.csv</Link>
+    </BundleResource>
+    <BundleResource Include="..\scripting\Resources\UBSG.csv">
+      <Link>Resources\UBSG.csv</Link>
     </BundleResource>
   </ItemGroup>
   <ItemGroup>

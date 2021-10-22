@@ -34,6 +34,7 @@ namespace scripting.Droid
         static List<ActionBar.Tab> m_actionBars = new List<ActionBar.Tab>();
 
         static Dictionary<string, int> m_allTabs = new Dictionary<string, int>();
+        static List<DroidVariable> m_allViews = new List<DroidVariable>();
 
         public static int CurrentTabId;
 
@@ -43,6 +44,12 @@ namespace scripting.Droid
         public static bool KeyboardVisible;
 
         bool m_scriptRun = false;
+
+        public static string FontColorString
+        {
+            get;
+            set;
+        }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -268,8 +275,26 @@ namespace scripting.Droid
             ScriptingFragment.RemoveTabViews(tabId);
         }
 
+        public static void SetForegroundColor(string colorStr)
+        {
+            FontColorString = colorStr;
+            for (int i = 0; i < m_allViews.Count; i++)
+            {
+                m_allViews[i].SetFontColor(colorStr);
+            }
+        }
+        public static void SetForegroundColor(DroidVariable widget)
+        {
+            if (string.IsNullOrWhiteSpace(FontColorString))
+            {
+                return;
+            }
+            widget.SetFontColor(FontColorString);
+        }
+
         public static void AddView(DroidVariable widget, bool alreadyExists)
         {
+            SetForegroundColor(widget);
             var location = widget.Location;
             var view = widget.ViewX;
             var parentView = location.ParentView as DroidVariable;
@@ -426,11 +451,11 @@ namespace scripting.Droid
                 requestCode == TTS.TTS_INSTALLED_DATA ||
                 requestCode == TTS.TTS_CHECK_DATA)
             {
-                TTS.OnTTSResult(requestCode, resultCode, data);
+                //TTS.OnTTSResult(requestCode, resultCode, data);
             }
             else if (requestCode == STT.STT_REQUEST)
             {
-                STT.SpeechRecognitionCompleted(resultCode, data);
+                //STT.SpeechRecognitionCompleted(resultCode, data);
                 //} else if (requestCode == InAppBilling.IAP_REQUEST) {
                 //  InAppBilling.OnIAPCallback(requestCode, resultCode, data);
             }

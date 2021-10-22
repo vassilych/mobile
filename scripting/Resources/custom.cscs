@@ -1,7 +1,247 @@
 ﻿AutoScale(1.0);
-SetBackgroundColor("snow");
 
-locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "CENTER", 0, 50);
+// 18.1.0.42
+InitSyncfusion("MjM0MTk0QDMxMzgyZTMxMmUzMElTRkt2dmpPUFdoN0NhaFlGT2NNT25UMnA4TGRzanJVckw0dXE5WnZ3Nzg9");
+
+Version      = _APPVERSION_;
+AppName      = "Share Price Prediction";
+WebSite      = "ubs.com";
+
+toastBg = "gray";
+toastFg = "blue";
+
+tableWidth   = 620;
+tableHeight  = 1000;
+extraTop     = 10;
+busySize     = 400;
+if (isiPhoneX || isiPhoneXR) {
+  tableHeight  = 1200;
+  extraTop     = 34;
+}
+
+fontSizeSm   = 14;
+fontSize     = 18;
+textHeight   = 40;
+textWidth    = 236;
+prevStockSelection = "";
+busy = false;
+
+SetBackgroundColor("cyan");
+colorFg1 = "blue";
+colorFg2 = "light_gray";
+SetFontColor(colorFg1);
+
+AddOrSelectTab("Main",  "main_fin.png",   "main_fin2.png");
+
+locIntro = GetLocation("ROOT", "CENTER", "ROOT", "TOP", -20, 80);
+AddLabel(locIntro, "labelIntro", "Tomorrow's Share Price", 520, textHeight);
+SetFontSize(labelIntro, fontSize + 6);
+SetFontColor(labelIntro, "black");
+
+locStockLab = GetLocation("ROOT", "LEFT", labelIntro, "BOTTOM", 20, 280);
+AddLabel(locStockLab, "labelStock", "Choose Stock:", 240, textHeight);
+SetFontSize(labelStock, fontSize);
+
+stocks = {"GOOG", "MSFT", "UBSG"};
+calculatedPrices["GOOG"] = 2871.15;
+calculatedPrices["MSFT"] = 310.96;
+calculatedPrices["UBSG"] = 16.31;
+
+locStocks = GetLocation(labelStock, "RIGHT", labelStock, "CENTER", 10, 0);
+AddPickerView(locStocks, "cbStocks", "", 360, 100);
+SetBackgroundColor(cbStocks, "cyan");
+SetFontColor(cbStocks, "black");
+SetValue(cbStocks, "backgroundcolorview2", "white");
+AddWidgetData(cbStocks, stocks);
+AddWidgetImages(cbStocks, stocks);
+AddAction(cbStocks, "stockSelected");
+
+locChosenStock = GetLocation("ROOT", "CENTER", cbStocks, "BOTTOM", -10, 80);
+AddLabel(locChosenStock, "labelResult", "", 300, textHeight);
+SetFontSize(labelResult, fontSize + 6);
+
+AddOrSelectTab("Analysys",     "dividends2.png", "analysys.png");
+
+bestStocksCols = {"Date", "string", "Open", "number", "High", "number", "Low", "number", "Close", "number", "Volume", "number"};
+bestStocksWidth = {40, 20, 20, 20};
+
+AddOrSelectTab("Volas",        "vola.png",       "vola2.png");
+
+function fillHistoric() {
+  stock = GetText(cbStocks);
+  PrintConsole("fillHistoric ", stock);
+  if (stock == "") {
+    return;
+  }
+  RemoveViewIfExists(DataGrid);
+  locSFWidget = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 4 + extraTop);
+  AddSfDataGrid(locSFWidget,  "DataGrid", "", tableWidth, tableHeight);
+  SetValue(DataGrid, "header_color", colorFg2);
+  AddWidgetData(DataGrid, bestStocksCols, "columns");
+  AddWidgetData(DataGrid, bestStocksWidth, "columnWidth");
+  loadGrid(stock);
+}
+function fillGraph() {
+  stock = GetText(cbStocks);
+  PrintConsole("fillGraph ", stock);
+  if (stock == "") {
+    return;
+  }
+
+  RemoveViewIfExists(SplineGraph);
+  locGraph1 = GetLocation("ROOT", "CENTER", "ROOT", "TOP", 0, 50);
+  AddSfSplineGraph(locGraph1,  "SplineGraph", "", 600, 500);
+  loadGraph(stock);
+}
+
+function loadGrid(stock) {
+  filename = stock + ".csv";
+  PrintConsole(Now(), " Processing file ", filename);
+
+  lines = ReadFile(filename);
+
+  lineNr = loaded = 0;
+  for (line : lines) {
+    line = line.trim();
+    lineNr++;
+    if (lineNr == 1 || line == "") {
+      continue;
+    }
+    tokens = tokenize(line, ",");
+    //PrintConsole(Now(), "   Processing ", line, ": ", tokens.Size);
+    if (tokens.Size < 6) {
+      continue;
+    }
+    loaded++;
+    //if (loaded % 50 == 0) {
+    //  PrintConsole(Now(), loaded + "/" + lineNr + " lines loaded.");
+    //}
+    date = tokens[0];
+    open = Round(Double(tokens[1]), 2);
+    close = Round(Double(tokens[2]), 2);
+    high = Round(Double(tokens[3]), 2);
+    low = Round(Double(tokens[4]), 2);
+    volume = Round(Double(tokens[5]), 0);
+    histStockData   = {date, open, high, low, close, volume};
+    AddWidgetData(DataGrid, histStockData, "item");
+  }
+  PrintConsole(Now(), " Loaded lines: ", loaded);
+}
+function loadGraph(stock) {
+  filename = stock + ".csv";
+  PrintConsole(Now(), " Processing file ", filename);
+
+  chartData = {};
+  lines = ReadFile(filename);
+
+  lineNr = loaded = 0;
+  for (line : lines) {
+    line = line.trim();
+    lineNr++;
+    if (lineNr == 1 || line == "") {
+      continue;
+    }
+    tokens = tokenize(line, ",");
+    //PrintConsole(Now(), "   Processing ", line, ": ", tokens.Size);
+    if (tokens.Size < 6) {
+      continue;
+    }
+    loaded++;
+    //if (loaded % 50 == 0) {
+    //  PrintConsole(Now(), loaded + "/" + lineNr + " lines loaded.");
+    //}
+    date = tokens[0];
+    close = Round(Double(tokens[2]), 2);
+    chartData.Add(date);
+    chartData.Add(close);
+  }
+  SetText(SplineGraph,  "Close price for "  + stock);
+  SetValue(SplineGraph, "primary_axis", "Date");
+  SetValue(SplineGraph, "secondary_axis", "Price");
+  
+  setToolTip(SplineGraph, 150, 70, "yellow", "purple", 12, "coins", 30, 50,
+     "Date: ", "Close: ", "");
+  AddWidgetData(SplineGraph,       chartData,  "Close " + stock,   "green:black");
+  PrintConsole(Now(), " Loaded lines: ", loaded);
+}
+function setToolTip(graphName, width=100, height=50,
+                    bgcolor="orange", fgcolor="dark_blue", fontSize=11,
+                    image="", imageWidth=30, imageHeight=50,
+                    xPrefix = "", yPrefix = "", toolTipTitle = "") {
+  SetValue(graphName, "tooltip", width + ":" + height);
+  SetValue(graphName, "tooltip_bgcolor", bgcolor);
+  SetValue(graphName, "tooltip_font", fgcolor + ":" + fontSize);
+  
+  if (image != "") {
+    SetValue(graphName, "tooltip_image", "coins");
+    SetValue(graphName, "tooltip_image_size", imageWidth + ":" + imageHeight);
+  }
+  if (xPrefix != "") {
+    SetValue(graphName, "tooltip_xprefix", xPrefix);
+  }
+  if (yPrefix != "") {
+    SetValue(graphName, "tooltip_yprefix", yPrefix);
+  }
+  if (toolTipTitle != "") {
+    SetValue(graphName, "tooltip_title", toolTipTitle);
+  }
+}
+function stockSelected(sender, arg) {
+  PrintConsole(sender, " stockSelected: [", arg, "], prevStockSelection=", prevStockSelection);
+  if (arg == "") {
+    return;
+  }
+  prevStockSelection = GetText(sender);
+  SetText(labelResult, prevStockSelection + ": " + calculatedPrices[arg]);
+}
+
+function tabSelected(sender, arg) {
+  newtab = int(arg);
+  PrintConsole("tabSelected ", currentTab, "-->", newTab);
+
+  if (newtab == currentTab) {
+    return;
+  }
+  if (busy) {
+    ShowToast("Please wait till data is loaded", 5, "yellow", "dark_green");
+    SelectTab(currentTab);
+    return;
+  }
+  currentTab = newtab;
+  if (newtab == 0) {
+    return;
+  }
+  makeBusy();
+  if (newtab == 1) {
+    fillHistoric();
+  }  elif (newtab == 2) {
+    fillGraph();
+  }
+  makeUnbusy();
+}
+function makeBusy() {
+  //PrintConsole("-- makeBusy1()");
+  makeUnbusy();
+  locBusy = GetLocation("ROOT", "CENTER", "ROOT", "BOTTOM", 0, -300);
+  AddSfBusyIndicator(locBusy, "BusyIndicator", "", busySize, busySize);
+  
+  SetValue(BusyIndicator, "type",  "battery");
+  SetValue(BusyIndicator, "color", "light_gray");
+  SetValue(BusyIndicator, "secondary_color", "red");
+  //SetValue(BusyIndicator, "duration", stepperValue);
+  busy = true;
+  //PrintConsole("-- makeBusy2()");
+}
+function makeUnbusy() {
+  RemoveViewIfExists(BusyIndicator);
+  busy = false;
+  //PrintConsole("-- makeUnBusy()");
+}
+
+OnTabSelected("tabSelected");
+currentTab = 0;
+SelectTab(currentTab);
+
 /*
 //AddSfQRBarcode(locSFWidget,  "QRBarcode", "http://www.google.com", 450, 450);
 //AddSfCode39Barcode(locSFWidget, "Code39Barcode", "$9.99", 600, 400);

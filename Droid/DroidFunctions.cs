@@ -1231,7 +1231,13 @@ namespace scripting.Droid
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name, true);
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            if (args.Count == 1)
+            {
+                MainActivity.SetForegroundColor(args[0].AsString());
+                return Variable.EmptyInstance;
+            }
 
             DroidVariable widget = Utils.GetVariable(args[0].AsString(), script) as DroidVariable;
             Utils.CheckNotNull(widget, m_name, script, 0);

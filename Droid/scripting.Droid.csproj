@@ -35,7 +35,6 @@
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <JavaMaximumHeapSize>4G</JavaMaximumHeapSize>
-    <AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86_64;x86</AndroidSupportedAbis>
     <AotAssemblies>false</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
@@ -419,6 +418,15 @@
     <None Include="..\scripting\Resources\ads.cscs">
       <Link>Resources\ads.cscs</Link>
     </None>
+    <AndroidAsset Include="..\scripting\Resources\MSFT.csv">
+      <Link>Assets\MSFT.csv</Link>
+    </AndroidAsset>
+    <AndroidAsset Include="..\scripting\Resources\GOOG.csv">
+      <Link>Assets\GOOG.csv</Link>
+    </AndroidAsset>
+    <AndroidAsset Include="..\scripting\Resources\UBSG.csv">
+      <Link>Assets\UBSG.csv</Link>
+    </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\Main.axml" />
@@ -635,6 +643,691 @@
       </SubType>
       <Generator>
       </Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zucchini.png">
+      <Link>Resources\drawable\zucchini.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Zimbabwe.png">
+      <Link>Resources\drawable\Zimbabwe.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zh_v.png">
+      <Link>Resources\drawable\zh_v.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zh_CN.png">
+      <Link>Resources\drawable\zh_CN.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zero.png">
+      <Link>Resources\drawable\zero.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\zebra.png">
+      <Link>Resources\drawable\zebra.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Zambia.png">
+      <Link>Resources\drawable\Zambia.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\young.png">
+      <Link>Resources\drawable\young.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\yes.png">
+      <Link>Resources\drawable\yes.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Yemen.png">
+      <Link>Resources\drawable\Yemen.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\yellow.png">
+      <Link>Resources\drawable\yellow.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\year.png">
+      <Link>Resources\drawable\year.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\yarn.png">
+      <Link>Resources\drawable\yarn.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\yacht.png">
+      <Link>Resources\drawable\yacht.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\x_to_the_power_of_n.png">
+      <Link>Resources\drawable\x_to_the_power_of_n.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wrist.png">
+      <Link>Resources\drawable\wrist.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wrestling.png">
+      <Link>Resources\drawable\wrestling.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wrench.png">
+      <Link>Resources\drawable\wrench.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wound.png">
+      <Link>Resources\drawable\wound.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\worm.png">
+      <Link>Resources\drawable\worm.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\world_champion.png">
+      <Link>Resources\drawable\world_champion.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\world.png">
+      <Link>Resources\drawable\world.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\woodpecker.png">
+      <Link>Resources\drawable\woodpecker.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wood.png">
+      <Link>Resources\drawable\wood.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wolf.png">
+      <Link>Resources\drawable\wolf.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\winter.png">
+      <Link>Resources\drawable\winter.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wineglass.png">
+      <Link>Resources\drawable\wineglass.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wine.png">
+      <Link>Resources\drawable\wine.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\windshield_wiper.png">
+      <Link>Resources\drawable\windshield_wiper.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\window.png">
+      <Link>Resources\drawable\window.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wife.png">
+      <Link>Resources\drawable\wife.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\white_wine.png">
+      <Link>Resources\drawable\white_wine.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\white.png">
+      <Link>Resources\drawable\white.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wheel_rim.png">
+      <Link>Resources\drawable\wheel_rim.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wheel.png">
+      <Link>Resources\drawable\wheel.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\whale.png">
+      <Link>Resources\drawable\whale.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wet.png">
+      <Link>Resources\drawable\wet.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\west.png">
+      <Link>Resources\drawable\west.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\weird.png">
+      <Link>Resources\drawable\weird.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\weightlifting.png">
+      <Link>Resources\drawable\weightlifting.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\week.png">
+      <Link>Resources\drawable\week.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Wednesday.png">
+      <Link>Resources\drawable\Wednesday.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wedding.png">
+      <Link>Resources\drawable\wedding.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\weak.png">
+      <Link>Resources\drawable\weak.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wave.png">
+      <Link>Resources\drawable\wave.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\watermelon.png">
+      <Link>Resources\drawable\watermelon.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\watering_can.png">
+      <Link>Resources\drawable\watering_can.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\waterfall.png">
+      <Link>Resources\drawable\waterfall.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\water_ski.png">
+      <Link>Resources\drawable\water_ski.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\water_polo.png">
+      <Link>Resources\drawable\water_polo.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\water.png">
+      <Link>Resources\drawable\water.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\watch.png">
+      <Link>Resources\drawable\watch.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wastepaper_basket.png">
+      <Link>Resources\drawable\wastepaper_basket.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wasp.png">
+      <Link>Resources\drawable\wasp.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\washing_machine.png">
+      <Link>Resources\drawable\washing_machine.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\walnut.png">
+      <Link>Resources\drawable\walnut.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wallet.png">
+      <Link>Resources\drawable\wallet.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wall_clock.png">
+      <Link>Resources\drawable\wall_clock.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\wall.png">
+      <Link>Resources\drawable\wall.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\waiter.png">
+      <Link>Resources\drawable\waiter.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\waist.png">
+      <Link>Resources\drawable\waist.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vocabulary.png">
+      <Link>Resources\drawable\vocabulary.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\violin.png">
+      <Link>Resources\drawable\violin.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\violet.png">
+      <Link>Resources\drawable\violet.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\village.png">
+      <Link>Resources\drawable\village.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Vietnam.png">
+      <Link>Resources\drawable\Vietnam.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\victory.png">
+      <Link>Resources\drawable\victory.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vet.png">
+      <Link>Resources\drawable\vet.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vest.png">
+      <Link>Resources\drawable\vest.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Venus.png">
+      <Link>Resources\drawable\Venus.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Venezuela.png">
+      <Link>Resources\drawable\Venezuela.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Vatican.png">
+      <Link>Resources\drawable\Vatican.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vase.png">
+      <Link>Resources\drawable\vase.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\vacuum_cleaner.png">
+      <Link>Resources\drawable\vacuum_cleaner.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Uzbekistan.png">
+      <Link>Resources\drawable\Uzbekistan.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\us_w_bg.png">
+      <Link>Resources\drawable\us_w_bg.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\us_bg_l.png">
+      <Link>Resources\drawable\us_bg_l.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\us_bg.png">
+      <Link>Resources\drawable\us_bg.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Uruguay.png">
+      <Link>Resources\drawable\Uruguay.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Uranus.png">
+      <Link>Resources\drawable\Uranus.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\universe.png">
+      <Link>Resources\drawable\universe.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\United_States_USA.png">
+      <Link>Resources\drawable\United_States_USA.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\United_Kingdom.png">
+      <Link>Resources\drawable\United_Kingdom.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\United_Arab_Emirates.png">
+      <Link>Resources\drawable\United_Arab_Emirates.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\unidentified_flying_object_UFO.png">
+      <Link>Resources\drawable\unidentified_flying_object_UFO.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\unemployed.png">
+      <Link>Resources\drawable\unemployed.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\underwear.png">
+      <Link>Resources\drawable\underwear.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\underground.png">
+      <Link>Resources\drawable\underground.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\uncle.png">
+      <Link>Resources\drawable\uncle.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\umbrella.png">
+      <Link>Resources\drawable\umbrella.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Ukraine.png">
+      <Link>Resources\drawable\Ukraine.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\ugly.png">
+      <Link>Resources\drawable\ugly.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Uganda.png">
+      <Link>Resources\drawable\Uganda.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\U_turn.png">
+      <Link>Resources\drawable\U_turn.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\two_thirds.png">
+      <Link>Resources\drawable\two_thirds.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\two_o_clock.png">
+      <Link>Resources\drawable\two_o_clock.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\two_hundred.png">
+      <Link>Resources\drawable\two_hundred.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\two.png">
+      <Link>Resources\drawable\two.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twins.png">
+      <Link>Resources\drawable\twins.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_two.png">
+      <Link>Resources\drawable\twenty_two.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_to_three.png">
+      <Link>Resources\drawable\twenty_to_three.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_three.png">
+      <Link>Resources\drawable\twenty_three.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_six.png">
+      <Link>Resources\drawable\twenty_six.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_seven.png">
+      <Link>Resources\drawable\twenty_seven.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_one.png">
+      <Link>Resources\drawable\twenty_one.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_nine.png">
+      <Link>Resources\drawable\twenty_nine.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_four.png">
+      <Link>Resources\drawable\twenty_four.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_five_past_two.png">
+      <Link>Resources\drawable\twenty_five_past_two.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_five.png">
+      <Link>Resources\drawable\twenty_five.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty_eight.png">
+      <Link>Resources\drawable\twenty_eight.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twenty.png">
+      <Link>Resources\drawable\twenty.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\twelve.png">
+      <Link>Resources\drawable\twelve.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\TV.png">
+      <Link>Resources\drawable\TV.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\tuxedo.png">
+      <Link>Resources\drawable\tuxedo.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\turtle.png">
+      <Link>Resources\drawable\turtle.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Turkmenistan.png">
+      <Link>Resources\drawable\Turkmenistan.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Turkey.png">
+      <Link>Resources\drawable\Turkey.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Tunisia.png">
+      <Link>Resources\drawable\Tunisia.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\tug_of_war.png">
+      <Link>Resources\drawable\tug_of_war.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Tuesday.png">
+      <Link>Resources\drawable\Tuesday.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trunk.png">
+      <Link>Resources\drawable\trunk.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trumpet.png">
+      <Link>Resources\drawable\trumpet.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\truck.png">
+      <Link>Resources\drawable\truck.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trousers.png">
+      <Link>Resources\drawable\trousers.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trombone.png">
+      <Link>Resources\drawable\trombone.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trolley_bus_.png">
+      <Link>Resources\drawable\trolley_bus_.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\Trinidad_and_Tobago.png">
+      <Link>Resources\drawable\Trinidad_and_Tobago.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\triceps.png">
+      <Link>Resources\drawable\triceps.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\triangle.png">
+      <Link>Resources\drawable\triangle.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\tree.png">
+      <Link>Resources\drawable\tree.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trash_garbage.png">
+      <Link>Resources\drawable\trash_garbage.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trash_can.png">
+      <Link>Resources\drawable\trash_can.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\trapezoid.png">
+      <Link>Resources\drawable\trapezoid.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\rate_us.png">
+      <Link>Resources\drawable\rate_us.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\MSFT.png">
+      <Link>Resources\drawable\MSFT.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\GOOG.png">
+      <Link>Resources\drawable\GOOG.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="..\scripting\Resources\drawable\UBSG.png">
+      <Link>Resources\drawable\UBSG.png</Link>
+      <SubType></SubType>
+      <Generator></Generator>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup />

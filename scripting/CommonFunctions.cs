@@ -136,7 +136,7 @@ namespace scripting
             ParserFunction.RegisterFunction("SetSecure", new MakeSecureFunction());
             ParserFunction.RegisterFunction("SaveToPhotos", new SaveToPhotosFunction());
 
-            ParserFunction.RegisterFunction("AddCustomDialog", new DialogFunction());
+            //ParserFunction.RegisterFunction("AddCustomDialog", new DialogFunction());
 
             ParserFunction.RegisterFunction("_ANDROID_", new CheckOSFunction(CheckOSFunction.OS.ANDROID));
             ParserFunction.RegisterFunction("_IOS_", new CheckOSFunction(CheckOSFunction.OS.IOS));

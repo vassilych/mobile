@@ -173,7 +173,7 @@ namespace scripting.iOS
                 if (m_pics != null)
                 {
                     deltaX = PicSize;
-                    var xamImageView = new UIImageView(new CGRect(0, 2, deltaX, deltaX));
+                    var xamImageView = new UIImageView(new CGRect(10, 2, deltaX, deltaX));
                     xamImageView.Image = m_pics[(int)row];
                     view.AddSubview(xamImageView);
                 }

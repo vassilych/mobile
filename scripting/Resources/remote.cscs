@@ -8,7 +8,7 @@ InitSyncfusion("MjEzMjM3QDMxMzYyZTMyMmUzMG8zdVhtRjZlYzJmZGNaNzkwTlRNeVFMZkxyVld5
 //InitSyncfusion("MjEzMjM4QDMxMzcyZTM0MmUzMFpUdERwTWxzdGJwbm43Mit3dk1qZXpqcTZCcUdMaDM4YTlidktSY2Q1M2s9");
 // 18.1.0.42
 //InitSyncfusion("MjM0MTk0QDMxMzgyZTMxMmUzMElTRkt2dmpPUFdoN0NhaFlGT2NNT25UMnA4TGRzanJVckw0dXE5WnZ3Nzg9");
-InitIAP();
+//InitIAP();
 
 data          = {};
 prices        = {};

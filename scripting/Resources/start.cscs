@@ -5,11 +5,11 @@
 //ImportFile("sforientation.cscs");
 //ImportFile("iLanguage.cscs");
 //ImportFile("ads.cscs");
-//ImportFile("custom.cscs");
+ImportFile("custom.cscs");
 //ImportFile("test.cscs");
 //ImportFile("unitTests.cscs");
 //ImportFile("busyIndicators.cscs");
 //ImportFile("cscs.cscs");
-ImportFile("remote.cscs");
+//ImportFile("remote.cscs");
 
 //StartDebugger(13337, true, "*");

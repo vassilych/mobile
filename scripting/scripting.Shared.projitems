@@ -127,6 +127,12 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\table2.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\analysys.png" />
     <None Include="$(MSBuildThisFileDirectory)Resources\drawable\rate_us.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\UBSG.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\GOOG.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\drawable\MSFT.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\GOOG.csv" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\UBSG.csv" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\MSFT.csv" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Resources\" />
